@@ -127,3 +127,18 @@ export type Address = {
   streetAddress: string;
   isDefault: boolean;
 };
+
+export type WalletTransactionType = 'TopUp' | 'OrderPayment' | 'Refund' | 'Withdrawal';
+
+export type WalletTransaction = {
+  id: string;
+  type: WalletTransactionType;
+  amount: number;
+  description: string;
+  createdAt: string;
+  balanceAfter: number;
+};
+
+export type WalletBalance = {
+  balance: number;
+};

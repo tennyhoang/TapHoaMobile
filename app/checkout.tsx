@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { hubsService } from '@/services/hubs.service';
 import { ordersService } from '@/services/orders.service';
 import { cartService } from '@/services/cart.service';
+import { walletService } from '@/services/wallet.service';
 import { formatCurrency } from '@/lib/utils';
 import type { Hub, Cart } from '@/types';
 
@@ -44,6 +45,12 @@ const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc
     icon: 'card-outline',
     desc: 'Chuyển khoản ngân hàng theo mã đơn',
   },
+  {
+    value: 'Wallet',
+    label: 'Ví TapHoa',
+    icon: 'wallet-outline',
+    desc: 'Thanh toán từ ví điện tử',
+  },
 ];
 
 export default function CheckoutScreen() {
@@ -55,12 +62,14 @@ export default function CheckoutScreen() {
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
+  const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
-    Promise.all([cartService.get(), hubsService.getActive()])
-      .then(([c, h]) => {
+    Promise.all([cartService.get(), hubsService.getActive(), walletService.getBalance()])
+      .then(([c, h, w]) => {
         setCart(c);
         setHubs(h);
+        setWalletBalance(w.balance);
         if (h.length > 0) setSelectedHub(h[0]);
       })
       .catch(() => router.back())
@@ -178,7 +187,9 @@ export default function CheckoutScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.hubName}>{opt.label}</Text>
-                  <Text style={s.hubAddr}>{opt.desc}</Text>
+                  <Text style={s.hubAddr}>
+                    {opt.value === 'Wallet' ? `Số dư: ${formatCurrency(walletBalance)}` : opt.desc}
+                  </Text>
                 </View>
               </TouchableOpacity>
             ))}
