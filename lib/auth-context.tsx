@@ -5,6 +5,7 @@ type User = {
   email: string;
   fullName: string;
   role: string;
+  phoneNumber?: string;
 };
 
 type AuthContextType = {
@@ -13,6 +14,7 @@ type AuthContextType = {
   isLoading: boolean;
   login: (token: string, email: string, fullName: string, role: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (partial: Partial<User>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -57,8 +59,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const updateUser = async (partial: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...partial };
+      SecureStore.setItemAsync(USER_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ token, user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ token, user, isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

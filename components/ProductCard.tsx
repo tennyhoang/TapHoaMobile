@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import ProductImage from '@/components/ProductImage';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 
@@ -33,13 +34,7 @@ export default function ProductCard({ product, onAddToCart }: Props) {
     >
       {/* Image */}
       <View style={s.imgWrap}>
-        {product.thumbnailUrl ? (
-          <Image source={{ uri: product.thumbnailUrl }} style={s.img} resizeMode="cover" />
-        ) : (
-          <View style={s.imgPlaceholder}>
-            <Ionicons name="image-outline" size={32} color="rgba(255,255,255,0.5)" />
-          </View>
-        )}
+        <ProductImage uri={product.thumbnailUrl} style={s.img} />
         {hasDiscount && (
           <View style={s.badge}>
             <Text style={s.badgeText}>-{pct}%</Text>
@@ -106,12 +101,6 @@ const s = StyleSheet.create({
     backgroundColor: '#E5F9FA',
   },
   img: { width: '100%', height: '100%' },
-  imgPlaceholder: {
-    flex: 1,
-    backgroundColor: '#0EA5AE22',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   badge: {
     position: 'absolute',
     top: 8,

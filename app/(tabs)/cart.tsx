@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   RefreshControl,
   Platform,
@@ -13,7 +12,9 @@ import {
 } from 'react-native';
 import { useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import ProductImage from '@/components/ProductImage';
 import { cartService } from '@/services/cart.service';
+import { useCartCount } from '@/lib/cart-context';
 import { formatCurrency } from '@/lib/utils';
 import type { Cart, CartItem } from '@/types';
 
@@ -33,18 +34,20 @@ export default function CartScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [updating, setUpdating] = useState<string | null>(null);
+  const { refreshCount } = useCartCount();
 
   const fetchCart = useCallback(async () => {
     try {
       const data = await cartService.get();
       setCart(data);
+      refreshCount();
     } catch {
       setCart({ items: [], totalAmount: 0, totalItems: 0 });
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [refreshCount]);
 
   // Reload cart every time screen comes into focus
   useFocusEffect(
@@ -63,6 +66,7 @@ export default function CartScreen() {
         const updated = await cartService.update(productId, qty);
         setCart(updated);
       }
+      refreshCount();
     } catch {
       /* silent */
     } finally {
@@ -75,6 +79,7 @@ export default function CartScreen() {
     try {
       await cartService.clear();
       setCart({ items: [], totalAmount: 0, totalItems: 0 });
+      refreshCount();
     } catch {
       /* silent */
     } finally {
@@ -88,13 +93,7 @@ export default function CartScreen() {
       <View style={s.item}>
         {/* Image */}
         <View style={s.itemImg}>
-          {item.thumbnailUrl ? (
-            <Image source={{ uri: item.thumbnailUrl }} style={s.img} resizeMode="cover" />
-          ) : (
-            <View style={s.imgPlaceholder}>
-              <Ionicons name="leaf-outline" size={20} color={C.primary} />
-            </View>
-          )}
+          <ProductImage uri={item.thumbnailUrl} style={s.img} iconSize={20} />
         </View>
 
         {/* Info */}
@@ -217,7 +216,11 @@ export default function CartScreen() {
               <Text style={s.totalAmount}>{formatCurrency(cart!.totalAmount)}</Text>
             </View>
 
-            <TouchableOpacity style={s.checkoutBtn} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={s.checkoutBtn}
+              activeOpacity={0.85}
+              onPress={() => router.push('/checkout' as any)}
+            >
               <Text style={s.checkoutText}>Đặt hàng</Text>
               <Ionicons name="arrow-forward" size={20} color="#fff" />
             </TouchableOpacity>
@@ -307,7 +310,6 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   img: { width: '100%', height: '100%' },
-  imgPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   itemInfo: { flex: 1 },
   itemName: { fontSize: 14, fontWeight: '600', color: C.text, lineHeight: 19, marginBottom: 4 },
   itemPrice: { fontSize: 14, fontWeight: '700', color: C.primary },

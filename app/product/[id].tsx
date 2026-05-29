@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   Animated,
   Platform,
@@ -14,8 +13,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import ProductImage from '@/components/ProductImage';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
+import { useCartCount } from '@/lib/cart-context';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 import type { Product } from '@/types';
 
@@ -41,6 +42,7 @@ export default function ProductDetailScreen() {
   const [cartLoading, setCartLoading] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const { refreshCount } = useCartCount();
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const slideAnim = useMemo(() => new Animated.Value(30), []);
 
@@ -70,6 +72,7 @@ export default function ProductDetailScreen() {
     try {
       await cartService.add(product.id, qty);
       setCartSuccess(true);
+      refreshCount();
       setTimeout(() => setCartSuccess(false), 2000);
     } catch {
       /* silent */
@@ -100,13 +103,11 @@ export default function ProductDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} bounces>
         {/* Image */}
         <View style={s.imgContainer}>
-          {allImages.length > 0 ? (
-            <Image source={{ uri: allImages[selectedImage] }} style={s.img} resizeMode="cover" />
-          ) : (
-            <View style={s.imgPlaceholder}>
-              <Ionicons name="leaf" size={60} color="rgba(255,255,255,0.35)" />
-            </View>
-          )}
+          <ProductImage
+            uri={allImages.length > 0 ? allImages[selectedImage] : null}
+            style={s.img}
+            iconSize={60}
+          />
 
           {/* Gradient overlay */}
           <View style={s.imgOverlay} />
@@ -157,20 +158,31 @@ export default function ProductDetailScreen() {
           </View>
 
           {/* Rating */}
-          {product.reviewCount > 0 && (
-            <View style={s.ratingRow}>
-              {[1, 2, 3, 4, 5].map(star => (
-                <Ionicons
-                  key={star}
-                  name={star <= Math.round(product.averageRating) ? 'star' : 'star-outline'}
-                  size={14}
-                  color="#F59E0B"
-                />
-              ))}
-              <Text style={s.ratingText}>{product.averageRating.toFixed(1)}</Text>
-              <Text style={s.reviewCount}>({product.reviewCount} đánh giá)</Text>
-            </View>
-          )}
+          <TouchableOpacity
+            style={s.ratingRow}
+            onPress={() =>
+              router.push(`/reviews/${product.id}?name=${encodeURIComponent(product.name)}` as any)
+            }
+            activeOpacity={0.7}
+          >
+            {[1, 2, 3, 4, 5].map(star => (
+              <Ionicons
+                key={star}
+                name={star <= Math.round(product.averageRating) ? 'star' : 'star-outline'}
+                size={14}
+                color="#F59E0B"
+              />
+            ))}
+            {product.reviewCount > 0 ? (
+              <>
+                <Text style={s.ratingText}>{product.averageRating.toFixed(1)}</Text>
+                <Text style={s.reviewCount}>({product.reviewCount} đánh giá)</Text>
+              </>
+            ) : (
+              <Text style={s.reviewCount}>Chưa có đánh giá · Viết đánh giá</Text>
+            )}
+            <Ionicons name="chevron-forward" size={13} color="#D1D5DB" style={{ marginLeft: 2 }} />
+          </TouchableOpacity>
 
           {/* Divider */}
           <View style={s.divider} />
@@ -244,12 +256,6 @@ const s = StyleSheet.create({
 
   imgContainer: { width: W, height: IMG_H, backgroundColor: '#E5F9FA' },
   img: { width: '100%', height: '100%' },
-  imgPlaceholder: {
-    flex: 1,
-    backgroundColor: '#0EA5AE33',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   imgOverlay: {
     position: 'absolute',
     top: 0,

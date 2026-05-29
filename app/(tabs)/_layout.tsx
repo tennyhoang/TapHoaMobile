@@ -1,11 +1,18 @@
 import { Tabs, Redirect } from 'expo-router';
 import { Platform } from 'react-native';
+import { useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
+import { useCartCount } from '@/lib/cart-context';
 import Colors from '@/constants/Colors';
 
 export default function TabLayout() {
   const { token, isLoading } = useAuth();
+  const { itemCount, refreshCount } = useCartCount();
+
+  useEffect(() => {
+    if (token) refreshCount();
+  }, [token]);
 
   if (isLoading) return null;
   if (!token) return <Redirect href={'/(auth)/login' as any} />;
@@ -61,6 +68,8 @@ export default function TabLayout() {
         name="cart"
         options={{
           title: 'Giỏ hàng',
+          tabBarBadge: itemCount > 0 ? (itemCount > 99 ? '99+' : itemCount) : undefined,
+          tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'cart' : 'cart-outline'} size={24} color={color} />
           ),
