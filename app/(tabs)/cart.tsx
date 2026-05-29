@@ -217,7 +217,11 @@ export default function CartScreen() {
               <Text style={s.totalAmount}>{formatCurrency(cart!.totalAmount)}</Text>
             </View>
 
-            <TouchableOpacity style={s.checkoutBtn} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={s.checkoutBtn}
+              activeOpacity={0.85}
+              onPress={() => router.push('/checkout' as any)}
+            >
               <Text style={s.checkoutText}>Đặt hàng</Text>
               <Ionicons name="arrow-forward" size={20} color="#fff" />
             </TouchableOpacity>

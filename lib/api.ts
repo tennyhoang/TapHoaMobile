@@ -45,6 +45,15 @@ export const api = {
     return handleResponse<T>(res);
   },
 
+  patch: async <T>(path: string, body: object): Promise<T> => {
+    const res = await fetch(`${API_V1}${path}`, {
+      method: 'PATCH',
+      headers: await buildHeaders(),
+      body: JSON.stringify(body),
+    });
+    return handleResponse<T>(res);
+  },
+
   delete: async <T>(path: string): Promise<T> => {
     const res = await fetch(`${API_V1}${path}`, {
       method: 'DELETE',

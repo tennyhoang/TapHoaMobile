@@ -68,3 +68,62 @@ export type FlashSaleSession = {
   endTime: string;
   products: FlashSaleProduct[];
 };
+
+export type Hub = {
+  id: string;
+  name: string;
+  address: string;
+  ward: string;
+  district: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+};
+
+export type OrderStatus =
+  | 'PendingPayment'
+  | 'Paid_WaitingForBatch'
+  | 'ShippingToHub'
+  | 'InHub_ReadyForPickup'
+  | 'Completed'
+  | 'Cancelled'
+  | 'Refunded';
+
+export type OrderItem = {
+  productId: string;
+  productName: string;
+  thumbnailUrl?: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+};
+
+export type Order = {
+  id: string;
+  status: OrderStatus;
+  totalAmount: number;
+  walletAmountUsed: number;
+  note?: string;
+  hub: Hub;
+  items: OrderItem[];
+  createdAt: string;
+  cancelReason?: string;
+  paymentRef?: string;
+  paidAt?: string;
+  shippingToHubAt?: string;
+  inHubAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
+  refundedAt?: string;
+};
+
+export type Address = {
+  id: string;
+  receiverName: string;
+  phoneNumber: string;
+  province: string;
+  district: string;
+  ward: string;
+  streetAddress: string;
+  isDefault: boolean;
+};
