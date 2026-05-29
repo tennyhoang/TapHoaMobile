@@ -1,11 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
-  StatusBar, Platform, TouchableOpacity,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Platform,
+  ActivityIndicator,
+  TextInput,
+  RefreshControl,
 } from 'react-native';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
-import { router } from 'expo-router';
+import { productsService } from '@/services/products.service';
+import { categoriesService } from '@/services/categories.service';
+import { flashSaleService } from '@/services/flashsale.service';
+import { cartService } from '@/services/cart.service';
+import ProductCard from '@/components/ProductCard';
+import { formatCurrency, formatCountdown } from '@/lib/utils';
+import type { Category, Product, FlashSaleSession } from '@/types';
 
 const C = {
   primary: '#0EA5AE',
@@ -17,79 +32,241 @@ const C = {
   border: '#F3F4F6',
 };
 
-const CATEGORIES = [
-  { icon: 'leaf-outline', label: 'Rau củ', color: '#22C55E' },
-  { icon: 'fish-outline', label: 'Hải sản', color: '#3B82F6' },
-  { icon: 'nutrition-outline', label: 'Trái cây', color: '#F59E0B' },
-  { icon: 'egg-outline', label: 'Trứng & Sữa', color: '#EC4899' },
-];
-
 export default function HomeScreen() {
   const { user } = useAuth();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [flashSale, setFlashSale] = useState<FlashSaleSession | null>(null);
+  const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
 
   const firstName = user?.fullName?.split(' ').pop() ?? 'bạn';
+
+  const load = useCallback(async () => {
+    try {
+      const [cats, prods, sale] = await Promise.all([
+        categoriesService.getAll(),
+        productsService.getAll({ pageSize: 10, sortBy: 'newest' }),
+        flashSaleService.getCurrent(),
+      ]);
+      setCategories(cats);
+      setProducts(prods.items);
+      setFlashSale(sale);
+    } catch {
+      // Network error handled silently — user can pull to refresh
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Flash sale countdown
+  useEffect(() => {
+    if (!flashSale) return;
+    const timer = setInterval(() => setCountdown(formatCountdown(flashSale.endTime)), 1000);
+    setCountdown(formatCountdown(flashSale.endTime));
+    return () => clearInterval(timer);
+  }, [flashSale]);
+
+  const handleAddToCart = async (product: Product) => {
+    try {
+      await cartService.add(product.id, 1);
+    } catch {
+      /* handle silently */
+    }
+  };
+
+  const handleSearch = () => {
+    if (search.trim()) router.push(`/product/search?q=${encodeURIComponent(search)}` as any);
+  };
+
+  const handleCatFilter = (catId: string | null) => {
+    setSelectedCat(catId);
+    productsService
+      .getAll({ categoryId: catId ?? undefined, pageSize: 10 })
+      .then(r => setProducts(r.items))
+      .catch(() => {});
+  };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    load();
+  }, [load]);
 
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      {/* Header */}
+      {/* ── HEADER ── */}
       <View style={s.header}>
-        <View style={s.headerBlob} />
+        <View style={s.blob} />
         <View style={s.headerTop}>
           <View>
             <Text style={s.greeting}>Xin chào, {firstName} 👋</Text>
             <Text style={s.subGreeting}>Hôm nay muốn ăn gì?</Text>
           </View>
-          <TouchableOpacity style={s.avatarBtn}>
-            <Ionicons name="person-circle" size={40} color="rgba(255,255,255,0.9)" />
+          <TouchableOpacity onPress={() => router.push('/(tabs)/profile' as any)}>
+            <View style={s.avatarBtn}>
+              <Text style={s.avatarLetter}>{user?.fullName?.charAt(0)?.toUpperCase()}</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
-        <View style={s.searchBar}>
+        <TouchableOpacity style={s.searchBar} onPress={handleSearch} activeOpacity={0.85}>
           <Ionicons name="search-outline" size={18} color={C.muted} />
-          <Text style={s.searchPlaceholder}>Tìm thực phẩm tươi ngon...</Text>
-        </View>
+          <TextInput
+            style={s.searchInput}
+            placeholder="Tìm thực phẩm tươi ngon..."
+            placeholderTextColor="#9CA3AF"
+            value={search}
+            onChangeText={setSearch}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+          />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView style={s.body} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-
-        {/* Categories */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Danh mục</Text>
-          <View style={s.catRow}>
-            {CATEGORIES.map(cat => (
-              <TouchableOpacity key={cat.label} style={s.catItem} activeOpacity={0.8}>
-                <View style={[s.catIcon, { backgroundColor: cat.color + '18' }]}>
-                  <Ionicons name={cat.icon as any} size={24} color={cat.color} />
-                </View>
-                <Text style={s.catLabel}>{cat.label}</Text>
+      <ScrollView
+        style={s.body}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
+        }
+      >
+        {/* ── CATEGORIES ── */}
+        {categories.length > 0 && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Danh mục</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.catScroll}
+            >
+              <TouchableOpacity
+                style={[s.catChip, selectedCat === null && s.catChipActive]}
+                onPress={() => handleCatFilter(null)}
+              >
+                <Text style={[s.catChipText, selectedCat === null && s.catChipTextActive]}>
+                  Tất cả
+                </Text>
               </TouchableOpacity>
-            ))}
+              {categories.map(cat => (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[s.catChip, selectedCat === cat.id && s.catChipActive]}
+                  onPress={() => handleCatFilter(cat.id)}
+                >
+                  <Text style={[s.catChipText, selectedCat === cat.id && s.catChipTextActive]}>
+                    {cat.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
-        </View>
+        )}
 
-        {/* Banner */}
-        <View style={s.banner}>
-          <View style={s.bannerBlob} />
-          <View>
-            <Text style={s.bannerBadge}>Flash Sale</Text>
-            <Text style={s.bannerTitle}>Rau củ VietGAP{'\n'}giảm đến 40%</Text>
-            <TouchableOpacity style={s.bannerBtn}>
-              <Text style={s.bannerBtnText}>Mua ngay</Text>
-              <Ionicons name="arrow-forward" size={14} color={C.primary} />
+        {/* ── FLASH SALE ── */}
+        {flashSale && (
+          <View style={s.section}>
+            <View style={s.flashHeader}>
+              <View style={s.flashTitleRow}>
+                <Ionicons name="flash" size={18} color="#F59E0B" />
+                <Text style={s.flashTitle}>Flash Sale</Text>
+              </View>
+              <View style={s.countdownWrap}>
+                <Text style={s.countdownLabel}>Kết thúc sau</Text>
+                <Text style={s.countdown}>{countdown}</Text>
+              </View>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.flashScroll}
+            >
+              {flashSale.products.slice(0, 6).map(item => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={s.flashCard}
+                  onPress={() => router.push(`/product/${item.id}` as any)}
+                  activeOpacity={0.88}
+                >
+                  <View style={s.flashImgWrap}>
+                    {item.thumbnailUrl ? (
+                      <View style={{ flex: 1, backgroundColor: '#E5F9FA' }} />
+                    ) : (
+                      <View style={s.flashImgPlaceholder}>
+                        <Ionicons name="leaf-outline" size={28} color="rgba(255,255,255,0.5)" />
+                      </View>
+                    )}
+                    <View style={s.flashBadge}>
+                      <Text style={s.flashBadgeText}>
+                        -
+                        {Math.round(
+                          ((item.originalPrice - item.flashSalePrice) / item.originalPrice) * 100
+                        )}
+                        %
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={s.flashInfo}>
+                    <Text style={s.flashName} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                    <Text style={s.flashPrice}>{formatCurrency(item.flashSalePrice)}</Text>
+                    <Text style={s.flashOriginal}>{formatCurrency(item.originalPrice)}</Text>
+                    {/* Stock bar */}
+                    <View style={s.stockBarWrap}>
+                      <View
+                        style={[
+                          s.stockBar,
+                          {
+                            width: `${Math.min(100, (item.soldCount / item.flashSaleStock) * 100)}%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={s.stockText}>Còn {item.stockRemaining}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* ── PRODUCTS ── */}
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>Sản phẩm mới</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/products' as any)}>
+              <Text style={s.seeAll}>Xem tất cả →</Text>
             </TouchableOpacity>
           </View>
-          <Ionicons name="leaf" size={80} color="rgba(255,255,255,0.15)" style={s.bannerIcon} />
-        </View>
 
-        {/* Coming soon */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Sản phẩm nổi bật</Text>
-          <View style={s.comingSoon}>
-            <Ionicons name="construct-outline" size={32} color={C.muted} />
-            <Text style={s.comingSoonText}>Đang phát triển — sắp ra mắt</Text>
-          </View>
+          {loading ? (
+            <View style={s.loadingWrap}>
+              <ActivityIndicator color={C.primary} size="large" />
+            </View>
+          ) : products.length === 0 ? (
+            <View style={s.emptyWrap}>
+              <Ionicons name="leaf-outline" size={40} color={C.muted} />
+              <Text style={s.emptyText}>Chưa có sản phẩm nào</Text>
+            </View>
+          ) : (
+            <View style={s.productGrid}>
+              {products.map(p => (
+                <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -101,72 +278,133 @@ const s = StyleSheet.create({
 
   header: {
     backgroundColor: C.primaryDark,
+    overflow: 'hidden',
     paddingTop: Platform.OS === 'ios' ? 56 : 40,
     paddingHorizontal: 20,
-    paddingBottom: 24,
-    overflow: 'hidden',
+    paddingBottom: 20,
   },
-  headerBlob: {
-    position: 'absolute', top: -60, right: -60,
-    width: 220, height: 220, borderRadius: 110,
+  blob: {
+    position: 'absolute',
+    top: -60,
+    right: -60,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
   headerTop: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
-    marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
-  greeting: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 3 },
-  subGreeting: { fontSize: 14, color: 'rgba(255,255,255,0.65)' },
-  avatarBtn: { padding: 2 },
-
+  greeting: { fontSize: 21, fontWeight: '700', color: '#FFFFFF', marginBottom: 3 },
+  subGreeting: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
+  avatarBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  avatarLetter: { fontSize: 16, fontWeight: '700', color: '#fff' },
   searchBar: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#FFFFFF', borderRadius: 14,
-    paddingHorizontal: 16, height: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 46,
   },
-  searchPlaceholder: { fontSize: 14, color: '#9CA3AF' },
+  searchInput: { flex: 1, fontSize: 14, color: C.text },
 
   body: { flex: 1 },
-  section: { paddingHorizontal: 20, marginTop: 24 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 14 },
+  section: { paddingHorizontal: 16, marginTop: 20 },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  sectionTitle: { fontSize: 17, fontWeight: '700', color: C.text },
+  seeAll: { fontSize: 13, color: C.primary, fontWeight: '600' },
 
-  catRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  catItem: { alignItems: 'center', width: '22%' },
-  catIcon: {
-    width: 56, height: 56, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+  catScroll: { gap: 8, paddingVertical: 2 },
+  catChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  catLabel: { fontSize: 12, fontWeight: '500', color: C.text, textAlign: 'center' },
+  catChipActive: { backgroundColor: C.primary, borderColor: C.primary },
+  catChipText: { fontSize: 13, fontWeight: '500', color: C.muted },
+  catChipTextActive: { color: '#fff', fontWeight: '600' },
 
-  banner: {
-    marginHorizontal: 20, marginTop: 24,
-    backgroundColor: C.primaryDark, borderRadius: 20,
-    padding: 22, overflow: 'hidden',
-    flexDirection: 'row', justifyContent: 'space-between',
+  flashHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  bannerBlob: {
-    position: 'absolute', top: -30, right: -30,
-    width: 160, height: 160, borderRadius: 80,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  bannerBadge: {
-    fontSize: 11, fontWeight: '700', color: '#F59E0B',
-    backgroundColor: 'rgba(245,158,11,0.15)',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
-    alignSelf: 'flex-start', marginBottom: 10,
-  },
-  bannerTitle: { fontSize: 18, fontWeight: '700', color: '#FFFFFF', lineHeight: 26, marginBottom: 14 },
-  bannerBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#FFFFFF', borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-start',
-  },
-  bannerBtnText: { fontSize: 13, fontWeight: '600', color: C.primary },
-  bannerIcon: { position: 'absolute', right: 16, bottom: 12 },
+  flashTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  flashTitle: { fontSize: 17, fontWeight: '700', color: C.text },
+  countdownWrap: { alignItems: 'flex-end' },
+  countdownLabel: { fontSize: 10, color: C.muted },
+  countdown: { fontSize: 16, fontWeight: '800', color: C.primaryDark, letterSpacing: 1 },
 
-  comingSoon: {
-    backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border,
-    alignItems: 'center', justifyContent: 'center', paddingVertical: 40, gap: 12,
+  flashScroll: { gap: 12, paddingVertical: 2 },
+  flashCard: {
+    width: 140,
+    backgroundColor: C.card,
+    borderRadius: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: C.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  comingSoonText: { fontSize: 14, color: C.muted },
+  flashImgWrap: { width: '100%', height: 120, backgroundColor: '#E5F9FA' },
+  flashImgPlaceholder: {
+    flex: 1,
+    backgroundColor: '#0EA5AE22',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flashBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#EF4444',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  flashBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
+  flashInfo: { padding: 10 },
+  flashName: { fontSize: 12, fontWeight: '600', color: C.text, marginBottom: 4, lineHeight: 16 },
+  flashPrice: { fontSize: 13, fontWeight: '700', color: C.primary },
+  flashOriginal: { fontSize: 11, color: C.muted, textDecorationLine: 'line-through' },
+  stockBarWrap: {
+    height: 4,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 2,
+    marginTop: 6,
+    overflow: 'hidden',
+  },
+  stockBar: { height: '100%', backgroundColor: '#F59E0B', borderRadius: 2 },
+  stockText: { fontSize: 10, color: C.muted, marginTop: 3 },
+
+  productGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  loadingWrap: { height: 200, alignItems: 'center', justifyContent: 'center' },
+  emptyWrap: { height: 160, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  emptyText: { fontSize: 14, color: C.muted },
 });

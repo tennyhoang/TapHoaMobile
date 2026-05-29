@@ -1,7 +1,7 @@
 import { authService } from '../../services/auth.service';
 
 const mockFetch = jest.fn();
-global.fetch = mockFetch;
+(globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
 
 const mockAuthResponse = {
   accessToken: 'eyJhbGciOiJIUzI1NiJ9.mock',
