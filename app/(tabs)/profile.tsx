@@ -27,8 +27,13 @@ const MENU_ITEMS = [
   { icon: 'wallet-outline', label: 'Ví của tôi', color: '#22C55E', route: '/wallet' },
   { icon: 'receipt-outline', label: 'Đơn hàng của tôi', color: C.primary, route: '/orders' },
   { icon: 'location-outline', label: 'Địa chỉ giao hàng', color: '#8B5CF6', route: '/addresses' },
-  { icon: 'create-outline', label: 'Chỉnh sửa hồ sơ', color: '#F59E0B', route: '/profile-edit' },
-  { icon: 'shield-checkmark-outline', label: 'Bảo mật', color: '#3B82F6', route: '/profile-edit' },
+  {
+    icon: 'notifications-outline',
+    label: 'Thông báo',
+    color: '#F59E0B',
+    route: '/notifications',
+  },
+  { icon: 'create-outline', label: 'Chỉnh sửa hồ sơ', color: '#3B82F6', route: '/profile-edit' },
   { icon: 'help-circle-outline', label: 'Hỗ trợ', color: C.muted, route: null },
 ];
 

@@ -155,20 +155,31 @@ export default function ProductDetailScreen() {
           </View>
 
           {/* Rating */}
-          {product.reviewCount > 0 && (
-            <View style={s.ratingRow}>
-              {[1, 2, 3, 4, 5].map(star => (
-                <Ionicons
-                  key={star}
-                  name={star <= Math.round(product.averageRating) ? 'star' : 'star-outline'}
-                  size={14}
-                  color="#F59E0B"
-                />
-              ))}
-              <Text style={s.ratingText}>{product.averageRating.toFixed(1)}</Text>
-              <Text style={s.reviewCount}>({product.reviewCount} đánh giá)</Text>
-            </View>
-          )}
+          <TouchableOpacity
+            style={s.ratingRow}
+            onPress={() =>
+              router.push(`/reviews/${product.id}?name=${encodeURIComponent(product.name)}` as any)
+            }
+            activeOpacity={0.7}
+          >
+            {[1, 2, 3, 4, 5].map(star => (
+              <Ionicons
+                key={star}
+                name={star <= Math.round(product.averageRating) ? 'star' : 'star-outline'}
+                size={14}
+                color="#F59E0B"
+              />
+            ))}
+            {product.reviewCount > 0 ? (
+              <>
+                <Text style={s.ratingText}>{product.averageRating.toFixed(1)}</Text>
+                <Text style={s.reviewCount}>({product.reviewCount} đánh giá)</Text>
+              </>
+            ) : (
+              <Text style={s.reviewCount}>Chưa có đánh giá · Viết đánh giá</Text>
+            )}
+            <Ionicons name="chevron-forward" size={13} color="#D1D5DB" style={{ marginLeft: 2 }} />
+          </TouchableOpacity>
 
           {/* Divider */}
           <View style={s.divider} />

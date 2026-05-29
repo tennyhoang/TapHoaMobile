@@ -30,6 +30,8 @@ export default function RootLayout() {
         <Stack.Screen name="addresses" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="wallet" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="profile-edit" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="reviews/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </AuthProvider>

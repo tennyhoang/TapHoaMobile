@@ -142,3 +142,25 @@ export type WalletTransaction = {
 export type WalletBalance = {
   balance: number;
 };
+
+export type Review = {
+  id: string;
+  productId: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+};
+
+export type NotificationType = 'OrderStatus' | 'FlashSale' | 'Promotion' | 'System';
+
+export type Notification = {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  isRead: boolean;
+  createdAt: string;
+  data?: Record<string, string>;
+};
