@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -40,17 +40,28 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const cardY = useRef(new Animated.Value(60)).current;
-  const cardOpacity = useRef(new Animated.Value(0)).current;
-  const headerY = useRef(new Animated.Value(-24)).current;
-  const headerOpacity = useRef(new Animated.Value(0)).current;
+  const cardY = useMemo(() => new Animated.Value(60), []);
+  const cardOpacity = useMemo(() => new Animated.Value(0), []);
+  const headerY = useMemo(() => new Animated.Value(-24), []);
+  const headerOpacity = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(headerOpacity, { toValue: 1, duration: 700, useNativeDriver: true }),
       Animated.spring(headerY, { toValue: 0, tension: 60, friction: 12, useNativeDriver: true }),
-      Animated.timing(cardOpacity, { toValue: 1, duration: 500, delay: 180, useNativeDriver: true }),
-      Animated.spring(cardY, { toValue: 0, tension: 60, friction: 11, delay: 180, useNativeDriver: true }),
+      Animated.timing(cardOpacity, {
+        toValue: 1,
+        duration: 500,
+        delay: 180,
+        useNativeDriver: true,
+      }),
+      Animated.spring(cardY, {
+        toValue: 0,
+        tension: 60,
+        friction: 11,
+        delay: 180,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, []);
 
@@ -83,7 +94,9 @@ export default function LoginScreen() {
         <View style={s.blob2} />
         <View style={s.blob3} />
 
-        <Animated.View style={[s.logoWrap, { opacity: headerOpacity, transform: [{ translateY: headerY }] }]}>
+        <Animated.View
+          style={[s.logoWrap, { opacity: headerOpacity, transform: [{ translateY: headerY }] }]}
+        >
           <View style={s.logoBox}>
             <Ionicons name="leaf" size={30} color={C.white} />
           </View>
@@ -142,16 +155,27 @@ export default function LoginScreen() {
                   secureTextEntry={!showPassword}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={s.eyeBtn}>
-                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={C.muted} />
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={18}
+                    color={C.muted}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Submit */}
-            <TouchableOpacity style={[s.btn, loading && s.btnDim]} onPress={handleLogin} disabled={loading} activeOpacity={0.82}>
-              {loading
-                ? <ActivityIndicator color={C.white} size="small" />
-                : <Text style={s.btnText}>Đăng nhập</Text>}
+            <TouchableOpacity
+              style={[s.btn, loading && s.btnDim]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.82}
+            >
+              {loading ? (
+                <ActivityIndicator color={C.white} size="small" />
+              ) : (
+                <Text style={s.btnText}>Đăng nhập</Text>
+              )}
             </TouchableOpacity>
 
             {/* Register link */}
@@ -180,25 +204,40 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   blob1: {
-    position: 'absolute', top: -90, right: -90,
-    width: 300, height: 300, borderRadius: 150,
+    position: 'absolute',
+    top: -90,
+    right: -90,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
     backgroundColor: 'rgba(255,255,255,0.07)',
   },
   blob2: {
-    position: 'absolute', top: 30, right: 60,
-    width: 140, height: 140, borderRadius: 70,
+    position: 'absolute',
+    top: 30,
+    right: 60,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: 'rgba(255,255,255,0.05)',
   },
   blob3: {
-    position: 'absolute', bottom: 10, left: -60,
-    width: 220, height: 220, borderRadius: 110,
+    position: 'absolute',
+    bottom: 10,
+    left: -60,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
   logoWrap: { alignItems: 'center' },
   logoBox: {
-    width: 68, height: 68, borderRadius: 22,
+    width: 68,
+    height: 68,
+    borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 14,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
@@ -229,30 +268,44 @@ const s = StyleSheet.create({
   formSub: { fontSize: 14, color: C.muted, marginBottom: 24 },
 
   errBox: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: C.errorBg, borderRadius: 10, padding: 12, marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: C.errorBg,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
   },
   errText: { fontSize: 13, color: C.error, flex: 1 },
 
   field: { marginBottom: 18 },
   label: { fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 8 },
   inputRow: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: C.inputBg, borderRadius: 12,
-    borderWidth: 1, borderColor: C.border,
-    paddingHorizontal: 14, height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.inputBg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingHorizontal: 14,
+    height: 50,
   },
   icon: { marginRight: 10 },
   input: { flex: 1, fontSize: 15, color: C.text },
   eyeBtn: { padding: 4, marginLeft: 6 },
 
   btn: {
-    backgroundColor: C.primary, borderRadius: 14, height: 52,
-    alignItems: 'center', justifyContent: 'center',
-    marginTop: 6, marginBottom: 22,
+    backgroundColor: C.primary,
+    borderRadius: 14,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+    marginBottom: 22,
     shadowColor: C.primary,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35, shadowRadius: 14,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
     elevation: 6,
   },
   btnDim: { opacity: 0.7 },
