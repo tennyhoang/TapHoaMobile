@@ -12,7 +12,7 @@ module.exports = {
     '!**/+not-found.tsx',
     '!**/+html.tsx',
   ],
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       branches: 50,
       functions: 60,
