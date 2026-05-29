@@ -49,7 +49,11 @@ export default function TabLayout() {
         options={{
           title: 'Sản phẩm',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'storefront' : 'storefront-outline'} size={24} color={color} />
+            <Ionicons
+              name={focused ? 'storefront' : 'storefront-outline'}
+              size={24}
+              color={color}
+            />
           ),
         }}
       />
