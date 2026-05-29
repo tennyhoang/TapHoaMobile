@@ -138,6 +138,60 @@ export default function OrderDetailScreen() {
           {order.cancelReason && <Text style={s.cancelReason}>Lý do: {order.cancelReason}</Text>}
         </View>
 
+        {/* Timeline */}
+        {order.status !== 'Cancelled' && order.status !== 'Refunded' && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Tiến trình đơn hàng</Text>
+            <View style={s.card}>
+              {(
+                [
+                  { key: 'placed', label: 'Đặt hàng', ts: order.createdAt },
+                  { key: 'paid', label: 'Đã thanh toán', ts: order.paidAt },
+                  { key: 'shipping', label: 'Đang vận chuyển', ts: order.shippingToHubAt },
+                  { key: 'inhub', label: 'Sẵn sàng lấy hàng', ts: order.inHubAt },
+                  { key: 'done', label: 'Hoàn thành', ts: order.completedAt },
+                ] as const
+              ).map((step, i, arr) => {
+                const done = !!step.ts;
+                const isLast = i === arr.length - 1;
+                return (
+                  <View key={step.key} style={s.timelineRow}>
+                    <View style={s.timelineLeft}>
+                      <View
+                        style={[s.timelineDot, done ? s.timelineDotDone : s.timelineDotPending]}
+                      >
+                        {done && <Ionicons name="checkmark" size={10} color="#fff" />}
+                      </View>
+                      {!isLast && <View style={[s.timelineLine, done && s.timelineLineDone]} />}
+                    </View>
+                    <View style={s.timelineContent}>
+                      <Text
+                        style={[
+                          s.timelineLabel,
+                          done ? s.timelineLabelDone : s.timelineLabelPending,
+                        ]}
+                      >
+                        {step.label}
+                      </Text>
+                      {step.ts ? (
+                        <Text style={s.timelineTs}>
+                          {new Date(step.ts).toLocaleString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
         {/* Hub */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Điểm nhận hàng</Text>
@@ -339,6 +393,37 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
   cancelBtnText: { fontSize: 14, fontWeight: '600', color: C.error },
+  timelineRow: {
+    flexDirection: 'row',
+    gap: 14,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  timelineLeft: { alignItems: 'center', width: 20 },
+  timelineDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timelineDotDone: { backgroundColor: C.primary },
+  timelineDotPending: { backgroundColor: '#E5E7EB', borderWidth: 2, borderColor: '#D1D5DB' },
+  timelineLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: '#E5E7EB',
+    marginTop: 4,
+    marginBottom: -4,
+    minHeight: 20,
+  },
+  timelineLineDone: { backgroundColor: C.primary },
+  timelineContent: { flex: 1, paddingBottom: 14 },
+  timelineLabel: { fontSize: 14, fontWeight: '600' },
+  timelineLabelDone: { color: C.text },
+  timelineLabelPending: { color: '#9CA3AF' },
+  timelineTs: { fontSize: 11, color: C.muted, marginTop: 2 },
+
   shopBtn: {
     flexDirection: 'row',
     alignItems: 'center',

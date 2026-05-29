@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
+import { useCartCount } from '@/lib/cart-context';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 import type { Product } from '@/types';
 
@@ -41,6 +42,7 @@ export default function ProductDetailScreen() {
   const [cartLoading, setCartLoading] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const { refreshCount } = useCartCount();
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const slideAnim = useMemo(() => new Animated.Value(30), []);
 
@@ -70,6 +72,7 @@ export default function ProductDetailScreen() {
     try {
       await cartService.add(product.id, qty);
       setCartSuccess(true);
+      refreshCount();
       setTimeout(() => setCartSuccess(false), 2000);
     } catch {
       /* silent */
