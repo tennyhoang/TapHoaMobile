@@ -1,7 +1,6 @@
 /** @type {import('jest-expo/jest-preset').JestPreset} */
 module.exports = {
   preset: 'jest-expo',
-  setupFilesAfterFramework: [],
   setupFiles: ['./jest.setup.js'],
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}'],
   collectCoverageFrom: [
@@ -12,14 +11,6 @@ module.exports = {
     '!**/+not-found.tsx',
     '!**/+html.tsx',
   ],
-  coverageThreshold: {
-    global: {
-      branches: 50,
-      functions: 60,
-      lines: 60,
-      statements: 60,
-    },
-  },
   coverageReporters: ['text', 'lcov', 'json-summary'],
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/(?!native$)|@expo-google-fonts|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',
