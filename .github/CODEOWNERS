@@ -1,0 +1,10 @@
+# Global owner — required review on all PRs
+* @tennyhoang
+
+# Auth & security — extra attention
+/lib/auth-context.tsx @tennyhoang
+/services/auth.service.ts @tennyhoang
+
+# CI/CD — prevent accidental changes
+/.github/workflows/ @tennyhoang
+/eas.json @tennyhoang
