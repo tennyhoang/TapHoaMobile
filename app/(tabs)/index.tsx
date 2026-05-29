@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
+import ProductImage from '@/components/ProductImage';
 import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
 import { flashSaleService } from '@/services/flashsale.service';
@@ -200,13 +201,11 @@ export default function HomeScreen() {
                   activeOpacity={0.88}
                 >
                   <View style={s.flashImgWrap}>
-                    {item.thumbnailUrl ? (
-                      <View style={{ flex: 1, backgroundColor: '#E5F9FA' }} />
-                    ) : (
-                      <View style={s.flashImgPlaceholder}>
-                        <Ionicons name="leaf-outline" size={28} color="rgba(255,255,255,0.5)" />
-                      </View>
-                    )}
+                    <ProductImage
+                      uri={item.thumbnailUrl}
+                      style={StyleSheet.absoluteFill}
+                      iconSize={28}
+                    />
                     <View style={s.flashBadge}>
                       <Text style={s.flashBadgeText}>
                         -
@@ -373,12 +372,6 @@ const s = StyleSheet.create({
     elevation: 2,
   },
   flashImgWrap: { width: '100%', height: 120, backgroundColor: '#E5F9FA' },
-  flashImgPlaceholder: {
-    flex: 1,
-    backgroundColor: '#0EA5AE22',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   flashBadge: {
     position: 'absolute',
     top: 8,

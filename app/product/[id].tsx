@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   Animated,
   Platform,
@@ -14,6 +13,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import ProductImage from '@/components/ProductImage';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
 import { formatCurrency, discountPercent } from '@/lib/utils';
@@ -100,13 +100,11 @@ export default function ProductDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} bounces>
         {/* Image */}
         <View style={s.imgContainer}>
-          {allImages.length > 0 ? (
-            <Image source={{ uri: allImages[selectedImage] }} style={s.img} resizeMode="cover" />
-          ) : (
-            <View style={s.imgPlaceholder}>
-              <Ionicons name="leaf" size={60} color="rgba(255,255,255,0.35)" />
-            </View>
-          )}
+          <ProductImage
+            uri={allImages.length > 0 ? allImages[selectedImage] : null}
+            style={s.img}
+            iconSize={60}
+          />
 
           {/* Gradient overlay */}
           <View style={s.imgOverlay} />
@@ -244,12 +242,6 @@ const s = StyleSheet.create({
 
   imgContainer: { width: W, height: IMG_H, backgroundColor: '#E5F9FA' },
   img: { width: '100%', height: '100%' },
-  imgPlaceholder: {
-    flex: 1,
-    backgroundColor: '#0EA5AE33',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   imgOverlay: {
     position: 'absolute',
     top: 0,
