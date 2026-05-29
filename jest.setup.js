@@ -1,5 +1,3 @@
-import '@testing-library/react-native/extend-expect';
-
 // Mock expo-secure-store
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn(),
@@ -19,7 +17,7 @@ jest.mock('expo-router', () => ({
     push: jest.fn(),
     back: jest.fn(),
   }),
-  Redirect: ({ href }: { href: string }) => null,
+  Redirect: () => null,
   Stack: { Screen: () => null },
 }));
 
