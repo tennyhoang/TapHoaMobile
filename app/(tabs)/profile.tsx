@@ -77,6 +77,22 @@ export default function ProfileScreen() {
           ))}
         </View>
 
+        {user?.role === 'Agent' && (
+          <View style={[s.card, { marginBottom: 16 }]}>
+            <TouchableOpacity
+              style={s.menuItem}
+              activeOpacity={0.7}
+              onPress={() => router.push('/agent' as any)}
+            >
+              <View style={[s.menuIcon, { backgroundColor: '#4F46E518' }]}>
+                <Ionicons name="storefront-outline" size={20} color="#4F46E5" />
+              </View>
+              <Text style={s.menuLabel}>Cổng Agent</Text>
+              <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {user?.role === 'Driver' && (
           <View style={[s.card, { marginBottom: 16 }]}>
             <TouchableOpacity
