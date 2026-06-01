@@ -1,18 +1,22 @@
-import * as LocalAuthentication from 'expo-local-authentication';
+import { Platform } from 'react-native';
+
+// expo-local-authentication has no web implementation — guard all calls
+const LA = Platform.OS !== 'web' ? require('expo-local-authentication') : null;
 
 export const biometrics = {
   isAvailable: async (): Promise<boolean> => {
-    const compatible = await LocalAuthentication.hasHardwareAsync();
+    if (!LA) return false;
+    const compatible = await LA.hasHardwareAsync();
     if (!compatible) return false;
-    const enrolled = await LocalAuthentication.isEnrolledAsync();
-    return enrolled;
+    return LA.isEnrolledAsync();
   },
 
   authenticate: async (reason: string): Promise<boolean> => {
+    if (!LA) return true; // web: skip biometrics, allow action
     const available = await biometrics.isAvailable();
-    if (!available) return true; // skip if device has no biometrics
+    if (!available) return true; // no biometrics enrolled: skip
 
-    const result = await LocalAuthentication.authenticateAsync({
+    const result = await LA.authenticateAsync({
       promptMessage: reason,
       fallbackLabel: 'Dùng mã PIN',
       cancelLabel: 'Huỷ',
