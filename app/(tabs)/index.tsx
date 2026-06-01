@@ -173,12 +173,14 @@ export default function HomeScreen() {
         articlesService.getAll(),
         ordersService.getMyOrders({ pageSize: 10 }),
       ]);
-      setCategories(cats);
-      setProducts(prods.items);
+      setCategories(cats ?? []);
+      setProducts(prods.items ?? []);
       setFlashSale(sale);
-      setDiscountProducts(disc.items);
-      setArticles(arts.slice(0, 3));
-      setActiveOrder(orders.items.find(o => ACTIVE_ORDER_STATUSES.includes(o.status)) ?? null);
+      setDiscountProducts(disc.items ?? []);
+      setArticles((arts ?? []).slice(0, 3));
+      setActiveOrder(
+        (orders.items ?? []).find(o => ACTIVE_ORDER_STATUSES.includes(o.status)) ?? null
+      );
       refreshCount();
     } catch {
       // silently handle
@@ -459,7 +461,7 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={s.flashScroll}
             >
-              {flashSale.products.slice(0, 8).map(item => (
+              {(flashSale.products ?? []).slice(0, 8).map(item => (
                 <TouchableOpacity
                   key={item.id}
                   style={s.flashCard}
