@@ -774,7 +774,7 @@ const s = StyleSheet.create({
     backgroundColor: '#E5F9FA',
   },
   bannerOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(4,50,56,0.55)',
   },
   bannerContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 12 },
@@ -891,7 +891,7 @@ const s = StyleSheet.create({
     backgroundColor: C.primaryDark,
   },
   interOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(4,50,56,0.6)',
   },
   interContent: {
@@ -935,8 +935,8 @@ const s = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#E5F9FA',
   },
-  articleFeaturedImg: { ...StyleSheet.absoluteFillObject },
-  articleFeaturedOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.42)' },
+  articleFeaturedImg: { ...StyleSheet.absoluteFill },
+  articleFeaturedOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.42)' },
   articleFeaturedContent: {
     position: 'absolute',
     bottom: 0,
@@ -1018,7 +1018,7 @@ const s = StyleSheet.create({
   // Hero carousel
   heroWrap: { marginTop: 12 },
   heroCard: { height: 200, backgroundColor: C.primaryDark, overflow: 'hidden' },
-  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.38)' },
+  heroOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.38)' },
   heroContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, gap: 4 },
   heroBadge: {
     alignSelf: 'flex-start',
