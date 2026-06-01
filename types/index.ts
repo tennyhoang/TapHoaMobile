@@ -153,6 +153,37 @@ export type Review = {
   createdAt: string;
 };
 
+export type DriverHubBatch = {
+  hubId: string;
+  hubName: string;
+  hubFullAddress: string;
+  orderCount: number;
+  totalAmount: number;
+  orders: Order[];
+};
+
+export type RouteStop = {
+  stopNumber: number;
+  originalIndex: number;
+  address: string;
+  lng: number | null;
+  lat: number | null;
+};
+
+export type OptimizeRouteResponse = {
+  stops: RouteStop[];
+  isOptimized: boolean;
+  hubLng: number | null;
+  hubLat: number | null;
+};
+
+export type AssignedWarehouseDto = {
+  id: string;
+  name: string;
+  fullAddress: string;
+  phoneNumber: string | null;
+};
+
 export type NotificationType = 'OrderStatus' | 'FlashSale' | 'Promotion' | 'System';
 
 export type Notification = {
