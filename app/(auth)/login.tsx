@@ -189,6 +189,15 @@ export default function LoginScreen() {
               </View>
             </View>
 
+            {/* Forgot password */}
+            <TouchableOpacity
+              style={s.forgotBtn}
+              onPress={() => router.push('/(auth)/forgot-password' as any)}
+              activeOpacity={0.7}
+            >
+              <Text style={s.forgotText}>Quên mật khẩu?</Text>
+            </TouchableOpacity>
+
             {/* Submit */}
             <TouchableOpacity
               style={[s.btn, loading && s.btnDim]}
@@ -336,6 +345,8 @@ const s = StyleSheet.create({
   btnDim: { opacity: 0.7 },
   btnText: { color: C.white, fontSize: 16, fontWeight: '700', letterSpacing: 0.4 },
 
+  forgotBtn: { alignSelf: 'flex-end', marginBottom: 16, marginTop: -8 },
+  forgotText: { fontSize: 13, color: C.primary, fontWeight: '600' },
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   footerText: { fontSize: 14, color: C.muted },
   footerLink: { fontSize: 14, color: C.primary, fontWeight: '600' },

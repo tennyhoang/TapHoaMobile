@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -7,6 +7,8 @@ import { AuthProvider } from '@/lib/auth-context';
 import { CartProvider } from '@/lib/cart-context';
 import { WishlistProvider } from '@/lib/wishlist-context';
 import { ToastProvider } from '@/components/Toast';
+import { storage } from '@/lib/storage';
+import { ONBOARDING_KEY } from '@/app/onboarding';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -18,7 +20,11 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useEffect(() => {
-    SplashScreen.hideAsync();
+    (async () => {
+      const done = await storage.getItem(ONBOARDING_KEY);
+      await SplashScreen.hideAsync();
+      if (!done) router.replace('/onboarding' as any);
+    })();
   }, []);
 
   return (
@@ -44,6 +50,7 @@ export default function RootLayout() {
                 <Stack.Screen name="admin/products" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="articles" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="flash-sale" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
                 <Stack.Screen name="+not-found" />
               </Stack>
             </ToastProvider>
