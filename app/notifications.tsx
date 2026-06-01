@@ -11,7 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { notificationsService } from '@/services/notifications.service';
 import type { Notification, NotificationType } from '@/types';

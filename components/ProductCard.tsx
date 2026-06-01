@@ -38,7 +38,7 @@ export default function ProductCard({ product, onAddToCart }: Props) {
     >
       {/* Image */}
       <View style={s.imgWrap}>
-        <ProductImage uri={product.thumbnailUrl} style={s.img} />
+        <ProductImage uri={product.thumbnailUrl} style={s.img} name={product.name} />
         {hasDiscount && (
           <View style={s.badge}>
             <Text style={s.badgeText}>-{pct}%</Text>

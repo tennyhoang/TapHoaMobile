@@ -1,10 +1,10 @@
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '@/lib/storage';
 import { API_V1 } from '@/constants/api';
 
 const TOKEN_KEY = 'taphoa_token';
 
 async function buildHeaders(extra?: Record<string, string>) {
-  const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  const token = await storage.getItem(TOKEN_KEY);
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...extra,

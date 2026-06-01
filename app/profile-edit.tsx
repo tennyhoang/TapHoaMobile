@@ -9,12 +9,13 @@ import {
   ActivityIndicator,
   Platform,
   StatusBar,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { profileService } from '@/services/profile.service';
+import { useToast } from '@/components/Toast';
 
 const C = {
   primary: '#0EA5AE',
@@ -30,23 +31,37 @@ const C = {
 export default function ProfileEditScreen() {
   const { user, updateUser } = useAuth();
 
+  const { show } = useToast();
   const [fullName, setFullName] = useState(user?.fullName ?? '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ?? '');
+
+  useEffect(() => {
+    profileService
+      .getMe()
+      .then(me => {
+        setFullName(me.fullName);
+        setPhoneNumber(me.phoneNumber ?? '');
+      })
+      .catch(() => {});
+  }, []);
   const [saving, setSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
 
   const [showPwSection, setShowPwSection] = useState(false);
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [changingPw, setChangingPw] = useState(false);
+  const [pwError, setPwError] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
 
   const handleSaveProfile = async () => {
     if (!fullName.trim()) {
-      Alert.alert('Lỗi', 'Tên không được để trống');
+      setProfileError('Tên không được để trống');
       return;
     }
+    setProfileError('');
     setSaving(true);
     try {
       const res = await profileService.update({
@@ -54,11 +69,10 @@ export default function ProfileEditScreen() {
         phoneNumber: phoneNumber.trim() || undefined,
       });
       await updateUser({ fullName: res.fullName, phoneNumber: res.phoneNumber });
-      Alert.alert('Thành công', 'Thông tin đã được cập nhật', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      show('Thông tin đã được cập nhật');
+      router.back();
     } catch (err) {
-      Alert.alert('Lỗi', err instanceof Error ? err.message : 'Không thể cập nhật thông tin');
+      show(err instanceof Error ? err.message : 'Không thể cập nhật thông tin', 'error');
     } finally {
       setSaving(false);
     }
@@ -66,17 +80,18 @@ export default function ProfileEditScreen() {
 
   const handleChangePassword = async () => {
     if (!currentPw || !newPw || !confirmPw) {
-      Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin');
+      setPwError('Vui lòng điền đầy đủ thông tin');
       return;
     }
     if (newPw.length < 6) {
-      Alert.alert('Lỗi', 'Mật khẩu mới phải có ít nhất 6 ký tự');
+      setPwError('Mật khẩu mới phải có ít nhất 6 ký tự');
       return;
     }
     if (newPw !== confirmPw) {
-      Alert.alert('Lỗi', 'Xác nhận mật khẩu không khớp');
+      setPwError('Xác nhận mật khẩu không khớp');
       return;
     }
+    setPwError('');
     setChangingPw(true);
     try {
       await profileService.changePassword({ currentPassword: currentPw, newPassword: newPw });
@@ -84,9 +99,9 @@ export default function ProfileEditScreen() {
       setNewPw('');
       setConfirmPw('');
       setShowPwSection(false);
-      Alert.alert('Thành công', 'Mật khẩu đã được thay đổi');
+      show('Mật khẩu đã được thay đổi');
     } catch (err) {
-      Alert.alert('Lỗi', err instanceof Error ? err.message : 'Không thể đổi mật khẩu');
+      show(err instanceof Error ? err.message : 'Không thể đổi mật khẩu', 'error');
     } finally {
       setChangingPw(false);
     }
@@ -144,6 +159,12 @@ export default function ProfileEditScreen() {
             </View>
           </View>
 
+          {!!profileError && (
+            <View style={s.errBox}>
+              <Ionicons name="alert-circle-outline" size={15} color={C.error} />
+              <Text style={s.errText}>{profileError}</Text>
+            </View>
+          )}
           <TouchableOpacity
             style={[s.saveBtn, saving && { opacity: 0.65 }]}
             onPress={handleSaveProfile}
@@ -235,6 +256,12 @@ export default function ProfileEditScreen() {
                 />
               </View>
 
+              {!!pwError && (
+                <View style={[s.errBox, { margin: 12, marginBottom: 0 }]}>
+                  <Ionicons name="alert-circle-outline" size={15} color={C.error} />
+                  <Text style={s.errText}>{pwError}</Text>
+                </View>
+              )}
               <TouchableOpacity
                 style={[s.changePwBtn, changingPw && { opacity: 0.65 }]}
                 onPress={handleChangePassword}
@@ -360,4 +387,14 @@ const s = StyleSheet.create({
     borderColor: C.primary,
   },
   changePwBtnText: { fontSize: 14, fontWeight: '700', color: C.primary },
+  errBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+  },
+  errText: { flex: 1, fontSize: 12, color: C.error, fontWeight: '500' },
 });

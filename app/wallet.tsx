@@ -27,10 +27,8 @@ const C = {
 };
 
 const TX_CONFIG: Record<WalletTransactionType, { label: string; icon: string; color: string }> = {
-  TopUp: { label: 'Nạp tiền', icon: 'add-circle-outline', color: '#22C55E' },
-  OrderPayment: { label: 'Thanh toán đơn hàng', icon: 'bag-handle-outline', color: '#EF4444' },
-  Refund: { label: 'Hoàn tiền', icon: 'return-down-back-outline', color: '#3B82F6' },
-  Withdrawal: { label: 'Rút tiền', icon: 'arrow-up-circle-outline', color: '#F59E0B' },
+  Credit: { label: 'Tiền vào', icon: 'add-circle-outline', color: '#22C55E' },
+  Debit: { label: 'Tiền ra', icon: 'remove-circle-outline', color: '#EF4444' },
 };
 
 export default function WalletScreen() {
@@ -86,7 +84,7 @@ export default function WalletScreen() {
 
   const renderTx = ({ item }: { item: WalletTransaction }) => {
     const cfg = TX_CONFIG[item.type];
-    const isCredit = item.type === 'TopUp' || item.type === 'Refund';
+    const isCredit = item.type === 'Credit';
     return (
       <View style={s.txRow}>
         <View style={[s.txIcon, { backgroundColor: cfg.color + '18' }]}>

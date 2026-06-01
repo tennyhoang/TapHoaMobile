@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '@/lib/storage';
 
 type User = {
   email: string;
@@ -30,8 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const savedToken = await SecureStore.getItemAsync(TOKEN_KEY);
-        const savedUser = await SecureStore.getItemAsync(USER_KEY);
+        const savedToken = await storage.getItem(TOKEN_KEY);
+        const savedUser = await storage.getItem(USER_KEY);
         if (savedToken && savedUser) {
           setToken(savedToken);
           setUser(JSON.parse(savedUser));
@@ -46,15 +46,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (accessToken: string, email: string, fullName: string, role: string) => {
     const userData: User = { email, fullName, role };
-    await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
-    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
+    await storage.setItem(TOKEN_KEY, accessToken);
+    await storage.setItem(USER_KEY, JSON.stringify(userData));
     setToken(accessToken);
     setUser(userData);
   };
 
   const logout = async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(USER_KEY);
+    await storage.deleteItem(TOKEN_KEY);
+    await storage.deleteItem(USER_KEY);
     setToken(null);
     setUser(null);
   };
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, ...partial };
-      SecureStore.setItemAsync(USER_KEY, JSON.stringify(updated));
+      storage.setItem(USER_KEY, JSON.stringify(updated));
       return updated;
     });
   };
