@@ -35,6 +35,7 @@ const MENU_ITEMS = [
     route: '/notifications',
   },
   { icon: 'create-outline', label: 'Chỉnh sửa hồ sơ', color: '#3B82F6', route: '/profile-edit' },
+  { icon: 'book-outline', label: 'Cẩm nang mua sắm', color: '#16A34A', route: '/articles' },
   { icon: 'help-circle-outline', label: 'Hỗ trợ', color: C.muted, route: null },
 ];
 
@@ -81,6 +82,22 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {user?.role === 'Admin' && (
+          <View style={[s.card, { marginBottom: 16 }]}>
+            <TouchableOpacity
+              style={s.menuItem}
+              activeOpacity={0.7}
+              onPress={() => router.push('/admin/products' as any)}
+            >
+              <View style={[s.menuIcon, { backgroundColor: '#FF6B0018' }]}>
+                <Ionicons name="image-outline" size={20} color="#FF6B00" />
+              </View>
+              <Text style={s.menuLabel}>Quản lý ảnh sản phẩm</Text>
+              <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         <TouchableOpacity style={s.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={20} color={C.error} />

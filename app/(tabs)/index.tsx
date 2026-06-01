@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
+import { useToast } from '@/components/Toast';
 import ProductImage from '@/components/ProductImage';
 import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
@@ -35,6 +36,7 @@ const C = {
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { show } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [flashSale, setFlashSale] = useState<FlashSaleSession | null>(null);
@@ -79,8 +81,9 @@ export default function HomeScreen() {
   const handleAddToCart = async (product: Product) => {
     try {
       await cartService.add(product.id, 1);
+      show(`Đã thêm "${product.name}" vào giỏ`);
     } catch {
-      /* handle silently */
+      show('Không thể thêm vào giỏ hàng', 'error');
     }
   };
 
@@ -185,6 +188,9 @@ export default function HomeScreen() {
               <View style={s.countdownWrap}>
                 <Text style={s.countdownLabel}>Kết thúc sau</Text>
                 <Text style={s.countdown}>{countdown}</Text>
+                <TouchableOpacity onPress={() => router.push('/flash-sale' as any)}>
+                  <Text style={s.seeAll}>Xem tất cả →</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -204,7 +210,7 @@ export default function HomeScreen() {
                     <ProductImage
                       uri={item.thumbnailUrl}
                       style={StyleSheet.absoluteFill}
-                      iconSize={28}
+                      name={item.name}
                     />
                     <View style={s.flashBadge}>
                       <Text style={s.flashBadgeText}>
@@ -240,6 +246,28 @@ export default function HomeScreen() {
             </ScrollView>
           </View>
         )}
+
+        {/* ── CẨM NANG ── */}
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>Cẩm nang mua sắm</Text>
+            <TouchableOpacity onPress={() => router.push('/articles' as any)}>
+              <Text style={s.seeAll}>Xem tất cả →</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={s.articleBanner}
+            onPress={() => router.push('/articles' as any)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="book-outline" size={28} color={C.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={s.articleBannerTitle}>Kiến thức & kinh nghiệm</Text>
+              <Text style={s.articleBannerSub}>Dinh dưỡng, mẹo mua sắm từ đội ngũ TapHoa</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={C.muted} />
+          </TouchableOpacity>
+        </View>
 
         {/* ── PRODUCTS ── */}
         <View style={s.section}>
@@ -395,6 +423,19 @@ const s = StyleSheet.create({
   },
   stockBar: { height: '100%', backgroundColor: '#F59E0B', borderRadius: 2 },
   stockText: { fontSize: 10, color: C.muted, marginTop: 3 },
+
+  articleBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: C.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 16,
+  },
+  articleBannerTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 3 },
+  articleBannerSub: { fontSize: 12, color: C.muted, lineHeight: 16 },
 
   productGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   loadingWrap: { height: 200, alignItems: 'center', justifyContent: 'center' },

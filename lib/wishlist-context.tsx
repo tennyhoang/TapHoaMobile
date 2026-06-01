@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '@/lib/storage';
 
 const WISHLIST_KEY = 'taphoa_wishlist';
 
@@ -15,7 +15,8 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [ids, setIds] = useState<string[]>([]);
 
   useEffect(() => {
-    SecureStore.getItemAsync(WISHLIST_KEY)
+    storage
+      .getItem(WISHLIST_KEY)
       .then(val => {
         if (val) setIds(JSON.parse(val));
       })
@@ -27,7 +28,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const toggle = useCallback((id: string) => {
     setIds(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      SecureStore.setItemAsync(WISHLIST_KEY, JSON.stringify(next)).catch(() => {});
+      storage.setItem(WISHLIST_KEY, JSON.stringify(next)).catch(() => {});
       return next;
     });
   }, []);

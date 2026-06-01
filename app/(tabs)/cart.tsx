@@ -93,7 +93,7 @@ export default function CartScreen() {
       <View style={s.item}>
         {/* Image */}
         <View style={s.itemImg}>
-          <ProductImage uri={item.thumbnailUrl} style={s.img} iconSize={20} />
+          <ProductImage uri={item.thumbnailUrl} style={s.img} name={item.productName} />
         </View>
 
         {/* Info */}

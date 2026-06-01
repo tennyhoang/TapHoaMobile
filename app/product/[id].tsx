@@ -18,6 +18,7 @@ import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
 import { useCartCount } from '@/lib/cart-context';
 import { formatCurrency, discountPercent } from '@/lib/utils';
+import { useToast } from '@/components/Toast';
 import type { Product } from '@/types';
 
 const { width: W } = Dimensions.get('window');
@@ -43,6 +44,7 @@ export default function ProductDetailScreen() {
   const [cartSuccess, setCartSuccess] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const { refreshCount } = useCartCount();
+  const { show } = useToast();
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const slideAnim = useMemo(() => new Animated.Value(30), []);
 
@@ -75,7 +77,7 @@ export default function ProductDetailScreen() {
       refreshCount();
       setTimeout(() => setCartSuccess(false), 2000);
     } catch {
-      /* silent */
+      show('Không thể thêm vào giỏ hàng', 'error');
     } finally {
       setCartLoading(false);
     }
@@ -106,7 +108,7 @@ export default function ProductDetailScreen() {
           <ProductImage
             uri={allImages.length > 0 ? allImages[selectedImage] : null}
             style={s.img}
-            iconSize={60}
+            name={product.name}
           />
 
           {/* Gradient overlay */}

@@ -9,15 +9,25 @@ jest.mock('../../lib/api', () => ({
 
 const mockApi = api as jest.Mocked<typeof api>;
 
-const mockBalance = { balance: 250000 };
+const mockWallet = {
+  balance: 250000,
+  recentTransactions: [
+    {
+      id: 'txn1',
+      type: 'Credit' as const,
+      amount: 100000,
+      description: 'Nạp tiền ví',
+      createdAt: '2025-05-01T10:00:00Z',
+    },
+  ],
+};
 
 const mockTransaction = {
   id: 'txn1',
-  type: 'TopUp' as const,
-  amount: 100000,
-  description: 'Nạp tiền ví',
+  type: 'Debit' as const,
+  amount: 50000,
+  description: 'Thanh toán đơn hàng',
   createdAt: '2025-05-01T10:00:00Z',
-  balanceAfter: 250000,
 };
 
 const mockPaged = {
@@ -34,13 +44,13 @@ describe('walletService', () => {
   });
 
   describe('getBalance', () => {
-    it('calls GET /wallet/balance and returns balance', async () => {
-      mockApi.get.mockResolvedValueOnce(mockBalance);
+    it('calls GET /wallet/me and returns wallet data', async () => {
+      mockApi.get.mockResolvedValueOnce(mockWallet);
 
       const result = await walletService.getBalance();
 
-      expect(result).toEqual(mockBalance);
-      expect(mockApi.get).toHaveBeenCalledWith('/wallet/balance');
+      expect(result).toEqual(mockWallet);
+      expect(mockApi.get).toHaveBeenCalledWith('/wallet/me');
     });
 
     it('propagates error when api throws', async () => {
@@ -57,7 +67,7 @@ describe('walletService', () => {
       const result = await walletService.getTransactions();
 
       expect(result).toEqual(mockPaged);
-      expect(mockApi.get).toHaveBeenCalledWith('/wallet/transactions?page=1&pageSize=20');
+      expect(mockApi.get).toHaveBeenCalledWith('/wallet/me/transactions?page=1&pageSize=20');
     });
 
     it('passes custom page and pageSize', async () => {
@@ -65,7 +75,7 @@ describe('walletService', () => {
 
       await walletService.getTransactions(3, 10);
 
-      expect(mockApi.get).toHaveBeenCalledWith('/wallet/transactions?page=3&pageSize=10');
+      expect(mockApi.get).toHaveBeenCalledWith('/wallet/me/transactions?page=3&pageSize=10');
     });
 
     it('propagates error when api throws', async () => {
