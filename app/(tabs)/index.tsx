@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  ActivityIndicator,
   TextInput,
   RefreshControl,
   Dimensions,
@@ -19,6 +18,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/components/Toast';
 import { useLayout } from '@/lib/layout';
 import { useCartCount } from '@/lib/cart-context';
+import { haptics } from '@/lib/haptics';
 import ProductImage from '@/components/ProductImage';
 import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
@@ -32,6 +32,7 @@ import {
   type Article,
 } from '@/services/articles.service';
 import ProductCard from '@/components/ProductCard';
+import { ProductCardSkeleton } from '@/components/Skeleton';
 import { formatCurrency, formatCountdown } from '@/lib/utils';
 import type { Category, Product, FlashSaleSession, Order } from '@/types';
 
@@ -212,8 +213,10 @@ export default function HomeScreen() {
   const handleAddToCart = async (product: Product) => {
     try {
       await cartService.add(product.id, 1);
+      haptics.success();
       show(`Đã thêm "${product.name}" vào giỏ`);
     } catch {
+      haptics.error();
       show('Không thể thêm vào giỏ hàng', 'error');
     }
   };
@@ -517,8 +520,10 @@ export default function HomeScreen() {
           </View>
 
           {loading ? (
-            <View style={s.loadingWrap}>
-              <ActivityIndicator color={C.primary} size="large" />
+            <View style={[s.productGrid, { gap: cardGap }]}>
+              {[1, 2, 3, 4].map(i => (
+                <ProductCardSkeleton key={i} />
+              ))}
             </View>
           ) : products.length === 0 ? (
             <View style={s.emptyWrap}>

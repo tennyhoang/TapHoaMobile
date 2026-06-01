@@ -3,13 +3,12 @@ import { useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
 import { useCartCount } from '@/lib/cart-context';
-import { useLayout } from '@/lib/layout';
+import TabBar from '@/components/TabBar';
 import Colors from '@/constants/Colors';
 
 export default function TabLayout() {
   const { token, isLoading } = useAuth();
   const { itemCount, refreshCount } = useCartCount();
-  const { tabBarBottom } = useLayout();
 
   useEffect(() => {
     if (token) refreshCount();
@@ -22,24 +21,10 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={props => <TabBar {...props} />}
       screenOptions={{
         tabBarActiveTintColor: tint,
         tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: {
-          borderTopWidth: 1,
-          borderTopColor: '#F3F4F6',
-          backgroundColor: '#FFFFFF',
-          height: 56 + tabBarBottom,
-          paddingBottom: tabBarBottom || 8,
-          paddingTop: 8,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-          marginTop: 2,
-        },
         headerShown: false,
       }}
     >
