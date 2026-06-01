@@ -42,6 +42,7 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -89,6 +90,10 @@ export default function RegisterScreen() {
     }
     if (password !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp');
+      return;
+    }
+    if (!agreedToTerms) {
+      setError('Vui lòng đồng ý với Điều khoản sử dụng');
       return;
     }
     setError('');
@@ -227,6 +232,27 @@ export default function RegisterScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* ToS agreement */}
+            <TouchableOpacity
+              style={s.tosRow}
+              onPress={() => setAgreedToTerms(v => !v)}
+              activeOpacity={0.7}
+            >
+              <View style={[s.checkbox, agreedToTerms && s.checkboxActive]}>
+                {agreedToTerms && <Ionicons name="checkmark" size={12} color="#fff" />}
+              </View>
+              <Text style={s.tosText}>
+                Tôi đồng ý với{' '}
+                <Text style={s.tosLink} onPress={() => router.push('/terms' as any)}>
+                  Điều khoản sử dụng
+                </Text>{' '}
+                và{' '}
+                <Text style={s.tosLink} onPress={() => router.push('/privacy-policy' as any)}>
+                  Chính sách bảo mật
+                </Text>
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={[s.btn, loading && s.btnDim]}
@@ -414,4 +440,18 @@ const s = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   footerText: { fontSize: 14, color: C.muted },
   footerLink: { fontSize: 14, color: C.primary, fontWeight: '600' },
+  tosRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 16 },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+  checkboxActive: { backgroundColor: C.primary, borderColor: C.primary },
+  tosText: { flex: 1, fontSize: 13, color: C.muted, lineHeight: 19 },
+  tosLink: { color: C.primary, fontWeight: '600' },
 });

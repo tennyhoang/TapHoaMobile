@@ -16,6 +16,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { ordersService } from '@/services/orders.service';
 import * as ScreenCapture from 'expo-screen-capture';
+import * as StoreReview from 'expo-store-review';
 import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Order, OrderStatus } from '@/types';
@@ -508,6 +509,19 @@ export default function OrderDetailScreen() {
           </TouchableOpacity>
         )}
 
+        {order.status === 'Completed' && (
+          <TouchableOpacity
+            style={s.rateBtn}
+            onPress={async () => {
+              if (await StoreReview.hasAction()) StoreReview.requestReview();
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="star-outline" size={16} color="#F59E0B" />
+            <Text style={s.rateBtnText}>Đánh giá ứng dụng</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={s.shopBtn}
           onPress={() => router.replace('/(tabs)' as any)}
@@ -669,6 +683,19 @@ const s = StyleSheet.create({
     backgroundColor: C.card,
   },
   shopBtnText: { fontSize: 14, fontWeight: '600', color: C.primary },
+  rateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    borderRadius: 14,
+    marginBottom: 10,
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  rateBtnText: { fontSize: 14, fontWeight: '600', color: '#D97706' },
 });
 
 const q = StyleSheet.create({

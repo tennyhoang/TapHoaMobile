@@ -23,4 +23,6 @@ export const profileService = {
 
   changePassword: (payload: { currentPassword: string; newPassword: string }): Promise<void> =>
     api.patch<void>('/users/me/password', payload),
+
+  deleteAccount: (): Promise<void> => api.delete<void>('/users/me'),
 };
