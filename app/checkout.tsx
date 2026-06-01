@@ -9,6 +9,7 @@ import {
   Platform,
   StatusBar,
   TextInput,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,8 +18,9 @@ import { hubsService } from '@/services/hubs.service';
 import { ordersService } from '@/services/orders.service';
 import { cartService } from '@/services/cart.service';
 import { walletService } from '@/services/wallet.service';
+import { addressesService } from '@/services/addresses.service';
 import { formatCurrency } from '@/lib/utils';
-import type { Hub, Cart } from '@/types';
+import type { Hub, Cart, Address } from '@/types';
 
 const C = {
   primary: '#0EA5AE',
@@ -71,7 +73,7 @@ const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc
 ];
 
 export default function CheckoutScreen() {
-  const { top } = useSafeAreaInsets();
+  const { top, bottom } = useSafeAreaInsets();
   const [cart, setCart] = useState<Cart | null>(null);
   const [hubs, setHubs] = useState<Hub[]>([]);
   const [selectedHub, setSelectedHub] = useState<Hub | null>(null);
@@ -86,13 +88,25 @@ export default function CheckoutScreen() {
   const [voucherMsg, setVoucherMsg] = useState('');
   const [voucherOk, setVoucherOk] = useState(false);
 
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [addrModalVisible, setAddrModalVisible] = useState(false);
+
   useEffect(() => {
-    Promise.all([cartService.get(), hubsService.getActive(), walletService.getBalance()])
-      .then(([c, h, w]) => {
+    Promise.all([
+      cartService.get(),
+      hubsService.getActive(),
+      walletService.getBalance(),
+      addressesService.getAll(),
+    ])
+      .then(([c, h, w, addrs]) => {
         setCart(c);
         setHubs(h);
         setWalletBalance(w?.balance ?? 0);
         if (h.length > 0) setSelectedHub(h[0]);
+        setAddresses(addrs);
+        const def = addrs.find(a => a.isDefault) ?? addrs[0] ?? null;
+        setSelectedAddress(def);
       })
       .catch(() => router.back())
       .finally(() => setLoading(false));
@@ -166,6 +180,40 @@ export default function CheckoutScreen() {
               </View>
             ))}
           </View>
+        </View>
+
+        {/* Recipient */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Người nhận</Text>
+          {selectedAddress ? (
+            <TouchableOpacity
+              style={s.recipientCard}
+              onPress={() => setAddrModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={s.recipientIcon}>
+                <Ionicons name="person-outline" size={18} color={C.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.recipientName}>{selectedAddress.receiverName}</Text>
+                <Text style={s.recipientPhone}>{selectedAddress.phoneNumber}</Text>
+                <Text style={s.recipientAddr} numberOfLines={2}>
+                  {selectedAddress.streetAddress}, {selectedAddress.ward},{' '}
+                  {selectedAddress.district}, {selectedAddress.province}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={C.muted} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={s.addAddrBtn}
+              onPress={() => router.push('/addresses' as any)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add-circle-outline" size={18} color={C.primary} />
+              <Text style={s.addAddrText}>Thêm địa chỉ người nhận</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Hub selection */}
@@ -319,7 +367,7 @@ export default function CheckoutScreen() {
         )}
       </ScrollView>
 
-      <View style={s.footer}>
+      <View style={[s.footer, { paddingBottom: Platform.OS === 'ios' ? bottom + 8 : 16 }]}>
         <TouchableOpacity
           style={[s.placeBtn, placing && s.placeBtnDim]}
           onPress={handlePlaceOrder}
@@ -336,6 +384,64 @@ export default function CheckoutScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* ── ADDRESS PICKER MODAL ── */}
+      <Modal
+        visible={addrModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setAddrModalVisible(false)}
+      >
+        <View style={s.modalOverlay}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => setAddrModalVisible(false)} />
+          <View style={[s.addrSheet, { paddingBottom: bottom + 24 }]}>
+            <View style={s.sheetHandle} />
+            <Text style={s.addrSheetTitle}>Chọn người nhận</Text>
+
+            {addresses.map(addr => (
+              <TouchableOpacity
+                key={addr.id}
+                style={[s.addrRow, selectedAddress?.id === addr.id && s.addrRowActive]}
+                onPress={() => {
+                  setSelectedAddress(addr);
+                  setAddrModalVisible(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={[s.addrRadio, selectedAddress?.id === addr.id && s.addrRadioActive]}>
+                  {selectedAddress?.id === addr.id && <View style={s.addrRadioDot} />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={s.addrNameRow}>
+                    <Text style={s.addrName}>{addr.receiverName}</Text>
+                    {addr.isDefault && (
+                      <View style={s.defaultBadge}>
+                        <Text style={s.defaultBadgeText}>Mặc định</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={s.addrPhone}>{addr.phoneNumber}</Text>
+                  <Text style={s.addrText} numberOfLines={2}>
+                    {addr.streetAddress}, {addr.ward}, {addr.district}, {addr.province}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity
+              style={s.addAddrSheetBtn}
+              onPress={() => {
+                setAddrModalVisible(false);
+                router.push('/addresses' as any);
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add-circle-outline" size={18} color={C.primary} />
+              <Text style={s.addAddrSheetText}>Thêm địa chỉ mới</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -493,6 +599,100 @@ const s = StyleSheet.create({
     padding: 12,
   },
   errText: { fontSize: 13, color: C.error, flex: 1 },
+  // Recipient
+  recipientCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: C.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 14,
+  },
+  recipientIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#E5F9FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  recipientName: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 2 },
+  recipientPhone: { fontSize: 13, color: C.primary, fontWeight: '600', marginBottom: 3 },
+  recipientAddr: { fontSize: 12, color: C.muted, lineHeight: 17 },
+  addAddrBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: C.card,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: C.primary,
+    borderStyle: 'dashed',
+    padding: 16,
+  },
+  addAddrText: { fontSize: 14, fontWeight: '600', color: C.primary },
+
+  // Address modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
+  addrSheet: {
+    backgroundColor: C.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E5E7EB',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  addrSheetTitle: { fontSize: 18, fontWeight: '800', color: C.text, marginBottom: 16 },
+  addrRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  addrRowActive: { backgroundColor: '#F0FDFA', borderRadius: 12, paddingHorizontal: 10 },
+  addrRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  addrRadioActive: { borderColor: C.primary },
+  addrRadioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.primary },
+  addrNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  addrName: { fontSize: 14, fontWeight: '700', color: C.text },
+  defaultBadge: {
+    backgroundColor: '#E5F9FA',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  defaultBadgeText: { fontSize: 10, fontWeight: '700', color: C.primary },
+  addrPhone: { fontSize: 13, color: C.muted, marginBottom: 2 },
+  addrText: { fontSize: 12, color: C.muted, lineHeight: 17 },
+  addAddrSheetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    justifyContent: 'center',
+  },
+  addAddrSheetText: { fontSize: 14, fontWeight: '600', color: C.primary },
+
   footer: {
     position: 'absolute',
     bottom: 0,
@@ -501,7 +701,6 @@ const s = StyleSheet.create({
     backgroundColor: C.card,
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
     borderTopWidth: 1,
     borderTopColor: C.border,
   },
