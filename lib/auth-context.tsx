@@ -1,5 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import { router } from 'expo-router';
 import { storage } from '@/lib/storage';
+import { registerUnauthorizedHandler } from '@/lib/api';
+
+const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes in background
 
 type User = {
   email: string;
@@ -27,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load persisted session
   useEffect(() => {
     (async () => {
       try {
@@ -44,19 +50,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
+  const logout = useCallback(async () => {
+    await storage.deleteItem(TOKEN_KEY);
+    await storage.deleteItem(USER_KEY);
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  // Register 401 handler so api.ts can trigger logout on expired token
+  useEffect(() => {
+    registerUnauthorizedHandler(() => {
+      logout().then(() => {
+        router.replace('/(auth)/login' as any);
+      });
+    });
+  }, [logout]);
+
+  // Session timeout: auto-logout after 15 min in background
+  useEffect(() => {
+    let backgroundedAt: number | null = null;
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'background' || state === 'inactive') {
+        backgroundedAt = Date.now();
+      } else if (state === 'active' && backgroundedAt !== null) {
+        if (Date.now() - backgroundedAt > SESSION_TIMEOUT_MS && token) {
+          logout().then(() => router.replace('/(auth)/login' as any));
+        }
+        backgroundedAt = null;
+      }
+    });
+    return () => sub.remove();
+  }, [token, logout]);
+
   const login = async (accessToken: string, email: string, fullName: string, role: string) => {
     const userData: User = { email, fullName, role };
     await storage.setItem(TOKEN_KEY, accessToken);
     await storage.setItem(USER_KEY, JSON.stringify(userData));
     setToken(accessToken);
     setUser(userData);
-  };
-
-  const logout = async () => {
-    await storage.deleteItem(TOKEN_KEY);
-    await storage.deleteItem(USER_KEY);
-    setToken(null);
-    setUser(null);
   };
 
   const updateUser = async (partial: Partial<User>) => {

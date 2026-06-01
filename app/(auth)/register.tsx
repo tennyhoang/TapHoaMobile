@@ -29,6 +29,10 @@ const C = {
   errorBg: '#FEF2F2',
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^(0|\+84)[3-9]\d{8}$/;
+const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
 export default function RegisterScreen() {
   const { login } = useAuth();
   const [fullName, setFullName] = useState('');
@@ -71,8 +75,16 @@ export default function RegisterScreen() {
       setError('Vui lòng nhập đầy đủ thông tin');
       return;
     }
-    if (password.length < 6) {
-      setError('Mật khẩu tối thiểu 6 ký tự');
+    if (!EMAIL_RE.test(email.trim())) {
+      setError('Email không hợp lệ');
+      return;
+    }
+    if (phone.trim() && !PHONE_RE.test(phone.trim())) {
+      setError('Số điện thoại không hợp lệ (VD: 0912345678)');
+      return;
+    }
+    if (!PASSWORD_RE.test(password)) {
+      setError('Mật khẩu tối thiểu 8 ký tự, có cả chữ lẫn số');
       return;
     }
     if (password !== confirmPassword) {
@@ -172,7 +184,7 @@ export default function RegisterScreen() {
                 <Ionicons name="lock-closed-outline" size={18} color={C.muted} style={s.icon} />
                 <TextInput
                   style={[s.input, { flex: 1 }]}
-                  placeholder="Tối thiểu 6 ký tự"
+                  placeholder="Tối thiểu 8 ký tự, có chữ và số"
                   placeholderTextColor="#9CA3AF"
                   value={password}
                   onChangeText={setPassword}
