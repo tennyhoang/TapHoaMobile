@@ -34,13 +34,15 @@ export default function ArticlesScreen() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
   const load = async () => {
+    setError('');
     try {
       const data = await articlesService.getAll();
       setArticles(data);
-    } catch {
-      // silently handle
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể tải bài viết');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -135,6 +137,15 @@ export default function ArticlesScreen() {
       {loading ? (
         <View style={s.center}>
           <ActivityIndicator color={C.primary} size="large" />
+        </View>
+      ) : error ? (
+        <View style={s.empty}>
+          <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+          <Text style={[s.emptyTitle, { color: '#EF4444' }]}>Lỗi kết nối</Text>
+          <Text style={s.emptyText}>{error}</Text>
+          <TouchableOpacity style={s.retryBtn} onPress={load} activeOpacity={0.85}>
+            <Text style={s.retryText}>Thử lại</Text>
+          </TouchableOpacity>
         </View>
       ) : articles.length === 0 ? (
         <View style={s.empty}>
@@ -244,7 +255,15 @@ const s = StyleSheet.create({
   cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   cardMetaText: { fontSize: 11, color: C.muted },
 
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, padding: 32 },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: C.text },
-  emptyText: { fontSize: 13, color: C.muted, textAlign: 'center' },
+  emptyText: { fontSize: 13, color: C.muted, textAlign: 'center', lineHeight: 20 },
+  retryBtn: {
+    marginTop: 8,
+    backgroundColor: C.primary,
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+  },
+  retryText: { fontSize: 14, fontWeight: '700', color: '#fff' },
 });
