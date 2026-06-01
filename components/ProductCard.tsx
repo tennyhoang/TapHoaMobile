@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
+import { useWishlist } from '@/lib/wishlist-context';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 
@@ -15,6 +16,7 @@ const C = {
   card: '#FFFFFF',
   border: '#F3F4F6',
   discount: '#EF4444',
+  heart: '#F43F5E',
 };
 
 type Props = {
@@ -25,6 +27,8 @@ type Props = {
 export default function ProductCard({ product, onAddToCart }: Props) {
   const hasDiscount = !!product.discountPrice;
   const pct = hasDiscount ? discountPercent(product.price, product.discountPrice!) : 0;
+  const { isWishlisted, toggle } = useWishlist();
+  const wishlisted = isWishlisted(product.id);
 
   return (
     <TouchableOpacity
@@ -40,6 +44,18 @@ export default function ProductCard({ product, onAddToCart }: Props) {
             <Text style={s.badgeText}>-{pct}%</Text>
           </View>
         )}
+        <TouchableOpacity
+          style={s.heartBtn}
+          onPress={() => toggle(product.id)}
+          activeOpacity={0.8}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        >
+          <Ionicons
+            name={wishlisted ? 'heart' : 'heart-outline'}
+            size={16}
+            color={wishlisted ? C.heart : C.muted}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Info */}
@@ -101,6 +117,17 @@ const s = StyleSheet.create({
     backgroundColor: '#E5F9FA',
   },
   img: { width: '100%', height: '100%' },
+  heartBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   badge: {
     position: 'absolute',
     top: 8,

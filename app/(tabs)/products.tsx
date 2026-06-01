@@ -42,6 +42,8 @@ export default function ProductsScreen() {
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('newest');
+  const [isNew, setIsNew] = useState(false);
+  const [isDiscount, setIsDiscount] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -65,6 +67,8 @@ export default function ProductsScreen() {
           sortBy,
           page: p,
           pageSize: 20,
+          isNew: isNew || undefined,
+          isDiscount: isDiscount || undefined,
         });
         setProducts(prev => (reset ? res.items : [...prev, ...res.items]));
         setTotalPages(res.totalPages);
@@ -77,14 +81,14 @@ export default function ProductsScreen() {
         setRefreshing(false);
       }
     },
-    [search, selectedCat, sortBy]
+    [search, selectedCat, sortBy, isNew, isDiscount]
   );
 
   useEffect(() => {
     setLoading(true);
     setPage(1);
     fetchProducts(1, true);
-  }, [selectedCat, sortBy]);
+  }, [selectedCat, sortBy, isNew, isDiscount]);
 
   // Debounce search
   useEffect(() => {
@@ -183,6 +187,27 @@ export default function ProductsScreen() {
               </Text>
             </TouchableOpacity>
           ))}
+          <View style={s.divider} />
+          <TouchableOpacity
+            style={[s.tagChip, isNew && s.tagChipNew]}
+            onPress={() => {
+              setIsNew(v => !v);
+              setIsDiscount(false);
+            }}
+          >
+            <Ionicons name="sparkles-outline" size={12} color={isNew ? '#fff' : '#8B5CF6'} />
+            <Text style={[s.tagText, isNew && s.tagTextActive]}>Mới</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.tagChip, isDiscount && s.tagChipSale]}
+            onPress={() => {
+              setIsDiscount(v => !v);
+              setIsNew(false);
+            }}
+          >
+            <Ionicons name="pricetag-outline" size={12} color={isDiscount ? '#fff' : '#EF4444'} />
+            <Text style={[s.tagText, isDiscount && s.tagTextActive]}>Giảm giá</Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
 
@@ -280,6 +305,23 @@ const s = StyleSheet.create({
   sortChipActive: { backgroundColor: '#E5F9FA' },
   sortText: { fontSize: 12, color: C.muted, fontWeight: '500' },
   sortTextActive: { color: C.primary, fontWeight: '700' },
+
+  divider: { width: 1, backgroundColor: C.border, marginHorizontal: 4, marginVertical: 2 },
+  tagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E9D5FF',
+    backgroundColor: '#F5F3FF',
+  },
+  tagChipNew: { backgroundColor: '#7C3AED', borderColor: '#7C3AED' },
+  tagChipSale: { backgroundColor: '#EF4444', borderColor: '#EF4444' },
+  tagText: { fontSize: 12, color: '#7C3AED', fontWeight: '600' },
+  tagTextActive: { color: '#fff' },
 
   grid: { padding: 16, paddingBottom: 32 },
   row: { justifyContent: 'space-between', marginBottom: 12 },

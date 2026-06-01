@@ -32,6 +32,22 @@ const C = {
 
 type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet';
 
+type VoucherResult = { discount: number; type: 'percent' | 'flat'; label: string };
+
+const VOUCHERS: Record<string, VoucherResult> = {
+  TAPHOA10: { discount: 10, type: 'percent', label: 'Giảm 10%' },
+  NEWUSER15: { discount: 15, type: 'percent', label: 'Giảm 15% cho khách mới' },
+  SALE20: { discount: 20, type: 'percent', label: 'Giảm 20%' },
+  FREESHIP: { discount: 20000, type: 'flat', label: 'Giảm 20.000đ' },
+};
+
+function applyVoucher(code: string, total: number): { ok: boolean; msg: string; discount: number } {
+  const v = VOUCHERS[code.trim().toUpperCase()];
+  if (!v) return { ok: false, msg: 'Mã voucher không hợp lệ', discount: 0 };
+  const discount = v.type === 'percent' ? Math.round((total * v.discount) / 100) : v.discount;
+  return { ok: true, msg: v.label, discount };
+}
+
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc: string }[] = [
   {
     value: 'COD',
@@ -63,6 +79,10 @@ export default function CheckoutScreen() {
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
+  const [voucherCode, setVoucherCode] = useState('');
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [voucherMsg, setVoucherMsg] = useState('');
+  const [voucherOk, setVoucherOk] = useState(false);
 
   useEffect(() => {
     Promise.all([cartService.get(), hubsService.getActive(), walletService.getBalance()])
@@ -75,6 +95,16 @@ export default function CheckoutScreen() {
       .catch(() => router.back())
       .finally(() => setLoading(false));
   }, []);
+
+  const handleApplyVoucher = () => {
+    const total = cart?.totalAmount ?? 0;
+    const result = applyVoucher(voucherCode, total);
+    setVoucherOk(result.ok);
+    setVoucherMsg(result.msg);
+    setVoucherDiscount(result.discount);
+  };
+
+  const finalAmount = Math.max(0, (cart?.totalAmount ?? 0) - voucherDiscount);
 
   const handlePlaceOrder = async () => {
     if (!selectedHub) {
@@ -213,19 +243,69 @@ export default function CheckoutScreen() {
           </View>
         </View>
 
+        {/* Voucher */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Mã giảm giá</Text>
+          <View style={s.voucherRow}>
+            <TextInput
+              style={s.voucherInput}
+              placeholder="Nhập mã voucher..."
+              placeholderTextColor="#9CA3AF"
+              value={voucherCode}
+              onChangeText={v => {
+                setVoucherCode(v);
+                setVoucherMsg('');
+                setVoucherDiscount(0);
+                setVoucherOk(false);
+              }}
+              autoCapitalize="characters"
+              returnKeyType="done"
+              onSubmitEditing={handleApplyVoucher}
+            />
+            <TouchableOpacity
+              style={[s.voucherBtn, !voucherCode.trim() && s.voucherBtnDim]}
+              onPress={handleApplyVoucher}
+              disabled={!voucherCode.trim()}
+              activeOpacity={0.85}
+            >
+              <Text style={s.voucherBtnText}>Áp dụng</Text>
+            </TouchableOpacity>
+          </View>
+          {!!voucherMsg && (
+            <View style={[s.voucherResult, voucherOk ? s.voucherResultOk : s.voucherResultErr]}>
+              <Ionicons
+                name={voucherOk ? 'checkmark-circle-outline' : 'close-circle-outline'}
+                size={15}
+                color={voucherOk ? '#22C55E' : C.error}
+              />
+              <Text style={[s.voucherResultText, { color: voucherOk ? '#16A34A' : C.error }]}>
+                {voucherMsg}
+              </Text>
+            </View>
+          )}
+        </View>
+
         {/* Total */}
         <View style={s.totalCard}>
           <View style={s.totalRow}>
             <Text style={s.totalLabel}>Tạm tính</Text>
             <Text style={s.totalValue}>{formatCurrency(cart?.totalAmount ?? 0)}</Text>
           </View>
+          {voucherDiscount > 0 && (
+            <View style={s.totalRow}>
+              <Text style={s.totalLabel}>Voucher</Text>
+              <Text style={[s.totalValue, { color: '#22C55E' }]}>
+                -{formatCurrency(voucherDiscount)}
+              </Text>
+            </View>
+          )}
           <View style={s.totalRow}>
             <Text style={s.totalLabel}>Phí giao hàng</Text>
             <Text style={[s.totalValue, { color: '#22C55E' }]}>Miễn phí</Text>
           </View>
           <View style={[s.totalRow, s.totalFinal]}>
             <Text style={s.totalFinalLabel}>Tổng cộng</Text>
-            <Text style={s.totalFinalValue}>{formatCurrency(cart?.totalAmount ?? 0)}</Text>
+            <Text style={s.totalFinalValue}>{formatCurrency(finalAmount)}</Text>
           </View>
         </View>
 
@@ -249,9 +329,7 @@ export default function CheckoutScreen() {
           ) : (
             <>
               <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-              <Text style={s.placeBtnText}>
-                Đặt hàng · {formatCurrency(cart?.totalAmount ?? 0)}
-              </Text>
+              <Text style={s.placeBtnText}>Đặt hàng · {formatCurrency(finalAmount)}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -334,6 +412,47 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 2,
   },
+  voucherRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  voucherInput: {
+    flex: 1,
+    height: 46,
+    backgroundColor: C.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingHorizontal: 14,
+    fontSize: 14,
+    color: C.text,
+    fontWeight: '600',
+    letterSpacing: 1,
+  },
+  voucherBtn: {
+    height: 46,
+    paddingHorizontal: 18,
+    backgroundColor: C.primary,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  voucherBtnDim: { opacity: 0.5 },
+  voucherBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  voucherResult: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  voucherResultOk: { backgroundColor: '#F0FDF4' },
+  voucherResultErr: { backgroundColor: '#FEF2F2' },
+  voucherResultText: { fontSize: 13, fontWeight: '500' },
+
   noteWrap: {
     backgroundColor: C.card,
     borderRadius: 14,
