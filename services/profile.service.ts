@@ -3,19 +3,24 @@ import { api } from '@/lib/api';
 export type UpdateProfilePayload = {
   fullName: string;
   phoneNumber?: string;
+  avatarUrl?: string;
 };
 
 export type UpdateProfileResponse = {
+  id: string;
   email: string;
   fullName: string;
   phoneNumber?: string;
-  role: string;
+  avatarUrl?: string;
+  isActive: boolean;
 };
 
 export const profileService = {
+  getMe: (): Promise<UpdateProfileResponse> => api.get<UpdateProfileResponse>('/users/me'),
+
   update: (payload: UpdateProfilePayload): Promise<UpdateProfileResponse> =>
-    api.put<UpdateProfileResponse>('/profile', payload),
+    api.put<UpdateProfileResponse>('/users/me', payload),
 
   changePassword: (payload: { currentPassword: string; newPassword: string }): Promise<void> =>
-    api.put<void>('/profile/password', payload),
+    api.patch<void>('/users/me/password', payload),
 };

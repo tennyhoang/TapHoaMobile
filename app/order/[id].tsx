@@ -13,6 +13,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ordersService } from '@/services/orders.service';
+import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Order, OrderStatus } from '@/types';
 
@@ -70,6 +71,7 @@ export default function OrderDetailScreen() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const { show } = useToast();
 
   useEffect(() => {
     if (!id) return;
@@ -92,7 +94,7 @@ export default function OrderDetailScreen() {
             const updated = await ordersService.cancel(id!);
             setOrder(updated);
           } catch {
-            Alert.alert('Lỗi', 'Không thể huỷ đơn hàng lúc này.');
+            show('Không thể huỷ đơn hàng lúc này', 'error');
           } finally {
             setCancelling(false);
           }

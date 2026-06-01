@@ -124,7 +124,10 @@ export default function RegisterScreen() {
 
       {/* ── FORM CARD ── */}
       <Animated.View style={[s.card, { opacity: cardOpacity, transform: [{ translateY: cardY }] }]}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <ScrollView
             contentContainerStyle={s.form}
             keyboardShouldPersistTaps="handled"
