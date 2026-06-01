@@ -15,6 +15,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { ordersService } from '@/services/orders.service';
+import * as ScreenCapture from 'expo-screen-capture';
 import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Order, OrderStatus } from '@/types';
@@ -155,6 +156,14 @@ export default function OrderDetailScreen() {
   useEffect(() => {
     fetchOrder();
   }, [fetchOrder]);
+
+  // Prevent screenshots — screen may contain payment QR code
+  useEffect(() => {
+    ScreenCapture.preventScreenCaptureAsync();
+    return () => {
+      ScreenCapture.allowScreenCaptureAsync();
+    };
+  }, []);
 
   // Poll every 15s while waiting for payment confirmation
   useEffect(() => {
