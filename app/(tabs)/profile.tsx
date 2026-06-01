@@ -24,19 +24,34 @@ const C = {
 };
 
 const MENU_ITEMS = [
-  { icon: 'wallet-outline', label: 'Ví của tôi', color: '#22C55E', route: '/wallet' },
-  { icon: 'receipt-outline', label: 'Đơn hàng của tôi', color: C.primary, route: '/orders' },
-  { icon: 'heart-outline', label: 'Sản phẩm yêu thích', color: '#F43F5E', route: '/wishlist' },
-  { icon: 'location-outline', label: 'Địa chỉ giao hàng', color: '#8B5CF6', route: '/addresses' },
+  { icon: 'wallet-outline', label: 'VĂ­ cá»§a tĂ´i', color: '#22C55E', route: '/wallet' },
+  { icon: 'receipt-outline', label: 'ÄÆ¡n hĂ ng cá»§a tĂ´i', color: C.primary, route: '/orders' },
+  {
+    icon: 'heart-outline',
+    label: 'Sáº£n pháº©m yĂªu thĂ­ch',
+    color: '#F43F5E',
+    route: '/wishlist',
+  },
+  {
+    icon: 'location-outline',
+    label: 'Äá»‹a chá»‰ giao hĂ ng',
+    color: '#8B5CF6',
+    route: '/addresses',
+  },
   {
     icon: 'notifications-outline',
-    label: 'Thông báo',
+    label: 'ThĂ´ng bĂ¡o',
     color: '#F59E0B',
     route: '/notifications',
   },
-  { icon: 'create-outline', label: 'Chỉnh sửa hồ sơ', color: '#3B82F6', route: '/profile-edit' },
-  { icon: 'book-outline', label: 'Cẩm nang mua sắm', color: '#16A34A', route: '/articles/index' },
-  { icon: 'help-circle-outline', label: 'Hỗ trợ', color: C.muted, route: null },
+  {
+    icon: 'create-outline',
+    label: 'Chá»‰nh sá»­a há»“ sÆ¡',
+    color: '#3B82F6',
+    route: '/profile-edit',
+  },
+  { icon: 'book-outline', label: 'Cáº©m nang mua sáº¯m', color: '#16A34A', route: '/articles' },
+  { icon: 'help-circle-outline', label: 'Há»— trá»£', color: C.muted, route: null },
 ];
 
 export default function ProfileScreen() {
@@ -93,7 +108,7 @@ export default function ProfileScreen() {
               <View style={[s.menuIcon, { backgroundColor: '#FF6B0018' }]}>
                 <Ionicons name="image-outline" size={20} color="#FF6B00" />
               </View>
-              <Text style={s.menuLabel}>Quản lý ảnh sản phẩm</Text>
+              <Text style={s.menuLabel}>Quáº£n lĂ½ áº£nh sáº£n pháº©m</Text>
               <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
             </TouchableOpacity>
           </View>
@@ -101,7 +116,7 @@ export default function ProfileScreen() {
 
         <TouchableOpacity style={s.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={20} color={C.error} />
-          <Text style={s.logoutText}>Đăng xuất</Text>
+          <Text style={s.logoutText}>ÄÄƒng xuáº¥t</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

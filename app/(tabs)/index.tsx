@@ -46,7 +46,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
 
-  const firstName = user?.fullName?.split(' ').pop() ?? 'bạn';
+  const firstName = user?.fullName?.split(' ').pop() ?? 'báº¡n';
 
   const load = useCallback(async () => {
     try {
@@ -59,7 +59,7 @@ export default function HomeScreen() {
       setProducts(prods.items);
       setFlashSale(sale);
     } catch {
-      // Network error handled silently — user can pull to refresh
+      // Network error handled silently â€” user can pull to refresh
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -81,9 +81,9 @@ export default function HomeScreen() {
   const handleAddToCart = async (product: Product) => {
     try {
       await cartService.add(product.id, 1);
-      show(`Đã thêm "${product.name}" vào giỏ`);
+      show(`ÄĂ£ thĂªm "${product.name}" vĂ o giá»`);
     } catch {
-      show('Không thể thêm vào giỏ hàng', 'error');
+      show('KhĂ´ng thá»ƒ thĂªm vĂ o giá» hĂ ng', 'error');
     }
   };
 
@@ -108,13 +108,13 @@ export default function HomeScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      {/* ── HEADER ── */}
+      {/* â”€â”€ HEADER â”€â”€ */}
       <View style={s.header}>
         <View style={s.blob} />
         <View style={s.headerTop}>
           <View>
-            <Text style={s.greeting}>Xin chào, {firstName} 👋</Text>
-            <Text style={s.subGreeting}>Hôm nay muốn ăn gì?</Text>
+            <Text style={s.greeting}>Xin chĂ o, {firstName} đŸ‘‹</Text>
+            <Text style={s.subGreeting}>HĂ´m nay muá»‘n Äƒn gĂ¬?</Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/(tabs)/profile' as any)}>
             <View style={s.avatarBtn}>
@@ -127,7 +127,7 @@ export default function HomeScreen() {
           <Ionicons name="search-outline" size={18} color={C.muted} />
           <TextInput
             style={s.searchInput}
-            placeholder="Tìm thực phẩm tươi ngon..."
+            placeholder="TĂ¬m thá»±c pháº©m tÆ°Æ¡i ngon..."
             placeholderTextColor="#9CA3AF"
             value={search}
             onChangeText={setSearch}
@@ -145,10 +145,10 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
         }
       >
-        {/* ── CATEGORIES ── */}
+        {/* â”€â”€ CATEGORIES â”€â”€ */}
         {categories.length > 0 && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Danh mục</Text>
+            <Text style={s.sectionTitle}>Danh má»¥c</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -159,7 +159,7 @@ export default function HomeScreen() {
                 onPress={() => handleCatFilter(null)}
               >
                 <Text style={[s.catChipText, selectedCat === null && s.catChipTextActive]}>
-                  Tất cả
+                  Táº¥t cáº£
                 </Text>
               </TouchableOpacity>
               {categories.map(cat => (
@@ -177,7 +177,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── FLASH SALE ── */}
+        {/* â”€â”€ FLASH SALE â”€â”€ */}
         {flashSale && (
           <View style={s.section}>
             <View style={s.flashHeader}>
@@ -186,10 +186,10 @@ export default function HomeScreen() {
                 <Text style={s.flashTitle}>Flash Sale</Text>
               </View>
               <View style={s.countdownWrap}>
-                <Text style={s.countdownLabel}>Kết thúc sau</Text>
+                <Text style={s.countdownLabel}>Káº¿t thĂºc sau</Text>
                 <Text style={s.countdown}>{countdown}</Text>
                 <TouchableOpacity onPress={() => router.push('/flash-sale' as any)}>
-                  <Text style={s.seeAll}>Xem tất cả →</Text>
+                  <Text style={s.seeAll}>Xem táº¥t cáº£ â†’</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -239,7 +239,7 @@ export default function HomeScreen() {
                         ]}
                       />
                     </View>
-                    <Text style={s.stockText}>Còn {item.stockRemaining}</Text>
+                    <Text style={s.stockText}>CĂ²n {item.stockRemaining}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -247,34 +247,36 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── CẨM NANG ── */}
+        {/* â”€â”€ Cáº¨M NANG â”€â”€ */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>Cẩm nang mua sắm</Text>
-            <TouchableOpacity onPress={() => router.push('/articles/index' as any)}>
-              <Text style={s.seeAll}>Xem tất cả →</Text>
+            <Text style={s.sectionTitle}>Cáº©m nang mua sáº¯m</Text>
+            <TouchableOpacity onPress={() => router.push('/articles' as any)}>
+              <Text style={s.seeAll}>Xem táº¥t cáº£ â†’</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={s.articleBanner}
-            onPress={() => router.push('/articles/index' as any)}
+            onPress={() => router.push('/articles' as any)}
             activeOpacity={0.85}
           >
             <Ionicons name="book-outline" size={28} color={C.primary} />
             <View style={{ flex: 1 }}>
-              <Text style={s.articleBannerTitle}>Kiến thức & kinh nghiệm</Text>
-              <Text style={s.articleBannerSub}>Dinh dưỡng, mẹo mua sắm từ đội ngũ TapHoa</Text>
+              <Text style={s.articleBannerTitle}>Kiáº¿n thá»©c & kinh nghiá»‡m</Text>
+              <Text style={s.articleBannerSub}>
+                Dinh dÆ°á»¡ng, máº¹o mua sáº¯m tá»« Ä‘á»™i ngÅ© TapHoa
+              </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={C.muted} />
           </TouchableOpacity>
         </View>
 
-        {/* ── PRODUCTS ── */}
+        {/* â”€â”€ PRODUCTS â”€â”€ */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>Sản phẩm mới</Text>
+            <Text style={s.sectionTitle}>Sáº£n pháº©m má»›i</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/products' as any)}>
-              <Text style={s.seeAll}>Xem tất cả →</Text>
+              <Text style={s.seeAll}>Xem táº¥t cáº£ â†’</Text>
             </TouchableOpacity>
           </View>
 
@@ -285,7 +287,7 @@ export default function HomeScreen() {
           ) : products.length === 0 ? (
             <View style={s.emptyWrap}>
               <Ionicons name="leaf-outline" size={40} color={C.muted} />
-              <Text style={s.emptyText}>Chưa có sản phẩm nào</Text>
+              <Text style={s.emptyText}>ChÆ°a cĂ³ sáº£n pháº©m nĂ o</Text>
             </View>
           ) : (
             <View style={s.productGrid}>
