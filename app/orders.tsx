@@ -6,11 +6,11 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   StatusBar,
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ordersService } from '@/services/orders.service';
@@ -56,6 +56,7 @@ const FILTERS: { label: string; value: OrderStatus | undefined }[] = [
 ];
 
 export default function OrdersScreen() {
+  const { top } = useSafeAreaInsets();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -129,7 +130,7 @@ export default function OrdersScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
@@ -198,7 +199,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     backgroundColor: C.primaryDark,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },

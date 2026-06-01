@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { reviewsService } from '@/services/reviews.service';
@@ -57,6 +58,7 @@ function Stars({
 }
 
 export default function ReviewsScreen() {
+  const { top } = useSafeAreaInsets();
   const { id: productId, name: productName } = useLocalSearchParams<{
     id: string;
     name: string;
@@ -158,7 +160,7 @@ export default function ReviewsScreen() {
     <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
@@ -271,7 +273,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     backgroundColor: C.primaryDark,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 14,
   },

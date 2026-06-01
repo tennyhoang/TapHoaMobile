@@ -1,14 +1,15 @@
 import { Tabs, Redirect } from 'expo-router';
-import { Platform } from 'react-native';
 import { useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
 import { useCartCount } from '@/lib/cart-context';
+import { useLayout } from '@/lib/layout';
 import Colors from '@/constants/Colors';
 
 export default function TabLayout() {
   const { token, isLoading } = useAuth();
   const { itemCount, refreshCount } = useCartCount();
+  const { tabBarBottom } = useLayout();
 
   useEffect(() => {
     if (token) refreshCount();
@@ -28,8 +29,8 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: '#F3F4F6',
           backgroundColor: '#FFFFFF',
-          height: Platform.OS === 'ios' ? 84 : 64,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+          height: 56 + tabBarBottom,
+          paddingBottom: tabBarBottom || 8,
           paddingTop: 8,
           elevation: 0,
           shadowOpacity: 0,

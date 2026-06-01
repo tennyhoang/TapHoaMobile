@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Platform,
   StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLayout } from '@/lib/layout';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { productsService } from '@/services/products.service';
@@ -28,6 +29,8 @@ const C = {
 };
 
 export default function SearchScreen() {
+  const { top } = useSafeAreaInsets();
+  const { productColumns, cardGap } = useLayout();
   const { q } = useLocalSearchParams<{ q: string }>();
   const [search, setSearch] = useState(q ?? '');
   const [products, setProducts] = useState<Product[]>([]);
@@ -94,7 +97,7 @@ export default function SearchScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
@@ -136,9 +139,10 @@ export default function SearchScreen() {
         <FlatList
           data={products}
           keyExtractor={item => item.id}
-          numColumns={2}
-          contentContainerStyle={s.grid}
-          columnWrapperStyle={s.row}
+          numColumns={productColumns}
+          key={productColumns}
+          contentContainerStyle={[s.grid, { gap: cardGap }]}
+          columnWrapperStyle={{ gap: cardGap }}
           showsVerticalScrollIndicator={false}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
@@ -168,7 +172,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     backgroundColor: C.primaryDark,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
