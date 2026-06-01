@@ -89,7 +89,7 @@ export default function CheckoutScreen() {
       .then(([c, h, w]) => {
         setCart(c);
         setHubs(h);
-        setWalletBalance(w.balance);
+        setWalletBalance(w?.balance ?? 0);
         if (h.length > 0) setSelectedHub(h[0]);
       })
       .catch(() => router.back())

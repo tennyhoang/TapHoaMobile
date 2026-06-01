@@ -17,6 +17,7 @@ import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
 import { cartService } from '@/services/cart.service';
 import ProductCard from '@/components/ProductCard';
+import { useToast } from '@/components/Toast';
 import type { Product, Category } from '@/types';
 
 const C = {
@@ -37,6 +38,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProductsScreen() {
+  const { show } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
@@ -111,8 +113,9 @@ export default function ProductsScreen() {
   const handleAddToCart = async (product: Product) => {
     try {
       await cartService.add(product.id, 1);
+      show(`Đã thêm "${product.name}" vào giỏ`);
     } catch {
-      /* silent */
+      show('Không thể thêm vào giỏ hàng', 'error');
     }
   };
 

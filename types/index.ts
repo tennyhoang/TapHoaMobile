@@ -128,7 +128,7 @@ export type Address = {
   isDefault: boolean;
 };
 
-export type WalletTransactionType = 'TopUp' | 'OrderPayment' | 'Refund' | 'Withdrawal';
+export type WalletTransactionType = 'Credit' | 'Debit';
 
 export type WalletTransaction = {
   id: string;
@@ -136,11 +136,11 @@ export type WalletTransaction = {
   amount: number;
   description: string;
   createdAt: string;
-  balanceAfter: number;
 };
 
 export type WalletBalance = {
   balance: number;
+  recentTransactions: WalletTransaction[];
 };
 
 export type Review = {

@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Platform,
   StatusBar,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +15,7 @@ import { useWishlist } from '@/lib/wishlist-context';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
 import ProductImage from '@/components/ProductImage';
+import { useToast } from '@/components/Toast';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 
@@ -33,6 +33,7 @@ const C = {
 
 export default function WishlistScreen() {
   const { ids, toggle } = useWishlist();
+  const { show } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
@@ -62,19 +63,17 @@ export default function WishlistScreen() {
   }, [ids.length]);
 
   const handleRemove = (product: Product) => {
-    Alert.alert('Xoá khỏi yêu thích?', product.name, [
-      { text: 'Huỷ', style: 'cancel' },
-      { text: 'Xoá', style: 'destructive', onPress: () => toggle(product.id) },
-    ]);
+    toggle(product.id);
+    show('Đã xoá khỏi danh sách yêu thích', 'info');
   };
 
   const handleAddToCart = async (product: Product) => {
     setAddingToCart(product.id);
     try {
       await cartService.add(product.id, 1);
-      Alert.alert('Đã thêm vào giỏ', product.name);
+      show(`Đã thêm "${product.name}" vào giỏ`);
     } catch {
-      Alert.alert('Lỗi', 'Không thể thêm vào giỏ hàng');
+      show('Không thể thêm vào giỏ hàng', 'error');
     } finally {
       setAddingToCart(null);
     }
@@ -91,7 +90,7 @@ export default function WishlistScreen() {
         onPress={() => router.push(`/product/${item.id}` as any)}
       >
         <View style={s.imgWrap}>
-          <ProductImage uri={item.thumbnailUrl} style={s.img} />
+          <ProductImage uri={item.thumbnailUrl} style={s.img} name={item.name} />
           {hasDiscount && (
             <View style={s.badge}>
               <Text style={s.badgeText}>-{pct}%</Text>
