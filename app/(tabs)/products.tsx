@@ -9,15 +9,16 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
-  Platform,
   StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
 import { cartService } from '@/services/cart.service';
 import ProductCard from '@/components/ProductCard';
 import { useToast } from '@/components/Toast';
+import { useLayout } from '@/lib/layout';
 import type { Product, Category } from '@/types';
 
 const C = {
@@ -38,6 +39,8 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProductsScreen() {
+  const { top } = useSafeAreaInsets();
+  const { productColumns, cardGap } = useLayout();
   const { show } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -129,7 +132,7 @@ export default function ProductsScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       {/* Header */}
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.blob} />
         <Text style={s.headerTitle}>Sản phẩm</Text>
         <View style={s.searchRow}>
@@ -229,9 +232,10 @@ export default function ProductsScreen() {
         <FlatList
           data={products}
           keyExtractor={item => item.id}
-          numColumns={2}
-          contentContainerStyle={s.grid}
-          columnWrapperStyle={s.row}
+          numColumns={productColumns}
+          key={productColumns}
+          contentContainerStyle={[s.grid, { gap: cardGap }]}
+          columnWrapperStyle={{ gap: cardGap }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
@@ -258,7 +262,7 @@ const s = StyleSheet.create({
   header: {
     backgroundColor: C.primaryDark,
     overflow: 'hidden',
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },

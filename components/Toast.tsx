@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { Animated, StyleSheet, Text, View, Platform } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -66,6 +67,7 @@ let _counter = 0;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const { bottom } = useSafeAreaInsets();
 
   const show = useCallback((message: string, type: ToastType = 'success') => {
     const id = ++_counter;
@@ -79,7 +81,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      <View style={s.container} pointerEvents="none">
+      <View style={[s.container, { bottom: Math.max(bottom, 16) + 60 }]} pointerEvents="none">
         {toasts.map(t => (
           <ToastItem key={t.id} {...t} onDone={() => remove(t.id)} />
         ))}
@@ -95,7 +97,7 @@ export function useToast() {
 const s = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 100 : 80,
+    bottom: 80,
     left: 16,
     right: 16,
     gap: 8,
