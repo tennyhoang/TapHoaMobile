@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,79 @@ import {
   Platform,
   StatusBar,
   Alert,
+  Clipboard,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { ordersService } from '@/services/orders.service';
 import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Order, OrderStatus } from '@/types';
+
+const BANK_CODE = 'MB';
+const ACCOUNT_NO = '0000000001';
+const ACCOUNT_NAME = 'TAPHOA TEST';
+const BANK_NAME = 'MB Bank';
+
+function buildQrUrl(amount: number, paymentRef: string): string {
+  const addInfo = encodeURIComponent(paymentRef);
+  const name = encodeURIComponent(ACCOUNT_NAME);
+  return `https://img.vietqr.io/image/${BANK_CODE}-${ACCOUNT_NO}-compact2.jpg?amount=${Math.round(amount)}&addInfo=${addInfo}&accountName=${name}`;
+}
+
+function PaymentQR({ amount, paymentRef }: { amount: number; paymentRef: string }) {
+  const { show } = useToast();
+  const qrUrl = buildQrUrl(amount, paymentRef);
+
+  const copy = (text: string, label: string) => {
+    Clipboard.setString(text);
+    show(`Đã sao chép ${label}`);
+  };
+
+  return (
+    <View style={q.wrap}>
+      <View style={q.header}>
+        <Ionicons name="qr-code-outline" size={18} color="#fff" />
+        <Text style={q.headerTitle}>Quét mã để chuyển khoản</Text>
+      </View>
+      <View style={q.body}>
+        <View style={q.qrWrap}>
+          <Image source={{ uri: qrUrl }} style={q.qrImg} contentFit="contain" />
+        </View>
+        <View style={q.infoBox}>
+          {[
+            { label: 'Ngân hàng', value: BANK_NAME, copy: false },
+            { label: 'Số tài khoản', value: ACCOUNT_NO, copy: true },
+            { label: 'Số tiền', value: formatCurrency(amount), copy: false },
+            { label: 'Nội dung CK', value: paymentRef, copy: true },
+          ].map(row => (
+            <View key={row.label} style={q.infoRow}>
+              <Text style={q.infoLabel}>{row.label}</Text>
+              <View style={q.infoRight}>
+                <Text style={[q.infoValue, row.label === 'Nội dung CK' && q.infoRef]}>
+                  {row.value}
+                </Text>
+                {row.copy && (
+                  <TouchableOpacity
+                    onPress={() => copy(row.value, row.label)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons name="copy-outline" size={14} color={C.primary} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          ))}
+        </View>
+        <Text style={q.hint}>
+          Hệ thống tự động xác nhận sau khi nhận tiền (trong vòng 1 phút).{'\n'}
+          Nhập đúng nội dung chuyển khoản để xử lý nhanh nhất.
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 const C = {
   primary: '#0EA5AE',
@@ -73,14 +139,28 @@ export default function OrderDetailScreen() {
   const [cancelling, setCancelling] = useState(false);
   const { show } = useToast();
 
-  useEffect(() => {
+  const fetchOrder = useCallback(async () => {
     if (!id) return;
-    ordersService
-      .getById(id)
-      .then(setOrder)
-      .catch(() => router.back())
-      .finally(() => setLoading(false));
+    try {
+      const data = await ordersService.getById(id);
+      setOrder(data);
+    } catch {
+      router.back();
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchOrder();
+  }, [fetchOrder]);
+
+  // Poll every 15s while waiting for payment confirmation
+  useEffect(() => {
+    if (order?.status !== 'PendingPayment') return;
+    const timer = setInterval(fetchOrder, 15000);
+    return () => clearInterval(timer);
+  }, [order?.status, fetchOrder]);
 
   const handleCancel = () => {
     Alert.alert('Huỷ đơn hàng', 'Bạn có chắc muốn huỷ đơn hàng này?', [
@@ -131,14 +211,22 @@ export default function OrderDetailScreen() {
         <View style={[s.statusCard, { backgroundColor: status.bg }]}>
           <Ionicons name={status.icon as any} size={32} color={status.color} />
           <Text style={[s.statusLabel, { color: status.color }]}>{status.label}</Text>
-          {order.status === 'PendingPayment' && order.paymentRef && (
-            <View style={s.payRefWrap}>
-              <Text style={s.payRefHint}>Nội dung chuyển khoản:</Text>
-              <Text style={s.payRef}>{order.paymentRef}</Text>
+          {order.status === 'PendingPayment' && (
+            <View style={s.refreshRow}>
+              <Ionicons name="time-outline" size={13} color={C.muted} />
+              <Text style={s.refreshHint}>Tự động cập nhật mỗi 15 giây</Text>
             </View>
           )}
           {order.cancelReason && <Text style={s.cancelReason}>Lý do: {order.cancelReason}</Text>}
         </View>
+
+        {/* QR payment */}
+        {order.status === 'PendingPayment' && order.paymentRef && (
+          <PaymentQR
+            amount={order.totalAmount - (order.walletAmountUsed ?? 0)}
+            paymentRef={order.paymentRef}
+          />
+        )}
 
         {/* Timeline */}
         {order.status !== 'Cancelled' && order.status !== 'Refunded' && (
@@ -328,12 +416,11 @@ const s = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   statusLabel: { fontSize: 17, fontWeight: '700' },
-  payRefWrap: { alignItems: 'center', marginTop: 4 },
-  payRefHint: { fontSize: 12, color: C.muted },
-  payRef: { fontSize: 20, fontWeight: '800', color: '#1D4ED8', letterSpacing: 1 },
+  refreshRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
+  refreshHint: { fontSize: 11, color: C.muted },
   cancelReason: { fontSize: 13, color: C.muted, textAlign: 'center' },
   section: { marginBottom: 16 },
   sectionTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 8 },
@@ -438,4 +525,67 @@ const s = StyleSheet.create({
     backgroundColor: C.card,
   },
   shopBtnText: { fontSize: 14, fontWeight: '600', color: C.primary },
+});
+
+const q = StyleSheet.create({
+  wrap: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    marginBottom: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: C.primaryDark,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  headerTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  body: {
+    backgroundColor: '#F0FDFA',
+    padding: 16,
+    gap: 14,
+  },
+  qrWrap: {
+    alignSelf: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  qrImg: { width: 200, height: 200 },
+  infoBox: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+    overflow: 'hidden',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0FDF4',
+  },
+  infoLabel: { fontSize: 13, color: C.muted },
+  infoRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  infoValue: { fontSize: 13, fontWeight: '600', color: C.text },
+  infoRef: { fontSize: 16, fontWeight: '800', color: C.primaryDark, letterSpacing: 0.5 },
+  hint: {
+    fontSize: 11,
+    color: C.primaryDark,
+    textAlign: 'center',
+    lineHeight: 17,
+    opacity: 0.75,
+  },
 });
