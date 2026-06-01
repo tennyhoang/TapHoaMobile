@@ -8,4 +8,7 @@ export const walletService = {
     api.get<PagedResult<WalletTransaction>>(
       `/wallet/me/transactions?page=${page}&pageSize=${pageSize}`
     ),
+
+  topUp: (amount: number, paymentRef: string): Promise<WalletBalance> =>
+    api.post<WalletBalance>('/wallet/topup', { amount, paymentRef }),
 };
