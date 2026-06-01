@@ -40,8 +40,7 @@ export default function RootLayout() {
               <Stack.Screen name="reviews/[id]" options={{ animation: 'slide_from_right' }} />
               <Stack.Screen name="wishlist" options={{ animation: 'slide_from_right' }} />
               <Stack.Screen name="admin/products" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="articles/index" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="articles/[id]" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="articles" options={{ animation: 'slide_from_right' }} />
               <Stack.Screen name="flash-sale" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="+not-found" />
             </Stack>
