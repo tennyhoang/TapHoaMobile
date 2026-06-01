@@ -26,6 +26,7 @@ const C = {
 const MENU_ITEMS = [
   { icon: 'wallet-outline', label: 'Ví của tôi', color: '#22C55E', route: '/wallet' },
   { icon: 'receipt-outline', label: 'Đơn hàng của tôi', color: C.primary, route: '/orders' },
+  { icon: 'heart-outline', label: 'Sản phẩm yêu thích', color: '#F43F5E', route: '/wishlist' },
   { icon: 'location-outline', label: 'Địa chỉ giao hàng', color: '#8B5CF6', route: '/addresses' },
   {
     icon: 'notifications-outline',
