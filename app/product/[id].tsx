@@ -13,6 +13,7 @@ import {
   Share,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
 import ProductCard from '@/components/ProductCard';
@@ -38,6 +39,7 @@ const C = {
 };
 
 export default function ProductDetailScreen() {
+  const { bottom } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -272,7 +274,7 @@ export default function ProductDetailScreen() {
       </ScrollView>
 
       {/* Bottom Bar */}
-      <View style={s.bottomBar}>
+      <View style={[s.bottomBar, { paddingBottom: (bottom || 16) + 8 }]}>
         {/* Quantity */}
         <View style={s.qtyWrap}>
           <TouchableOpacity
@@ -443,7 +445,7 @@ const s = StyleSheet.create({
     backgroundColor: C.card,
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+    paddingBottom: 16,
     borderTopWidth: 1,
     borderTopColor: C.border,
     shadowColor: '#000',

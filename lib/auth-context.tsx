@@ -3,6 +3,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { router } from 'expo-router';
 import { storage } from '@/lib/storage';
 import { registerUnauthorizedHandler } from '@/lib/api';
+import { registerPushNotifications } from '@/lib/notifications';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes in background
 
@@ -88,6 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await storage.setItem(USER_KEY, JSON.stringify(userData));
     setToken(accessToken);
     setUser(userData);
+    // Request push notification permission after successful login
+    registerPushNotifications().catch(() => {});
   };
 
   const updateUser = async (partial: Partial<User>) => {
