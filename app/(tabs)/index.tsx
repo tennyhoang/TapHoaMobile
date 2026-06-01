@@ -6,12 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Platform,
   ActivityIndicator,
   TextInput,
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/components/Toast';
@@ -35,6 +35,7 @@ const C = {
 };
 
 export default function HomeScreen() {
+  const { top } = useSafeAreaInsets();
   const { user } = useAuth();
   const { show } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -109,7 +110,7 @@ export default function HomeScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       {/* ── HEADER ── */}
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.blob} />
         <View style={s.headerTop}>
           <View>
@@ -306,7 +307,7 @@ const s = StyleSheet.create({
   header: {
     backgroundColor: C.primaryDark,
     overflow: 'hidden',
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 20,
     paddingBottom: 20,
   },

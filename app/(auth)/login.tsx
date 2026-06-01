@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Dimensions,
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
@@ -17,8 +16,6 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
 import { authService } from '@/services/auth.service';
-
-const { height: H } = Dimensions.get('window');
 
 const C = {
   primary: '#0EA5AE',
@@ -197,7 +194,7 @@ const s = StyleSheet.create({
 
   // Hero
   hero: {
-    height: H * 0.38,
+    height: '32%',
     backgroundColor: C.primaryDark,
     justifyContent: 'flex-end',
     paddingBottom: 52,

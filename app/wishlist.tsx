@@ -6,10 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useWishlist } from '@/lib/wishlist-context';
 import { productsService } from '@/services/products.service';
@@ -32,6 +32,7 @@ const C = {
 };
 
 export default function WishlistScreen() {
+  const { top } = useSafeAreaInsets();
   const { ids, toggle } = useWishlist();
   const { show } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
@@ -147,7 +148,7 @@ export default function WishlistScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
@@ -196,7 +197,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     backgroundColor: C.primaryDark,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },

@@ -10,6 +10,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
@@ -30,6 +31,7 @@ const C = {
 };
 
 export default function CartScreen() {
+  const { top } = useSafeAreaInsets();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -144,7 +146,7 @@ export default function CartScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       {/* Header */}
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.blob} />
         <View style={s.headerRow}>
           <View>
@@ -237,7 +239,7 @@ const s = StyleSheet.create({
   header: {
     backgroundColor: C.primaryDark,
     overflow: 'hidden',
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 20,
     paddingBottom: 18,
   },

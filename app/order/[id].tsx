@@ -6,11 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   StatusBar,
   Alert,
   Clipboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -133,6 +133,7 @@ const STATUS_CONFIG: Record<
 };
 
 export default function OrderDetailScreen() {
+  const { top } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -199,7 +200,7 @@ export default function OrderDetailScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
@@ -397,7 +398,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     backgroundColor: C.primaryDark,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },

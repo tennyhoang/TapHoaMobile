@@ -1,13 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
 import { useWishlist } from '@/lib/wishlist-context';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
-
-const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
 
 const C = {
   primary: '#0EA5AE',
@@ -99,7 +97,7 @@ export default function ProductCard({ product, onAddToCart }: Props) {
 
 const s = StyleSheet.create({
   card: {
-    width: CARD_WIDTH,
+    flex: 1,
     backgroundColor: C.card,
     borderRadius: 16,
     borderWidth: 1,
@@ -113,7 +111,7 @@ const s = StyleSheet.create({
   },
   imgWrap: {
     width: '100%',
-    height: CARD_WIDTH * 0.85,
+    aspectRatio: 1,
     backgroundColor: '#E5F9FA',
   },
   img: { width: '100%', height: '100%' },

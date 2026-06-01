@@ -1,15 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-  StatusBar,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth-context';
 
 const C = {
@@ -40,6 +33,7 @@ const MENU_ITEMS = [
 ];
 
 export default function ProfileScreen() {
+  const { top } = useSafeAreaInsets();
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -51,7 +45,7 @@ export default function ProfileScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.blob} />
         <View style={s.avatarWrap}>
           <View style={s.avatar}>
@@ -114,7 +108,7 @@ const s = StyleSheet.create({
   header: {
     backgroundColor: C.primaryDark,
     overflow: 'hidden',
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingBottom: 32,
   },
   blob: {
