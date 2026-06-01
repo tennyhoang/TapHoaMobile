@@ -6,12 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   StatusBar,
   RefreshControl,
-  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLayout } from '@/lib/layout';
 import { Ionicons } from '@expo/vector-icons';
 import { flashSaleService } from '@/services/flashsale.service';
 import { cartService } from '@/services/cart.service';
@@ -33,6 +33,8 @@ const C = {
 };
 
 export default function FlashSaleScreen() {
+  const { top } = useSafeAreaInsets();
+  const { productColumns, cardGap } = useLayout();
   const { show } = useToast();
   const [session, setSession] = useState<FlashSaleSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,7 +143,7 @@ export default function FlashSaleScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.saleDark} />
 
       {/* Header */}
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
@@ -183,9 +185,10 @@ export default function FlashSaleScreen() {
         <FlatList
           data={session.products}
           keyExtractor={item => item.id}
-          numColumns={2}
-          contentContainerStyle={s.grid}
-          columnWrapperStyle={s.row}
+          numColumns={productColumns}
+          key={productColumns}
+          contentContainerStyle={[s.grid, { gap: cardGap }]}
+          columnWrapperStyle={{ gap: cardGap }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -212,8 +215,6 @@ export default function FlashSaleScreen() {
   );
 }
 
-const CARD_W = (Dimensions.get('window').width - 48) / 2;
-
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -223,7 +224,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     backgroundColor: C.saleDark,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
@@ -257,7 +258,7 @@ const s = StyleSheet.create({
   row: { justifyContent: 'space-between', marginBottom: 12 },
 
   card: {
-    width: CARD_W,
+    flex: 1,
     backgroundColor: C.card,
     borderRadius: 16,
     borderWidth: 1,
@@ -269,7 +270,7 @@ const s = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  imgWrap: { width: '100%', height: CARD_W * 0.85, backgroundColor: '#FEF3C7' },
+  imgWrap: { width: '100%', aspectRatio: 1, backgroundColor: '#FEF3C7' },
   pctBadge: {
     position: 'absolute',
     top: 8,

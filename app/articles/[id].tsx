@@ -202,7 +202,7 @@ const s = StyleSheet.create({
   hero: {
     height: 280,
     backgroundColor: '#E5F9FA',
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
   },
   heroOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.4)' },
   backBtn: {

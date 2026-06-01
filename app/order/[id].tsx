@@ -6,11 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   StatusBar,
   Alert,
   Clipboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -133,6 +133,7 @@ const STATUS_CONFIG: Record<
 };
 
 export default function OrderDetailScreen() {
+  const { top } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -199,7 +200,7 @@ export default function OrderDetailScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: top + 16 }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
@@ -229,58 +230,180 @@ export default function OrderDetailScreen() {
         )}
 
         {/* Timeline */}
-        {order.status !== 'Cancelled' && order.status !== 'Refunded' && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Tiến trình đơn hàng</Text>
-            <View style={s.card}>
-              {(
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Tiến trình đơn hàng</Text>
+          <View style={s.card}>
+            {order.status === 'Cancelled' || order.status === 'Refunded'
+              ? // ── Cancelled / Refunded timeline ──
                 [
-                  { key: 'placed', label: 'Đặt hàng', ts: order.createdAt },
-                  { key: 'paid', label: 'Đã thanh toán', ts: order.paidAt },
-                  { key: 'shipping', label: 'Đang vận chuyển', ts: order.shippingToHubAt },
-                  { key: 'inhub', label: 'Sẵn sàng lấy hàng', ts: order.inHubAt },
-                  { key: 'done', label: 'Hoàn thành', ts: order.completedAt },
-                ] as const
-              ).map((step, i, arr) => {
-                const done = !!step.ts;
-                const isLast = i === arr.length - 1;
-                return (
-                  <View key={step.key} style={s.timelineRow}>
-                    <View style={s.timelineLeft}>
-                      <View
-                        style={[s.timelineDot, done ? s.timelineDotDone : s.timelineDotPending]}
-                      >
-                        {done && <Ionicons name="checkmark" size={10} color="#fff" />}
+                  { key: 'placed', label: 'Đặt hàng', ts: order.createdAt, icon: 'bag-outline' },
+                  {
+                    key: 'cancelled',
+                    label: order.status === 'Refunded' ? 'Đã hoàn tiền' : 'Đã huỷ đơn',
+                    ts: order.cancelledAt ?? order.refundedAt,
+                    icon:
+                      order.status === 'Refunded'
+                        ? 'return-down-back-outline'
+                        : 'close-circle-outline',
+                  },
+                ].map((step, i, arr) => {
+                  const done = !!step.ts;
+                  const isLast = i === arr.length - 1;
+                  const isCancel = step.key === 'cancelled';
+                  return (
+                    <View key={step.key} style={s.timelineRow}>
+                      <View style={s.timelineLeft}>
+                        <View
+                          style={[
+                            s.timelineDot,
+                            done
+                              ? isCancel
+                                ? s.timelineDotCancel
+                                : s.timelineDotDone
+                              : s.timelineDotPending,
+                          ]}
+                        >
+                          <Ionicons
+                            name={step.icon as any}
+                            size={10}
+                            color={done ? '#fff' : '#9CA3AF'}
+                          />
+                        </View>
+                        {!isLast && <View style={[s.timelineLine, done && s.timelineLineDone]} />}
                       </View>
-                      {!isLast && <View style={[s.timelineLine, done && s.timelineLineDone]} />}
-                    </View>
-                    <View style={s.timelineContent}>
-                      <Text
-                        style={[
-                          s.timelineLabel,
-                          done ? s.timelineLabelDone : s.timelineLabelPending,
-                        ]}
-                      >
-                        {step.label}
-                      </Text>
-                      {step.ts ? (
-                        <Text style={s.timelineTs}>
-                          {new Date(step.ts).toLocaleString('vi-VN', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                      <View style={s.timelineContent}>
+                        <Text
+                          style={[
+                            s.timelineLabel,
+                            done
+                              ? isCancel
+                                ? { color: '#EF4444' }
+                                : s.timelineLabelDone
+                              : s.timelineLabelPending,
+                          ]}
+                        >
+                          {step.label}
                         </Text>
-                      ) : null}
+                        {step.ts && (
+                          <Text style={s.timelineTs}>
+                            {new Date(step.ts).toLocaleString('vi-VN', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </Text>
+                        )}
+                        {isCancel && order.cancelReason && (
+                          <Text style={s.timelineCancelReason}>"{order.cancelReason}"</Text>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
-            </View>
+                  );
+                })
+              : // ── Normal progress timeline ──
+                (() => {
+                  const STEPS = [
+                    {
+                      key: 'placed',
+                      label: 'Đặt hàng',
+                      ts: order.createdAt,
+                      icon: 'bag-outline',
+                      activeStatus: null,
+                    },
+                    {
+                      key: 'paid',
+                      label: 'Đã thanh toán',
+                      ts: order.paidAt,
+                      icon: 'card-outline',
+                      activeStatus: 'PendingPayment',
+                    },
+                    {
+                      key: 'shipping',
+                      label: 'Đang vận chuyển',
+                      ts: order.shippingToHubAt,
+                      icon: 'bicycle-outline',
+                      activeStatus: 'Paid_WaitingForBatch',
+                    },
+                    {
+                      key: 'inhub',
+                      label: 'Sẵn sàng lấy hàng',
+                      ts: order.inHubAt,
+                      icon: 'storefront-outline',
+                      activeStatus: 'ShippingToHub',
+                    },
+                    {
+                      key: 'done',
+                      label: 'Hoàn thành',
+                      ts: order.completedAt,
+                      icon: 'checkmark-done-outline',
+                      activeStatus: 'InHub_ReadyForPickup',
+                    },
+                  ] as const;
+
+                  // "active" = first step not yet done (the current pending step)
+                  const activeIdx = STEPS.findIndex(st => !st.ts);
+
+                  return STEPS.map((step, i) => {
+                    const done = !!step.ts;
+                    const isActive = i === activeIdx;
+                    const isLast = i === STEPS.length - 1;
+                    return (
+                      <View key={step.key} style={s.timelineRow}>
+                        <View style={s.timelineLeft}>
+                          <View
+                            style={[
+                              s.timelineDot,
+                              done
+                                ? s.timelineDotDone
+                                : isActive
+                                  ? s.timelineDotActive
+                                  : s.timelineDotPending,
+                            ]}
+                          >
+                            <Ionicons
+                              name={step.icon as any}
+                              size={10}
+                              color={done || isActive ? '#fff' : '#9CA3AF'}
+                            />
+                          </View>
+                          {!isLast && <View style={[s.timelineLine, done && s.timelineLineDone]} />}
+                        </View>
+                        <View style={s.timelineContent}>
+                          <Text
+                            style={[
+                              s.timelineLabel,
+                              done
+                                ? s.timelineLabelDone
+                                : isActive
+                                  ? s.timelineLabelActive
+                                  : s.timelineLabelPending,
+                            ]}
+                          >
+                            {step.label}
+                            {isActive && <Text style={s.timelineActiveBadge}> · đang xử lý</Text>}
+                          </Text>
+                          {step.ts ? (
+                            <Text style={s.timelineTs}>
+                              {new Date(step.ts).toLocaleString('vi-VN', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </Text>
+                          ) : isActive ? (
+                            <Text style={s.timelineTsActive}>Đang chờ cập nhật...</Text>
+                          ) : null}
+                        </View>
+                      </View>
+                    );
+                  });
+                })()}
           </View>
-        )}
+        </View>
 
         {/* Hub */}
         <View style={s.section}>
@@ -397,7 +520,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     backgroundColor: C.primaryDark,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
@@ -497,6 +620,8 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   timelineDotDone: { backgroundColor: C.primary },
+  timelineDotActive: { backgroundColor: '#F59E0B' },
+  timelineDotCancel: { backgroundColor: '#EF4444' },
   timelineDotPending: { backgroundColor: '#E5E7EB', borderWidth: 2, borderColor: '#D1D5DB' },
   timelineLine: {
     width: 2,
@@ -510,8 +635,18 @@ const s = StyleSheet.create({
   timelineContent: { flex: 1, paddingBottom: 14 },
   timelineLabel: { fontSize: 14, fontWeight: '600' },
   timelineLabelDone: { color: C.text },
+  timelineLabelActive: { color: '#D97706' },
   timelineLabelPending: { color: '#9CA3AF' },
+  timelineActiveBadge: { fontSize: 11, fontWeight: '500', color: '#F59E0B' },
   timelineTs: { fontSize: 11, color: C.muted, marginTop: 2 },
+  timelineTsActive: { fontSize: 11, color: '#F59E0B', marginTop: 2 },
+  timelineCancelReason: {
+    fontSize: 12,
+    color: '#EF4444',
+    fontStyle: 'italic',
+    marginTop: 3,
+    lineHeight: 16,
+  },
 
   shopBtn: {
     flexDirection: 'row',
