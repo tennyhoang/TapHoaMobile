@@ -1,7 +1,8 @@
 import { Platform } from 'react-native';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 // expo-local-authentication has no web implementation — guard all calls
-const LA = Platform.OS !== 'web' ? require('expo-local-authentication') : null;
+const LA = Platform.OS !== 'web' ? LocalAuthentication : null;
 
 export const biometrics = {
   isAvailable: async (): Promise<boolean> => {
