@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { productsService } from '@/services/products.service';
 import { api } from '@/lib/api';
+import { useRoleGuard } from '@/lib/useRoleGuard';
 import ProductImage from '@/components/ProductImage';
 import { useToast } from '@/components/Toast';
 import type { Product } from '@/types';
@@ -71,6 +72,7 @@ async function saveProductUrl(product: Product, newUrl: string): Promise<void> {
 type EditState = { productId: string; url: string };
 
 export default function AdminProductsScreen() {
+  const unauthorized = useRoleGuard('Admin');
   const { top } = useSafeAreaInsets();
   const { show } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
@@ -252,6 +254,8 @@ export default function AdminProductsScreen() {
       </View>
     );
   };
+
+  if (unauthorized) return null;
 
   return (
     <KeyboardAvoidingView

@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { notificationsService } from '@/services/notifications.service';
+import ErrorScreen from '@/components/ErrorScreen';
 import type { Notification, NotificationType } from '@/types';
 
 const C = {
@@ -42,15 +43,17 @@ export default function NotificationsScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const load = useCallback(async (nextPage: number, reset = false) => {
+    if (reset) setHasError(false);
     try {
       const res = await notificationsService.getAll(nextPage, 20);
-      setNotifications(prev => (reset ? res.items : [...prev, ...res.items]));
+      setNotifications(prev => (reset ? (res.items ?? []) : [...prev, ...(res.items ?? [])]));
       setHasMore(nextPage < res.totalPages);
       setPage(nextPage);
     } catch {
-      /* silent */
+      if (reset) setHasError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -163,6 +166,14 @@ export default function NotificationsScreen() {
         <View style={s.center}>
           <ActivityIndicator color={C.primary} size="large" />
         </View>
+      ) : hasError ? (
+        <ErrorScreen
+          type="network"
+          onRetry={() => {
+            setLoading(true);
+            load(1, true);
+          }}
+        />
       ) : (
         <FlatList
           data={notifications}

@@ -29,6 +29,10 @@ const C = {
   errorBg: '#FEF2F2',
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 60_000; // 1 minute
+
 export default function LoginScreen() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -36,6 +40,8 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
 
   const cardY = useMemo(() => new Animated.Value(60), []);
   const cardOpacity = useMemo(() => new Animated.Value(0), []);
@@ -63,19 +69,41 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = async () => {
+    // Lockout check
+    if (lockedUntil && Date.now() < lockedUntil) {
+      const secs = Math.ceil((lockedUntil - Date.now()) / 1000);
+      setError(`Quá nhiều lần thất bại. Thử lại sau ${secs}s.`);
+      return;
+    }
+
+    // Input validation
     if (!email.trim() || !password) {
       setError('Vui lòng nhập đầy đủ thông tin');
       return;
     }
+    if (!EMAIL_RE.test(email.trim())) {
+      setError('Email không hợp lệ');
+      return;
+    }
+
     setError('');
     setLoading(true);
     try {
       const res = await authService.login(email.trim(), password);
+      setAttempts(0);
+      setLockedUntil(null);
       await login(res.accessToken, res.email, res.fullName, res.role);
       router.replace('/(tabs)' as any);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Đăng nhập thất bại';
-      setError(msg);
+      const next = attempts + 1;
+      setAttempts(next);
+      if (next >= MAX_ATTEMPTS) {
+        setLockedUntil(Date.now() + LOCKOUT_MS);
+        setError(`Sai mật khẩu ${MAX_ATTEMPTS} lần. Tài khoản bị khoá 1 phút.`);
+      } else {
+        setError(`${msg} (${next}/${MAX_ATTEMPTS})`);
+      }
     } finally {
       setLoading(false);
     }
@@ -160,6 +188,15 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* Forgot password */}
+            <TouchableOpacity
+              style={s.forgotBtn}
+              onPress={() => router.push('/(auth)/forgot-password' as any)}
+              activeOpacity={0.7}
+            >
+              <Text style={s.forgotText}>Quên mật khẩu?</Text>
+            </TouchableOpacity>
 
             {/* Submit */}
             <TouchableOpacity
@@ -308,6 +345,8 @@ const s = StyleSheet.create({
   btnDim: { opacity: 0.7 },
   btnText: { color: C.white, fontSize: 16, fontWeight: '700', letterSpacing: 0.4 },
 
+  forgotBtn: { alignSelf: 'flex-end', marginBottom: 16, marginTop: -8 },
+  forgotText: { fontSize: 13, color: C.primary, fontWeight: '600' },
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   footerText: { fontSize: 14, color: C.muted },
   footerLink: { fontSize: 14, color: C.primary, fontWeight: '600' },

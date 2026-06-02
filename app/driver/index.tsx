@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { driverService } from '@/services/driver.service';
+import { useRoleGuard } from '@/lib/useRoleGuard';
 import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { DriverHubBatch, Order, OptimizeRouteResponse, AssignedWarehouseDto } from '@/types';
@@ -56,6 +57,7 @@ function buildSingleUrl(address: string): string {
 }
 
 export default function DriverScreen() {
+  const unauthorized = useRoleGuard('Driver');
   const { top } = useSafeAreaInsets();
   const { show } = useToast();
 
@@ -280,6 +282,7 @@ export default function DriverScreen() {
     { key: 'route', label: 'Lộ trình', icon: 'map-outline', count: 0, color: C.primary },
   ];
 
+  if (unauthorized) return null;
   if (loading) {
     return (
       <View style={[s.root, s.center]}>

@@ -20,6 +20,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { walletService } from '@/services/wallet.service';
 import { useToast } from '@/components/Toast';
+import { biometrics } from '@/lib/biometrics';
+import * as ScreenCapture from 'expo-screen-capture';
 import { formatCurrency } from '@/lib/utils';
 import type { WalletTransaction, WalletTransactionType } from '@/types';
 
@@ -98,6 +100,14 @@ export default function WalletScreen() {
     load();
   }, [load]);
 
+  // Prevent screenshots on this screen (contains financial data + QR codes)
+  useEffect(() => {
+    ScreenCapture.preventScreenCaptureAsync();
+    return () => {
+      ScreenCapture.allowScreenCaptureAsync();
+    };
+  }, []);
+
   const onRefresh = () => {
     setRefreshing(true);
     load();
@@ -124,11 +134,13 @@ export default function WalletScreen() {
     return isNaN(n) ? 0 : n;
   })();
 
-  const handleConfirmAmount = () => {
+  const handleConfirmAmount = async () => {
     if (finalAmount < 10_000) {
       show('Số tiền tối thiểu là 10.000đ', 'error');
       return;
     }
+    const confirmed = await biometrics.authenticate('Xác nhận nạp tiền vào ví');
+    if (!confirmed) return;
     const ref = `NT${Date.now()}`;
     setPaymentRef(ref);
     setTopUpStep('qr');

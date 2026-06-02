@@ -19,6 +19,7 @@ import { ordersService } from '@/services/orders.service';
 import { cartService } from '@/services/cart.service';
 import { walletService } from '@/services/wallet.service';
 import { addressesService } from '@/services/addresses.service';
+import { biometrics } from '@/lib/biometrics';
 import { formatCurrency } from '@/lib/utils';
 import type { Hub, Cart, Address } from '@/types';
 
@@ -127,6 +128,9 @@ export default function CheckoutScreen() {
       setError('Vui lòng chọn điểm nhận hàng');
       return;
     }
+    // Biometric confirmation before placing order
+    const confirmed = await biometrics.authenticate('Xác nhận đặt hàng');
+    if (!confirmed) return;
     setError('');
     setPlacing(true);
     try {

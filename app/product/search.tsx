@@ -8,6 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
   StatusBar,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayout } from '@/lib/layout';
@@ -15,8 +16,28 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
+import { storage } from '@/lib/storage';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types';
+
+const HISTORY_KEY = 'taphoa_search_history';
+const MAX_HISTORY = 10;
+
+async function loadHistory(): Promise<string[]> {
+  try {
+    const raw = await storage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveHistory(query: string, current: string[]): Promise<string[]> {
+  const filtered = current.filter(h => h.toLowerCase() !== query.toLowerCase());
+  const next = [query, ...filtered].slice(0, MAX_HISTORY);
+  await storage.setItem(HISTORY_KEY, JSON.stringify(next));
+  return next;
+}
 
 const C = {
   primary: '#0EA5AE',
@@ -38,6 +59,7 @@ export default function SearchScreen() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
   const inputRef = useRef<TextInput>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -48,7 +70,7 @@ export default function SearchScreen() {
     }
     try {
       const res = await productsService.getAll({ search: query, page: p, pageSize: 20 });
-      setProducts(prev => (reset ? res.items : [...prev, ...res.items]));
+      setProducts(prev => (reset ? (res.items ?? []) : [...prev, ...(res.items ?? [])]));
       setTotalPages(res.totalPages);
       setPage(p);
     } catch {
@@ -60,24 +82,32 @@ export default function SearchScreen() {
   };
 
   useEffect(() => {
+    loadHistory().then(setHistory);
     if (q?.trim()) {
       setLoading(true);
       fetchProducts(q, 1, true);
     }
     setTimeout(() => inputRef.current?.focus(), 300);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      setLoading(true);
+      setLoading(!!search.trim());
       setPage(1);
       fetchProducts(search, 1, true);
     }, 400);
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [search]);
+  }, [search, fetchProducts]);
+
+  const commitSearch = async (query: string) => {
+    if (!query.trim()) return;
+    const next = await saveHistory(query.trim(), history);
+    setHistory(next);
+  };
 
   const handleLoadMore = () => {
     if (loadingMore || page >= totalPages) return;
@@ -91,6 +121,11 @@ export default function SearchScreen() {
     } catch {
       /* silent */
     }
+  };
+
+  const clearHistory = async () => {
+    await storage.setItem(HISTORY_KEY, JSON.stringify([]));
+    setHistory([]);
   };
 
   return (
@@ -112,6 +147,7 @@ export default function SearchScreen() {
             onChangeText={setSearch}
             returnKeyType="search"
             autoCorrect={false}
+            onSubmitEditing={() => commitSearch(search)}
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch('')}>
@@ -126,10 +162,42 @@ export default function SearchScreen() {
           <ActivityIndicator color={C.primary} size="large" />
         </View>
       ) : !search.trim() ? (
-        <View style={s.center}>
-          <Ionicons name="search-outline" size={52} color="#D1D5DB" />
-          <Text style={s.hint}>Nhập tên sản phẩm để tìm kiếm</Text>
-        </View>
+        // ── SEARCH HISTORY ──
+        <ScrollView style={s.historyWrap} contentContainerStyle={s.historyContent}>
+          {history.length > 0 && (
+            <>
+              <View style={s.historyHeader}>
+                <Text style={s.historyTitle}>Tìm kiếm gần đây</Text>
+                <TouchableOpacity onPress={clearHistory} activeOpacity={0.7}>
+                  <Text style={s.historyClear}>Xoá tất cả</Text>
+                </TouchableOpacity>
+              </View>
+              {history.map(h => (
+                <TouchableOpacity
+                  key={h}
+                  style={s.historyItem}
+                  onPress={() => setSearch(h)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="time-outline" size={16} color={C.muted} />
+                  <Text style={s.historyText}>{h}</Text>
+                  <Ionicons
+                    name="arrow-up-outline"
+                    style={s.historyArrow}
+                    size={14}
+                    color={C.muted}
+                  />
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+          {history.length === 0 && (
+            <View style={s.center}>
+              <Ionicons name="search-outline" size={52} color="#D1D5DB" />
+              <Text style={s.hint}>Nhập tên sản phẩm để tìm kiếm</Text>
+            </View>
+          )}
+        </ScrollView>
       ) : products.length === 0 ? (
         <View style={s.center}>
           <Ionicons name="leaf-outline" size={52} color="#D1D5DB" />
@@ -197,6 +265,26 @@ const s = StyleSheet.create({
   input: { flex: 1, fontSize: 14, color: C.text },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   hint: { fontSize: 14, color: C.muted, textAlign: 'center' },
+  historyWrap: { flex: 1 },
+  historyContent: { padding: 16 },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  historyTitle: { fontSize: 15, fontWeight: '700', color: C.text },
+  historyClear: { fontSize: 13, color: C.primary, fontWeight: '600' },
+  historyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  historyText: { flex: 1, fontSize: 14, color: C.text },
+  historyArrow: { transform: [{ rotate: '45deg' }] },
   grid: { padding: 16, paddingBottom: 32 },
   row: { justifyContent: 'space-between', marginBottom: 12 },
   resultCount: { fontSize: 13, color: C.muted, marginBottom: 12 },

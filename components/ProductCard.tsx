@@ -1,9 +1,18 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+/* eslint-disable react-hooks/immutability */
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
 import { useWishlist } from '@/lib/wishlist-context';
+import { haptics } from '@/lib/haptics';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 
@@ -28,70 +37,115 @@ export default function ProductCard({ product, onAddToCart }: Props) {
   const { isWishlisted, toggle } = useWishlist();
   const wishlisted = isWishlisted(product.id);
 
+  // Card press scale
+  const cardScale = useSharedValue(1);
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: cardScale.value }],
+  }));
+
+  // Cart button bounce
+  const cartScale = useSharedValue(1);
+  const cartStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: cartScale.value }],
+  }));
+
+  // Heart button scale
+  const heartScale = useSharedValue(1);
+  const heartStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heartScale.value }],
+  }));
+
+  const handlePress = () => {
+    haptics.light();
+    router.push(`/product/${product.id}` as any);
+  };
+
+  const handleAddToCart = useCallback(() => {
+    if (!onAddToCart) return;
+    cartScale.value = withSequence(
+      withSpring(1.35, { damping: 4, stiffness: 400 }),
+      withSpring(1, { damping: 8, stiffness: 300 })
+    );
+    haptics.success();
+    onAddToCart(product);
+  }, [onAddToCart, product]);
+
+  const handleWishlist = useCallback(() => {
+    heartScale.value = withSequence(
+      withSpring(1.4, { damping: 4, stiffness: 400 }),
+      withSpring(1, { damping: 8, stiffness: 300 })
+    );
+    haptics.light();
+    toggle(product.id);
+  }, [product.id]);
+
   return (
-    <TouchableOpacity
-      style={s.card}
-      activeOpacity={0.88}
-      onPress={() => router.push(`/product/${product.id}` as any)}
-    >
-      {/* Image */}
-      <View style={s.imgWrap}>
-        <ProductImage uri={product.thumbnailUrl} style={s.img} name={product.name} />
-        {hasDiscount && (
-          <View style={s.badge}>
-            <Text style={s.badgeText}>-{pct}%</Text>
-          </View>
-        )}
-        <TouchableOpacity
-          style={s.heartBtn}
-          onPress={() => toggle(product.id)}
-          activeOpacity={0.8}
-          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-        >
-          <Ionicons
-            name={wishlisted ? 'heart' : 'heart-outline'}
-            size={16}
-            color={wishlisted ? C.heart : C.muted}
-          />
-        </TouchableOpacity>
-      </View>
+    <Animated.View style={[s.card, cardStyle]}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={() => {
+          cardScale.value = withTiming(0.97, { duration: 100 });
+        }}
+        onPressOut={() => {
+          cardScale.value = withSpring(1, { damping: 10, stiffness: 300 });
+        }}
+      >
+        {/* Image */}
+        <View style={s.imgWrap}>
+          <ProductImage uri={product.thumbnailUrl} style={s.img} name={product.name} />
 
-      {/* Info */}
-      <View style={s.info}>
-        <Text style={s.category} numberOfLines={1}>
-          {product.categoryName}
-        </Text>
-        <Text style={s.name} numberOfLines={2}>
-          {product.name}
-        </Text>
+          {/* Discount badge */}
+          {hasDiscount && (
+            <View style={s.discountBadge}>
+              <Text style={s.discountText}>-{pct}%</Text>
+            </View>
+          )}
 
-        {/* Price */}
-        <View style={s.priceRow}>
-          <Text style={s.price}>{formatCurrency(product.discountPrice ?? product.price)}</Text>
-          {hasDiscount && <Text style={s.originalPrice}>{formatCurrency(product.price)}</Text>}
+          {/* Wishlist */}
+          <Pressable onPress={handleWishlist} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Animated.View style={[s.heartBtn, heartStyle]}>
+              <Ionicons
+                name={wishlisted ? 'heart' : 'heart-outline'}
+                size={15}
+                color={wishlisted ? C.heart : C.muted}
+              />
+            </Animated.View>
+          </Pressable>
         </View>
 
-        {/* Rating */}
-        {product.reviewCount > 0 && (
-          <View style={s.ratingRow}>
-            <Ionicons name="star" size={11} color="#F59E0B" />
-            <Text style={s.rating}>{product.averageRating.toFixed(1)}</Text>
-            <Text style={s.reviewCount}>({product.reviewCount})</Text>
-          </View>
-        )}
-      </View>
+        {/* Info */}
+        <View style={s.info}>
+          <Text style={s.category} numberOfLines={1}>
+            {product.categoryName}
+          </Text>
+          <Text style={s.name} numberOfLines={2}>
+            {product.name}
+          </Text>
 
-      {/* Add to cart button */}
+          <View style={s.priceRow}>
+            <Text style={s.price}>{formatCurrency(product.discountPrice ?? product.price)}</Text>
+            {hasDiscount && <Text style={s.originalPrice}>{formatCurrency(product.price)}</Text>}
+          </View>
+
+          {product.reviewCount > 0 && (
+            <View style={s.ratingRow}>
+              <Ionicons name="star" size={10} color="#F59E0B" />
+              <Text style={s.rating}>{product.averageRating.toFixed(1)}</Text>
+              <Text style={s.reviewCount}>({product.reviewCount})</Text>
+            </View>
+          )}
+        </View>
+      </Pressable>
+
+      {/* Add to cart — outside Pressable to avoid event clash */}
       {onAddToCart && (
-        <TouchableOpacity
-          style={s.cartBtn}
-          onPress={() => onAddToCart(product)}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-        </TouchableOpacity>
+        <Pressable onPress={handleAddToCart} style={s.cartBtnWrap}>
+          <Animated.View style={[s.cartBtn, cartStyle]}>
+            <Ionicons name="add" size={18} color="#fff" />
+          </Animated.View>
+        </Pressable>
       )}
-    </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -104,29 +158,19 @@ const s = StyleSheet.create({
     borderColor: C.border,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 3,
   },
   imgWrap: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#E5F9FA',
+    backgroundColor: '#F0FDF9',
   },
   img: { width: '100%', height: '100%' },
-  heartBtn: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.88)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badge: {
+
+  discountBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
@@ -135,34 +179,64 @@ const s = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  badgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
+  discountText: { fontSize: 10, fontWeight: '800', color: '#fff' },
 
-  info: { padding: 10, paddingBottom: 12 },
+  heartBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+
+  info: { padding: 10, paddingBottom: 44 },
   category: {
     fontSize: 10,
     color: C.primary,
-    fontWeight: '600',
-    marginBottom: 3,
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
+    marginBottom: 3,
   },
-  name: { fontSize: 13, fontWeight: '600', color: C.text, lineHeight: 18, marginBottom: 6 },
-  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 5, flexWrap: 'wrap' },
-  price: { fontSize: 14, fontWeight: '700', color: C.primary },
+  name: { fontSize: 13, fontWeight: '600', color: C.text, lineHeight: 18, marginBottom: 5 },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    flexWrap: 'wrap',
+    marginBottom: 4,
+  },
+  price: { fontSize: 15, fontWeight: '800', color: C.primary },
   originalPrice: { fontSize: 11, color: C.muted, textDecorationLine: 'line-through' },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 5 },
-  rating: { fontSize: 11, fontWeight: '600', color: '#111' },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  rating: { fontSize: 11, fontWeight: '600', color: C.text },
   reviewCount: { fontSize: 11, color: C.muted },
 
-  cartBtn: {
+  cartBtnWrap: {
     position: 'absolute',
     bottom: 10,
     right: 10,
-    width: 30,
-    height: 30,
-    borderRadius: 10,
+  },
+  cartBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
     backgroundColor: C.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 3,
   },
 });

@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { agentService } from '@/services/agent.service';
+import { useRoleGuard } from '@/lib/useRoleGuard';
 import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Order } from '@/types';
@@ -36,6 +37,7 @@ const C = {
 type Tab = 'incoming' | 'ready' | 'history';
 
 export default function AgentScreen() {
+  const unauthorized = useRoleGuard('Agent');
   const { top } = useSafeAreaInsets();
   const { show } = useToast();
 
@@ -160,6 +162,7 @@ export default function AgentScreen() {
     },
   ];
 
+  if (unauthorized) return null;
   if (loading) {
     return (
       <View style={[s.root, s.center]}>
