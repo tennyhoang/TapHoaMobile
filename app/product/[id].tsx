@@ -23,6 +23,7 @@ import { useCartCount } from '@/lib/cart-context';
 import { useWishlist } from '@/lib/wishlist-context';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 import { useToast } from '@/components/Toast';
+import QuantitySelector from '@/components/QuantitySelector';
 import type { Product } from '@/types';
 import { C } from '@/constants/Colors';
 
@@ -279,21 +280,7 @@ export default function ProductDetailScreen() {
       {/* Bottom Bar */}
       <View style={[s.bottomBar, { paddingBottom: (bottom || 16) + 8 }]}>
         {/* Quantity */}
-        <View style={s.qtyWrap}>
-          <TouchableOpacity
-            style={[s.qtyBtn, qty <= 1 && s.qtyBtnDim]}
-            onPress={() => setQty(q => Math.max(1, q - 1))}
-          >
-            <Ionicons name="remove" size={18} color={qty <= 1 ? C.muted : C.text} />
-          </TouchableOpacity>
-          <Text style={s.qtyText}>{qty}</Text>
-          <TouchableOpacity
-            style={[s.qtyBtn, qty >= product.stock && s.qtyBtnDim]}
-            onPress={() => setQty(q => Math.min(product.stock, q + 1))}
-          >
-            <Ionicons name="add" size={18} color={qty >= product.stock ? C.muted : C.text} />
-          </TouchableOpacity>
-        </View>
+        <QuantitySelector value={qty} min={1} max={product.stock} onChange={setQty} />
 
         {/* Add to cart */}
         <TouchableOpacity
