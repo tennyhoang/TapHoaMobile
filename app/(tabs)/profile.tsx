@@ -146,12 +146,12 @@ export default function ProfileScreen() {
             <TouchableOpacity
               style={s.menuItem}
               activeOpacity={0.7}
-              onPress={() => router.push('/admin/products' as any)}
+              onPress={() => router.push('/admin' as any)}
             >
               <View style={[s.menuIcon, { backgroundColor: '#FF6B0018' }]}>
-                <Ionicons name="image-outline" size={20} color="#FF6B00" />
+                <Ionicons name="shield-outline" size={20} color="#FF6B00" />
               </View>
-              <Text style={s.menuLabel}>Quản lý ảnh sản phẩm</Text>
+              <Text style={s.menuLabel}>Admin Dashboard</Text>
               <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
             </TouchableOpacity>
           </View>
