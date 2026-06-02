@@ -11,7 +11,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.taphoa.mobile",
       "infoPlist": {
-        "NSCameraUsageDescription": "Dùng camera để quét mã QR",
+        "NSCameraUsageDescription": "Dùng camera để quét mã QR và chụp ảnh đại diện",
+        "NSPhotoLibraryUsageDescription": "Chọn ảnh từ thư viện để làm ảnh đại diện",
         "NSFaceIDUsageDescription": "Dùng Face ID để xác thực giao dịch"
       }
     },
@@ -43,6 +44,12 @@
       ],
       "expo-secure-store",
       "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cho phép TapHoa truy cập thư viện ảnh để cập nhật ảnh đại diện"
+        }
+      ],
       "@sentry/react-native"
     ],
     "experiments": {
