@@ -16,6 +16,7 @@ import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
 import ProductImage from '@/components/ProductImage';
 import { useToast } from '@/components/Toast';
+import ErrorScreen from '@/components/ErrorScreen';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 
@@ -37,9 +38,11 @@ export default function WishlistScreen() {
   const { show } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async () => {
+    setHasError(false);
     if (ids.length === 0) {
       setProducts([]);
       setLoading(false);
@@ -52,7 +55,7 @@ export default function WishlistScreen() {
         .map(r => r.value);
       setProducts(valid);
     } catch {
-      // silently handle
+      setHasError(true);
     } finally {
       setLoading(false);
     }
@@ -164,6 +167,14 @@ export default function WishlistScreen() {
         <View style={s.center}>
           <ActivityIndicator color={C.primary} size="large" />
         </View>
+      ) : hasError ? (
+        <ErrorScreen
+          type="network"
+          onRetry={() => {
+            setLoading(true);
+            fetchProducts();
+          }}
+        />
       ) : products.length === 0 ? (
         <View style={s.emptyWrap}>
           <View style={s.emptyIcon}>

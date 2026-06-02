@@ -16,6 +16,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { profileService } from '@/services/profile.service';
 import { useToast } from '@/components/Toast';
+import { biometrics } from '@/lib/biometrics';
 
 const C = {
   primary: '#0EA5AE',
@@ -92,6 +93,8 @@ export default function ProfileEditScreen() {
       setPwError('Xác nhận mật khẩu không khớp');
       return;
     }
+    const confirmed = await biometrics.authenticate('Xác nhận đổi mật khẩu');
+    if (!confirmed) return;
     setPwError('');
     setChangingPw(true);
     try {

@@ -15,6 +15,7 @@ import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ordersService } from '@/services/orders.service';
 import { formatCurrency } from '@/lib/utils';
+import ErrorScreen from '@/components/ErrorScreen';
 import type { Order, OrderStatus } from '@/types';
 
 const C = {
@@ -60,14 +61,16 @@ export default function OrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | undefined>(undefined);
 
   const load = useCallback(async (status?: OrderStatus) => {
+    setHasError(false);
     try {
       const res = await ordersService.getMyOrders({ pageSize: 50, status });
-      setOrders(res.items);
+      setOrders(res.items ?? []);
     } catch {
-      /* silent */
+      setHasError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -156,6 +159,14 @@ export default function OrdersScreen() {
         <View style={s.center}>
           <ActivityIndicator color={C.primary} size="large" />
         </View>
+      ) : hasError ? (
+        <ErrorScreen
+          type="network"
+          onRetry={() => {
+            setLoading(true);
+            load(filterStatus);
+          }}
+        />
       ) : orders.length === 0 ? (
         <View style={s.center}>
           <Ionicons name="receipt-outline" size={52} color="#D1D5DB" />

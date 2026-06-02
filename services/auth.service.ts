@@ -29,4 +29,7 @@ export const authService = {
 
   register: (fullName: string, email: string, password: string, phoneNumber?: string) =>
     request<AuthResponse>('/auth/register', { fullName, email, password, phoneNumber }),
+
+  forgotPassword: (email: string) =>
+    request<{ message: string }>('/auth/forgot-password', { email }),
 };

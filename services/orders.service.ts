@@ -27,4 +27,7 @@ export const ordersService = {
 
   cancel: (id: string, cancelReason?: string): Promise<Order> =>
     api.patch(`/orders/${id}/cancel`, { cancelReason }),
+
+  requestRefund: (id: string, reason: string): Promise<Order> =>
+    api.patch(`/orders/${id}/refund`, { reason }),
 };
