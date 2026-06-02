@@ -1,9 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth-context';
+import { profileService } from '@/services/profile.service';
 
 const C = {
   primary: '#0EA5AE',
@@ -29,7 +38,7 @@ const MENU_ITEMS = [
   },
   { icon: 'create-outline', label: 'Chỉnh sửa hồ sơ', color: '#3B82F6', route: '/profile-edit' },
   { icon: 'book-outline', label: 'Cẩm nang mua sắm', color: '#16A34A', route: '/articles' },
-  { icon: 'help-circle-outline', label: 'Hỗ trợ', color: C.muted, route: null },
+  { icon: 'help-circle-outline', label: 'Hỗ trợ & FAQ', color: C.muted, route: '/help' },
 ];
 
 export default function ProfileScreen() {
@@ -39,6 +48,29 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     await logout();
     router.replace('/(auth)/login' as any);
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Xoá tài khoản',
+      'Tất cả dữ liệu của bạn sẽ bị xoá vĩnh viễn. Bạn có chắc chắn không?',
+      [
+        { text: 'Huỷ', style: 'cancel' },
+        {
+          text: 'Xoá tài khoản',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await profileService.deleteAccount();
+              await logout();
+              router.replace('/(auth)/login' as any);
+            } catch {
+              Alert.alert('Lỗi', 'Không thể xoá tài khoản. Vui lòng thử lại.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -125,9 +157,39 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* Legal links */}
+        <View style={[s.card, { marginBottom: 16 }]}>
+          {[
+            {
+              label: 'Chính sách bảo mật',
+              icon: 'shield-checkmark-outline',
+              route: '/privacy-policy',
+            },
+            { label: 'Điều khoản sử dụng', icon: 'document-text-outline', route: '/terms' },
+          ].map((item, i) => (
+            <TouchableOpacity
+              key={item.label}
+              style={[s.menuItem, i === 0 && s.menuItemBorder]}
+              activeOpacity={0.7}
+              onPress={() => router.push(item.route as any)}
+            >
+              <View style={[s.menuIcon, { backgroundColor: '#6B728018' }]}>
+                <Ionicons name={item.icon as any} size={20} color={C.muted} />
+              </View>
+              <Text style={s.menuLabel}>{item.label}</Text>
+              <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <TouchableOpacity style={s.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={20} color={C.error} />
           <Text style={s.logoutText}>Đăng xuất</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={s.deleteBtn} onPress={handleDeleteAccount} activeOpacity={0.8}>
+          <Ionicons name="trash-outline" size={16} color="#9CA3AF" />
+          <Text style={s.deleteText}>Xoá tài khoản</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -212,4 +274,14 @@ const s = StyleSheet.create({
     borderColor: '#FEE2E2',
   },
   logoutText: { fontSize: 15, fontWeight: '600', color: C.error },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+    marginBottom: 32,
+    paddingVertical: 8,
+  },
+  deleteText: { fontSize: 13, color: '#9CA3AF' },
 });

@@ -15,6 +15,8 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { ordersService } from '@/services/orders.service';
+import * as ScreenCapture from 'expo-screen-capture';
+import * as StoreReview from 'expo-store-review';
 import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Order, OrderStatus } from '@/types';
@@ -156,6 +158,14 @@ export default function OrderDetailScreen() {
     fetchOrder();
   }, [fetchOrder]);
 
+  // Prevent screenshots — screen may contain payment QR code
+  useEffect(() => {
+    ScreenCapture.preventScreenCaptureAsync();
+    return () => {
+      ScreenCapture.allowScreenCaptureAsync();
+    };
+  }, []);
+
   // Poll every 15s while waiting for payment confirmation
   useEffect(() => {
     if (order?.status !== 'PendingPayment') return;
@@ -195,6 +205,25 @@ export default function OrderDetailScreen() {
 
   const status = STATUS_CONFIG[order.status];
   const canCancel = order.status === 'PendingPayment' || order.status === 'Paid_WaitingForBatch';
+  const canRefund = order.status === 'Completed';
+
+  const handleRefund = () => {
+    Alert.alert('Yêu cầu hoàn trả', 'Bạn muốn hoàn trả đơn hàng này?', [
+      { text: 'Huỷ', style: 'cancel' },
+      {
+        text: 'Xác nhận',
+        onPress: async () => {
+          try {
+            await ordersService.requestRefund(id!, 'Khách hàng yêu cầu hoàn trả');
+            show('Yêu cầu hoàn trả đã được gửi!');
+            fetchOrder();
+          } catch {
+            show('Không thể gửi yêu cầu hoàn trả', 'error');
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={s.root}>
@@ -480,6 +509,14 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
+        {/* Refund request */}
+        {canRefund && (
+          <TouchableOpacity style={s.refundBtn} onPress={handleRefund} activeOpacity={0.8}>
+            <Ionicons name="return-down-back-outline" size={17} color="#8B5CF6" />
+            <Text style={s.refundBtnText}>Yêu cầu hoàn trả</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Cancel */}
         {canCancel && (
           <TouchableOpacity
@@ -496,6 +533,19 @@ export default function OrderDetailScreen() {
                 <Text style={s.cancelBtnText}>Huỷ đơn hàng</Text>
               </>
             )}
+          </TouchableOpacity>
+        )}
+
+        {order.status === 'Completed' && (
+          <TouchableOpacity
+            style={s.rateBtn}
+            onPress={async () => {
+              if (await StoreReview.hasAction()) StoreReview.requestReview();
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="star-outline" size={16} color="#F59E0B" />
+            <Text style={s.rateBtnText}>Đánh giá ứng dụng</Text>
           </TouchableOpacity>
         )}
 
@@ -660,6 +710,32 @@ const s = StyleSheet.create({
     backgroundColor: C.card,
   },
   shopBtnText: { fontSize: 14, fontWeight: '600', color: C.primary },
+  refundBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    borderRadius: 14,
+    marginBottom: 10,
+    backgroundColor: '#F5F3FF',
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+  },
+  refundBtnText: { fontSize: 14, fontWeight: '600', color: '#8B5CF6' },
+  rateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    borderRadius: 14,
+    marginBottom: 10,
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  rateBtnText: { fontSize: 14, fontWeight: '600', color: '#D97706' },
 });
 
 const q = StyleSheet.create({

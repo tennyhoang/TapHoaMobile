@@ -29,6 +29,10 @@ const C = {
   errorBg: '#FEF2F2',
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^(0|\+84)[3-9]\d{8}$/;
+const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
 export default function RegisterScreen() {
   const { login } = useAuth();
   const [fullName, setFullName] = useState('');
@@ -38,6 +42,7 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -71,12 +76,24 @@ export default function RegisterScreen() {
       setError('Vui lòng nhập đầy đủ thông tin');
       return;
     }
-    if (password.length < 6) {
-      setError('Mật khẩu tối thiểu 6 ký tự');
+    if (!EMAIL_RE.test(email.trim())) {
+      setError('Email không hợp lệ');
+      return;
+    }
+    if (phone.trim() && !PHONE_RE.test(phone.trim())) {
+      setError('Số điện thoại không hợp lệ (VD: 0912345678)');
+      return;
+    }
+    if (!PASSWORD_RE.test(password)) {
+      setError('Mật khẩu tối thiểu 8 ký tự, có cả chữ lẫn số');
       return;
     }
     if (password !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp');
+      return;
+    }
+    if (!agreedToTerms) {
+      setError('Vui lòng đồng ý với Điều khoản sử dụng');
       return;
     }
     setError('');
@@ -172,7 +189,7 @@ export default function RegisterScreen() {
                 <Ionicons name="lock-closed-outline" size={18} color={C.muted} style={s.icon} />
                 <TextInput
                   style={[s.input, { flex: 1 }]}
-                  placeholder="Tối thiểu 6 ký tự"
+                  placeholder="Tối thiểu 8 ký tự, có chữ và số"
                   placeholderTextColor="#9CA3AF"
                   value={password}
                   onChangeText={setPassword}
@@ -215,6 +232,27 @@ export default function RegisterScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* ToS agreement */}
+            <TouchableOpacity
+              style={s.tosRow}
+              onPress={() => setAgreedToTerms(v => !v)}
+              activeOpacity={0.7}
+            >
+              <View style={[s.checkbox, agreedToTerms && s.checkboxActive]}>
+                {agreedToTerms && <Ionicons name="checkmark" size={12} color="#fff" />}
+              </View>
+              <Text style={s.tosText}>
+                Tôi đồng ý với{' '}
+                <Text style={s.tosLink} onPress={() => router.push('/terms' as any)}>
+                  Điều khoản sử dụng
+                </Text>{' '}
+                và{' '}
+                <Text style={s.tosLink} onPress={() => router.push('/privacy-policy' as any)}>
+                  Chính sách bảo mật
+                </Text>
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={[s.btn, loading && s.btnDim]}
@@ -402,4 +440,18 @@ const s = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   footerText: { fontSize: 14, color: C.muted },
   footerLink: { fontSize: 14, color: C.primary, fontWeight: '600' },
+  tosRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 16 },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+  checkboxActive: { backgroundColor: C.primary, borderColor: C.primary },
+  tosText: { flex: 1, fontSize: 13, color: C.muted, lineHeight: 19 },
+  tosLink: { color: C.primary, fontWeight: '600' },
 });
