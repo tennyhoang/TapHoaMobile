@@ -19,6 +19,7 @@ import { ordersService } from '@/services/orders.service';
 import { cartService } from '@/services/cart.service';
 import { walletService } from '@/services/wallet.service';
 import { addressesService } from '@/services/addresses.service';
+import { vouchersService } from '@/services/vouchers.service';
 import { biometrics } from '@/lib/biometrics';
 import { formatCurrency } from '@/lib/utils';
 import type { Hub, Cart, Address } from '@/types';
@@ -35,22 +36,6 @@ const C = {
 };
 
 type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet';
-
-type VoucherResult = { discount: number; type: 'percent' | 'flat'; label: string };
-
-const VOUCHERS: Record<string, VoucherResult> = {
-  TAPHOA10: { discount: 10, type: 'percent', label: 'Giảm 10%' },
-  NEWUSER15: { discount: 15, type: 'percent', label: 'Giảm 15% cho khách mới' },
-  SALE20: { discount: 20, type: 'percent', label: 'Giảm 20%' },
-  FREESHIP: { discount: 20000, type: 'flat', label: 'Giảm 20.000đ' },
-};
-
-function applyVoucher(code: string, total: number): { ok: boolean; msg: string; discount: number } {
-  const v = VOUCHERS[code.trim().toUpperCase()];
-  if (!v) return { ok: false, msg: 'Mã voucher không hợp lệ', discount: 0 };
-  const discount = v.type === 'percent' ? Math.round((total * v.discount) / 100) : v.discount;
-  return { ok: true, msg: v.label, discount };
-}
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc: string }[] = [
   {
@@ -88,6 +73,7 @@ export default function CheckoutScreen() {
   const [voucherDiscount, setVoucherDiscount] = useState(0);
   const [voucherMsg, setVoucherMsg] = useState('');
   const [voucherOk, setVoucherOk] = useState(false);
+  const [applyingVoucher, setApplyingVoucher] = useState(false);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
@@ -113,12 +99,21 @@ export default function CheckoutScreen() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleApplyVoucher = () => {
-    const total = cart?.totalAmount ?? 0;
-    const result = applyVoucher(voucherCode, total);
-    setVoucherOk(result.ok);
-    setVoucherMsg(result.msg);
-    setVoucherDiscount(result.discount);
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim() || applyingVoucher) return;
+    setApplyingVoucher(true);
+    try {
+      const result = await vouchersService.validate(voucherCode.trim(), cart?.totalAmount ?? 0);
+      setVoucherOk(true);
+      setVoucherMsg(result.label);
+      setVoucherDiscount(result.discount);
+    } catch {
+      setVoucherOk(false);
+      setVoucherMsg('Mã voucher không hợp lệ hoặc đã hết hạn');
+      setVoucherDiscount(0);
+    } finally {
+      setApplyingVoucher(false);
+    }
   };
 
   const finalAmount = Math.max(0, (cart?.totalAmount ?? 0) - voucherDiscount);
@@ -317,12 +312,16 @@ export default function CheckoutScreen() {
               onSubmitEditing={handleApplyVoucher}
             />
             <TouchableOpacity
-              style={[s.voucherBtn, !voucherCode.trim() && s.voucherBtnDim]}
+              style={[s.voucherBtn, (!voucherCode.trim() || applyingVoucher) && s.voucherBtnDim]}
               onPress={handleApplyVoucher}
-              disabled={!voucherCode.trim()}
+              disabled={!voucherCode.trim() || applyingVoucher}
               activeOpacity={0.85}
             >
-              <Text style={s.voucherBtnText}>Áp dụng</Text>
+              {applyingVoucher ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={s.voucherBtnText}>Áp dụng</Text>
+              )}
             </TouchableOpacity>
           </View>
           {!!voucherMsg && (
