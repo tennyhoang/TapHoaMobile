@@ -6,6 +6,7 @@ type CreateOrderPayload = {
   note?: string;
   paymentMethod?: 'COD' | 'BankTransfer' | 'Wallet';
   useWallet?: boolean;
+  voucherCode?: string;
 };
 
 export const ordersService = {

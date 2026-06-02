@@ -148,6 +148,7 @@ export default function CheckoutScreen() {
         hubId: selectedHub.id,
         note: note.trim() || undefined,
         paymentMethod,
+        voucherCode: voucherOk && voucherCode.trim() ? voucherCode.trim() : undefined,
       });
       router.replace(`/order/${order.id}` as any);
     } catch (err) {
