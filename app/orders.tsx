@@ -6,47 +6,18 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
   RefreshControl,
 } from 'react-native';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ordersService } from '@/services/orders.service';
 import { formatCurrency } from '@/lib/utils';
 import ErrorScreen from '@/components/ErrorScreen';
 import type { Order, OrderStatus } from '@/types';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-};
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  PendingPayment: 'Chờ thanh toán',
-  Paid_WaitingForBatch: 'Đã thanh toán',
-  ShippingToHub: 'Đang vận chuyển',
-  InHub_ReadyForPickup: 'Sẵn sàng lấy',
-  Completed: 'Hoàn thành',
-  Cancelled: 'Đã huỷ',
-  Refunded: 'Hoàn tiền',
-};
-
-const STATUS_COLOR: Record<OrderStatus, string> = {
-  PendingPayment: '#F59E0B',
-  Paid_WaitingForBatch: '#3B82F6',
-  ShippingToHub: '#8B5CF6',
-  InHub_ReadyForPickup: C.primary,
-  Completed: '#22C55E',
-  Cancelled: '#EF4444',
-  Refunded: C.muted,
-};
+import { C } from '@/constants/Colors';
+import ScreenHeader from '@/components/ScreenHeader';
+import EmptyState from '@/components/EmptyState';
+import StatusBadge from '@/components/StatusBadge';
 
 const FILTERS: { label: string; value: OrderStatus | undefined }[] = [
   { label: 'Tất cả', value: undefined },
@@ -57,7 +28,6 @@ const FILTERS: { label: string; value: OrderStatus | undefined }[] = [
 ];
 
 export default function OrdersScreen() {
-  const { top } = useSafeAreaInsets();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -91,7 +61,6 @@ export default function OrdersScreen() {
   };
 
   const renderOrder = ({ item }: { item: Order }) => {
-    const color = STATUS_COLOR[item.status];
     return (
       <TouchableOpacity
         style={s.card}
@@ -102,9 +71,7 @@ export default function OrdersScreen() {
           <Text style={s.orderId} numberOfLines={1}>
             #{item.id.slice(0, 8).toUpperCase()}
           </Text>
-          <View style={[s.statusBadge, { backgroundColor: color + '18' }]}>
-            <Text style={[s.statusText, { color }]}>{STATUS_LABEL[item.status]}</Text>
-          </View>
+          <StatusBadge status={item.status} />
         </View>
 
         <Text style={s.hubName} numberOfLines={1}>
@@ -131,14 +98,7 @@ export default function OrdersScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
-
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Đơn hàng của tôi</Text>
-      </View>
+      <ScreenHeader title="Đơn hàng của tôi" />
 
       {/* Filter chips */}
       <View style={s.filterBar}>
@@ -168,17 +128,15 @@ export default function OrdersScreen() {
           }}
         />
       ) : orders.length === 0 ? (
-        <View style={s.center}>
-          <Ionicons name="receipt-outline" size={52} color="#D1D5DB" />
-          <Text style={s.emptyText}>Chưa có đơn hàng nào</Text>
-          <TouchableOpacity
-            style={s.shopBtn}
-            onPress={() => router.replace('/(tabs)' as any)}
-            activeOpacity={0.8}
-          >
-            <Text style={s.shopBtnText}>Mua sắm ngay</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          icon="receipt-outline"
+          title="Chưa có đơn hàng nào"
+          action={{
+            label: 'Mua sắm ngay',
+            onPress: () => router.replace('/(tabs)' as any),
+            icon: 'cart-outline',
+          }}
+        />
       ) : (
         <FlatList
           data={orders}
@@ -205,24 +163,6 @@ export default function OrdersScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: C.primaryDark,
-    paddingTop: 0,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
   filterBar: {
     flexDirection: 'row',
     gap: 8,
@@ -254,8 +194,6 @@ const s = StyleSheet.create({
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   orderId: { fontSize: 13, fontWeight: '700', color: C.text, fontVariant: ['tabular-nums'] },
-  statusBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  statusText: { fontSize: 11, fontWeight: '600' },
   hubName: { fontSize: 12, color: C.muted },
   itemList: { fontSize: 13, color: C.text },
   cardFooter: {

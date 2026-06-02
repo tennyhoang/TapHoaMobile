@@ -15,16 +15,7 @@ import { useWishlist } from '@/lib/wishlist-context';
 import { haptics } from '@/lib/haptics';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
-
-const C = {
-  primary: '#0EA5AE',
-  text: '#111827',
-  muted: '#6B7280',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  discount: '#EF4444',
-  heart: '#F43F5E',
-};
+import { C } from '@/constants/Colors';
 
 type Props = {
   product: Product;
@@ -89,6 +80,8 @@ export default function ProductCard({ product, onAddToCart }: Props) {
         onPressOut={() => {
           cardScale.value = withSpring(1, { damping: 10, stiffness: 300 });
         }}
+        accessibilityRole="button"
+        accessibilityLabel={product.name}
       >
         {/* Image */}
         <View style={s.imgWrap}>
@@ -102,7 +95,12 @@ export default function ProductCard({ product, onAddToCart }: Props) {
           )}
 
           {/* Wishlist */}
-          <Pressable onPress={handleWishlist} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Pressable
+            onPress={handleWishlist}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={wishlisted ? 'Xoá khỏi yêu thích' : 'Thêm vào yêu thích'}
+          >
             <Animated.View style={[s.heartBtn, heartStyle]}>
               <Ionicons
                 name={wishlisted ? 'heart' : 'heart-outline'}
@@ -139,7 +137,12 @@ export default function ProductCard({ product, onAddToCart }: Props) {
 
       {/* Add to cart — outside Pressable to avoid event clash */}
       {onAddToCart && (
-        <Pressable onPress={handleAddToCart} style={s.cartBtnWrap}>
+        <Pressable
+          onPress={handleAddToCart}
+          style={s.cartBtnWrap}
+          accessibilityRole="button"
+          accessibilityLabel={`Thêm ${product.name} vào giỏ`}
+        >
           <Animated.View style={[s.cartBtn, cartStyle]}>
             <Ionicons name="add" size={18} color="#fff" />
           </Animated.View>

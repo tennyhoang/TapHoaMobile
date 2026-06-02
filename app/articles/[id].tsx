@@ -18,15 +18,9 @@ import {
   getArticleImage,
   type Article,
 } from '@/services/articles.service';
+import { C } from '@/constants/Colors';
 
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#FFFFFF',
-  border: '#F3F4F6',
-};
+const ARTICLE_BG = '#FFFFFF';
 
 function renderMarkdown(content: string) {
   const lines = content.split('\n');
@@ -104,7 +98,7 @@ export default function ArticleDetailScreen() {
       .then(articles => {
         setArticle(articles.find(a => a.id === id) ?? null);
       })
-      .catch(() => {})
+      .catch(() => console.warn('Failed to load article'))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -197,8 +191,8 @@ export default function ArticleDetailScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
+  root: { flex: 1, backgroundColor: ARTICLE_BG },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: ARTICLE_BG },
   hero: {
     height: 280,
     backgroundColor: '#E5F9FA',

@@ -7,18 +7,18 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  StatusBar,
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import ScreenHeader from '@/components/ScreenHeader';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { profileService } from '@/services/profile.service';
 import { useToast } from '@/components/Toast';
+import { C } from '@/constants/Colors';
 import { biometrics } from '@/lib/biometrics';
 
 const CLOUDINARY_CLOUD = 'doy14nwx0';
@@ -37,19 +37,7 @@ async function uploadAvatar(uri: string): Promise<string> {
   return data.secure_url as string;
 }
 
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  error: '#EF4444',
-};
-
 export default function ProfileEditScreen() {
-  const { top } = useSafeAreaInsets();
   const { user, updateUser } = useAuth();
 
   const { show } = useToast();
@@ -66,7 +54,7 @@ export default function ProfileEditScreen() {
         setPhoneNumber(me.phoneNumber ?? '');
         setAvatarUrl(me.avatarUrl ?? null);
       })
-      .catch(() => {});
+      .catch(() => console.warn('Failed to load profile'));
   }, []);
   const [saving, setSaving] = useState(false);
   const [profileError, setProfileError] = useState('');
@@ -166,14 +154,7 @@ export default function ProfileEditScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
-
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Chỉnh sửa hồ sơ</Text>
-      </View>
+      <ScreenHeader title="Chỉnh sửa hồ sơ" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -359,24 +340,6 @@ export default function ProfileEditScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: C.primaryDark,
-    paddingTop: 0,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
   body: { padding: 16, paddingBottom: 40 },
 
   avatarSection: { alignItems: 'center', marginBottom: 24, marginTop: 8 },

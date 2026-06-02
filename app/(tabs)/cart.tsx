@@ -18,20 +18,12 @@ import { cartService } from '@/services/cart.service';
 import { useCartCount } from '@/lib/cart-context';
 import { formatCurrency } from '@/lib/utils';
 import type { Cart, CartItem } from '@/types';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  error: '#EF4444',
-};
+import { C } from '@/constants/Colors';
+import { useToast } from '@/components/Toast';
 
 export default function CartScreen() {
   const { top } = useSafeAreaInsets();
+  const { show } = useToast();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,7 +62,7 @@ export default function CartScreen() {
       }
       refreshCount();
     } catch {
-      /* silent */
+      show('Có lỗi xảy ra', 'error');
     } finally {
       setUpdating(null);
     }
@@ -83,7 +75,7 @@ export default function CartScreen() {
       setCart({ items: [], totalAmount: 0, totalItems: 0 });
       refreshCount();
     } catch {
-      /* silent */
+      show('Có lỗi xảy ra', 'error');
     } finally {
       setLoading(false);
     }
@@ -113,6 +105,8 @@ export default function CartScreen() {
             style={s.qtyBtn}
             onPress={() => handleUpdate(item.productId, item.quantity - 1)}
             disabled={isUpdating}
+            accessibilityRole="button"
+            accessibilityLabel={item.quantity - 1 <= 0 ? 'Xoá' : 'Giảm số lượng'}
           >
             {isUpdating && item.quantity - 1 <= 0 ? (
               <Ionicons name="trash-outline" size={15} color={C.error} />
@@ -131,6 +125,8 @@ export default function CartScreen() {
             style={s.qtyBtn}
             onPress={() => handleUpdate(item.productId, item.quantity + 1)}
             disabled={isUpdating || item.quantity >= item.stock}
+            accessibilityRole="button"
+            accessibilityLabel="Tăng số lượng"
           >
             <Ionicons name="add" size={16} color={item.quantity >= item.stock ? C.muted : C.text} />
           </TouchableOpacity>

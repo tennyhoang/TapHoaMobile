@@ -20,7 +20,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       .then(val => {
         if (val) setIds(JSON.parse(val));
       })
-      .catch(() => {});
+      .catch(() => console.warn('Failed to load wishlist from storage'));
   }, []);
 
   const isWishlisted = useCallback((id: string) => ids.includes(id), [ids]);
@@ -28,7 +28,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const toggle = useCallback((id: string) => {
     setIds(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      storage.setItem(WISHLIST_KEY, JSON.stringify(next)).catch(() => {});
+      storage
+        .setItem(WISHLIST_KEY, JSON.stringify(next))
+        .catch(() => console.warn('Failed to save wishlist to storage'));
       return next;
     });
   }, []);

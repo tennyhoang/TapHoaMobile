@@ -3,15 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
-const C = {
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  border: '#F3F4F6',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-};
+import { C } from '@/constants/Colors';
 
 const SECTIONS = [
   {

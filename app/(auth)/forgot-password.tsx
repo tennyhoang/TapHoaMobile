@@ -14,16 +14,12 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { authService } from '@/services/auth.service';
+import { C } from '@/constants/Colors';
 
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
+const LC = {
   border: '#E5E7EB',
   inputBg: '#F9FAFB',
   white: '#FFFFFF',
-  error: '#EF4444',
   errorBg: '#FEF2F2',
   successBg: '#F0FDF4',
   success: '#16A34A',
@@ -80,7 +76,7 @@ export default function ForgotPasswordScreen() {
         {sent ? (
           <View style={s.successCard}>
             <View style={s.successIcon}>
-              <Ionicons name="checkmark-circle" size={52} color={C.success} />
+              <Ionicons name="checkmark-circle" size={52} color={LC.success} />
             </View>
             <Text style={s.successTitle}>Email đã được gửi!</Text>
             <Text style={s.successText}>
@@ -199,7 +195,7 @@ const s = StyleSheet.create({
 
   body: {
     flex: 1,
-    backgroundColor: C.white,
+    backgroundColor: LC.white,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 28,
@@ -212,7 +208,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: C.errorBg,
+    backgroundColor: LC.errorBg,
     borderRadius: 10,
     padding: 12,
     marginBottom: 16,
@@ -224,10 +220,10 @@ const s = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.inputBg,
+    backgroundColor: LC.inputBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: LC.border,
     paddingHorizontal: 14,
     height: 50,
   },
@@ -247,7 +243,7 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   btnDim: { opacity: 0.7 },
-  btnText: { color: C.white, fontSize: 16, fontWeight: '700' },
+  btnText: { color: LC.white, fontSize: 16, fontWeight: '700' },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center' },
   backLinkText: { fontSize: 14, color: C.primary, fontWeight: '600' },
 
@@ -256,7 +252,7 @@ const s = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: C.successBg,
+    backgroundColor: LC.successBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,

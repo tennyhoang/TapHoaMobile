@@ -20,16 +20,8 @@ import ProductCard from '@/components/ProductCard';
 import { useToast } from '@/components/Toast';
 import { useLayout } from '@/lib/layout';
 import type { Product, Category } from '@/types';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-};
+import { C } from '@/constants/Colors';
+import EmptyState from '@/components/EmptyState';
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Mới nhất' },
@@ -60,7 +52,7 @@ export default function ProductsScreen() {
     categoriesService
       .getAll()
       .then(setCategories)
-      .catch(() => {});
+      .catch(() => console.warn('Failed to load categories'));
   }, []);
 
   const fetchProducts = useCallback(
@@ -79,7 +71,7 @@ export default function ProductsScreen() {
         setTotalPages(res.totalPages);
         setPage(p);
       } catch {
-        // silently handle
+        console.warn('Failed to load products');
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -223,11 +215,11 @@ export default function ProductsScreen() {
           <ActivityIndicator color={C.primary} size="large" />
         </View>
       ) : products.length === 0 ? (
-        <View style={s.emptyWrap}>
-          <Ionicons name="search-outline" size={48} color={C.muted} />
-          <Text style={s.emptyTitle}>Không tìm thấy sản phẩm</Text>
-          <Text style={s.emptyText}>Thử thay đổi bộ lọc hoặc từ khóa</Text>
-        </View>
+        <EmptyState
+          icon="search-outline"
+          title="Không tìm thấy sản phẩm"
+          subtitle="Thử thay đổi bộ lọc hoặc từ khóa"
+        />
       ) : (
         <FlatList
           data={products}

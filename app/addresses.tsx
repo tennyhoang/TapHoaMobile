@@ -18,19 +18,12 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import EmptyState from '@/components/EmptyState';
 import { addressesService } from '@/services/addresses.service';
 import type { Address } from '@/types';
+import { C } from '@/constants/Colors';
 
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#E5E7EB',
-  error: '#EF4444',
-};
+const BORDER = '#E5E7EB';
 
 type FormState = {
   receiverName: string;
@@ -172,20 +165,17 @@ export default function AddressesScreen() {
           <ActivityIndicator color={C.primary} size="large" />
         </View>
       ) : addresses.length === 0 ? (
-        <View style={s.center}>
-          <Ionicons name="location-outline" size={52} color="#D1D5DB" />
-          <Text style={s.emptyText}>Chưa có địa chỉ nào</Text>
-          <TouchableOpacity
-            style={s.newBtn}
-            onPress={() => {
+        <EmptyState
+          icon="location-outline"
+          title="Chưa có địa chỉ nào"
+          action={{
+            label: 'Thêm địa chỉ',
+            onPress: () => {
               setForm(EMPTY_FORM);
               setShowModal(true);
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={s.newBtnText}>Thêm địa chỉ</Text>
-          </TouchableOpacity>
-        </View>
+            },
+          }}
+        />
       ) : (
         <FlatList
           data={addresses}
@@ -351,7 +341,7 @@ const s = StyleSheet.create({
     backgroundColor: C.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: BORDER,
     padding: 14,
   },
   cardTop: { marginBottom: 10 },
@@ -371,7 +361,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
     borderTopWidth: 1,
-    borderTopColor: C.border,
+    borderTopColor: BORDER,
     paddingTop: 10,
   },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -415,7 +405,7 @@ const s = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: BORDER,
     paddingHorizontal: 14,
     height: 46,
     fontSize: 14,
@@ -427,7 +417,7 @@ const s = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: C.border,
+    borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',
   },

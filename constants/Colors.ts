@@ -40,3 +40,19 @@ const Colors = {
 };
 
 export default Colors;
+
+export const C = {
+  primary: '#0EA5AE',
+  primaryDark: '#067478',
+  text: '#111827',
+  muted: '#6B7280',
+  bg: '#F8F9FA',
+  card: '#FFFFFF',
+  border: '#F3F4F6',
+  error: '#EF4444',
+  star: '#F59E0B',
+  heart: '#F43F5E',
+  discount: '#EF4444',
+  sale: '#F59E0B',
+  saleDark: '#D97706',
+} as const;

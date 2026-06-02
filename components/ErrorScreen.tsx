@@ -48,7 +48,12 @@ export default function ErrorScreen({
       <Text style={s.title}>{title ?? preset.title}</Text>
       <Text style={s.message}>{message ?? preset.message}</Text>
       {onRetry && (
-        <TouchableOpacity style={s.btn} onPress={onRetry} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={s.btn}
+          onPress={onRetry}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+        >
           <Ionicons name="refresh-outline" size={16} color="#fff" />
           <Text style={s.btnText}>{retryLabel}</Text>
         </TouchableOpacity>

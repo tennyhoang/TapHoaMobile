@@ -19,16 +19,8 @@ import {
   getArticleImage,
   type Article,
 } from '@/services/articles.service';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-};
+import { C } from '@/constants/Colors';
+import EmptyState from '@/components/EmptyState';
 
 export default function ArticlesScreen() {
   const { top } = useSafeAreaInsets();
@@ -149,11 +141,11 @@ export default function ArticlesScreen() {
           </TouchableOpacity>
         </View>
       ) : articles.length === 0 ? (
-        <View style={s.empty}>
-          <Ionicons name="book-outline" size={52} color="#D1D5DB" />
-          <Text style={s.emptyTitle}>Chưa có bài viết</Text>
-          <Text style={s.emptyText}>Chúng tôi đang chuẩn bị nội dung cho bạn</Text>
-        </View>
+        <EmptyState
+          icon="book-outline"
+          title="Chưa có bài viết"
+          subtitle="Chúng tôi đang chuẩn bị nội dung cho bạn"
+        />
       ) : (
         <FlatList
           data={articles}

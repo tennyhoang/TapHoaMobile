@@ -34,17 +34,9 @@ import {
 import ProductCard from '@/components/ProductCard';
 import { ProductCardSkeleton } from '@/components/Skeleton';
 import { formatCurrency, formatCountdown } from '@/lib/utils';
+import EmptyState from '@/components/EmptyState';
 import type { Category, Product, FlashSaleSession, Order } from '@/types';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-};
+import { C } from '@/constants/Colors';
 
 // ── Category icon mapping ────────────────────────────────────────────────────
 const CAT_ICONS: { key: string; icon: string; color: string; bg: string }[] = [
@@ -183,7 +175,7 @@ export default function HomeScreen() {
       );
       refreshCount();
     } catch {
-      // silently handle
+      console.warn('Failed to load home data');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -232,7 +224,7 @@ export default function HomeScreen() {
     productsService
       .getAll({ categoryId: catId ?? undefined, pageSize: 8 })
       .then(r => setProducts(r.items))
-      .catch(() => {});
+      .catch(() => console.warn('Failed to filter by category'));
   };
 
   const onRefresh = useCallback(() => {
@@ -528,10 +520,7 @@ export default function HomeScreen() {
               ))}
             </View>
           ) : products.length === 0 ? (
-            <View style={s.emptyWrap}>
-              <Ionicons name="leaf-outline" size={40} color={C.muted} />
-              <Text style={s.emptyText}>Chưa có sản phẩm</Text>
-            </View>
+            <EmptyState icon="leaf-outline" title="Chưa có sản phẩm" />
           ) : (
             <View style={[s.productGrid, { gap: cardGap }]}>
               {products.map(p => (

@@ -16,19 +16,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import EmptyState from '@/components/EmptyState';
 import { reviewsService } from '@/services/reviews.service';
 import type { Review } from '@/types';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  star: '#F59E0B',
-};
+import { C } from '@/constants/Colors';
 
 function Stars({
   rating,
@@ -200,12 +191,7 @@ export default function ReviewsScreen() {
               </View>
             </View>
           }
-          ListEmptyComponent={
-            <View style={s.empty}>
-              <Ionicons name="chatbubble-outline" size={48} color="#D1D5DB" />
-              <Text style={s.emptyText}>Chưa có đánh giá nào</Text>
-            </View>
-          }
+          ListEmptyComponent={<EmptyState icon="chatbubble-outline" title="Chưa có đánh giá nào" />}
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color={C.primary} style={{ padding: 16 }} /> : null
           }
