@@ -13,12 +13,25 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Dùng camera để quét mã QR và chụp ảnh đại diện",
         "NSPhotoLibraryUsageDescription": "Chọn ảnh từ thư viện để làm ảnh đại diện",
-        "NSFaceIDUsageDescription": "Dùng Face ID để xác thực giao dịch"
+        "NSFaceIDUsageDescription": "Dùng Face ID để xác thực giao dịch",
+        "NSLocationWhenInUseUsageDescription": "Dùng vị trí của bạn để tìm Hub gần nhất"
       }
     },
     "android": {
       "package": "com.taphoa.mobile",
-      "permissions": ["USE_BIOMETRIC", "USE_FINGERPRINT", "RECEIVE_BOOT_COMPLETED", "VIBRATE"],
+      "config": {
+        "googleMaps": {
+          "apiKey": "${GOOGLE_MAPS_API_KEY}"
+        }
+      },
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -50,7 +63,14 @@
           "photosPermission": "Cho phép TapHoa truy cập thư viện ảnh để cập nhật ảnh đại diện"
         }
       ],
-      "@sentry/react-native"
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Cho phép TapHoa truy cập vị trí để tìm Hub gần bạn nhất"
+        }
+      ],
+      "@sentry/react-native",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

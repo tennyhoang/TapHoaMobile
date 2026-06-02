@@ -22,6 +22,8 @@ import { addressesService } from '@/services/addresses.service';
 import { vouchersService } from '@/services/vouchers.service';
 import { biometrics } from '@/lib/biometrics';
 import { formatCurrency } from '@/lib/utils';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import * as Location from 'expo-location';
 import type { Hub, Cart, Address } from '@/types';
 
 const C = {
@@ -78,6 +80,10 @@ export default function CheckoutScreen() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [addrModalVisible, setAddrModalVisible] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(
+    null
+  );
 
   useEffect(() => {
     Promise.all([
@@ -117,6 +123,15 @@ export default function CheckoutScreen() {
   };
 
   const finalAmount = Math.max(0, (cart?.totalAmount ?? 0) - voucherDiscount);
+
+  const openMap = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status === 'granted') {
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+    }
+    setMapVisible(true);
+  };
 
   const handlePlaceOrder = async () => {
     if (!selectedHub) {
@@ -217,7 +232,15 @@ export default function CheckoutScreen() {
 
         {/* Hub selection */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Điểm nhận hàng</Text>
+          <View style={s.sectionRow}>
+            <Text style={s.sectionTitle}>Điểm nhận hàng</Text>
+            {hubs.length > 0 && (
+              <TouchableOpacity style={s.mapBtn} onPress={openMap} activeOpacity={0.8}>
+                <Ionicons name="map-outline" size={14} color={C.primary} />
+                <Text style={s.mapBtnText}>Xem bản đồ</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           {hubs.length === 0 ? (
             <View style={[s.card, s.emptyHub]}>
               <Ionicons name="alert-circle-outline" size={20} color={C.muted} />
@@ -387,6 +410,68 @@ export default function CheckoutScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* ── HUB MAP MODAL ── */}
+      <Modal visible={mapVisible} animationType="slide" onRequestClose={() => setMapVisible(false)}>
+        <View style={{ flex: 1 }}>
+          <MapView
+            style={{ flex: 1 }}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+            initialRegion={
+              userLocation
+                ? { ...userLocation, latitudeDelta: 0.05, longitudeDelta: 0.05 }
+                : hubs[0]?.latitude
+                  ? {
+                      latitude: hubs[0].latitude,
+                      longitude: hubs[0].longitude,
+                      latitudeDelta: 0.1,
+                      longitudeDelta: 0.1,
+                    }
+                  : {
+                      latitude: 10.7769,
+                      longitude: 106.7009,
+                      latitudeDelta: 0.1,
+                      longitudeDelta: 0.1,
+                    }
+            }
+            showsUserLocation
+            showsMyLocationButton
+          >
+            {hubs.map(hub => (
+              <Marker
+                key={hub.id}
+                coordinate={{ latitude: hub.latitude, longitude: hub.longitude }}
+                title={hub.name}
+                description={`${hub.address}, ${hub.ward}`}
+                pinColor={selectedHub?.id === hub.id ? '#0EA5AE' : '#EF4444'}
+                onPress={() => {
+                  setSelectedHub(hub);
+                  setMapVisible(false);
+                }}
+              />
+            ))}
+          </MapView>
+
+          {/* Close + info bar */}
+          <View style={s.mapBar}>
+            {selectedHub && (
+              <View style={s.mapBarInfo}>
+                <Ionicons name="storefront-outline" size={16} color="#0EA5AE" />
+                <Text style={s.mapBarText} numberOfLines={1}>
+                  {selectedHub.name}
+                </Text>
+              </View>
+            )}
+            <TouchableOpacity
+              style={s.mapCloseBtn}
+              onPress={() => setMapVisible(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={s.mapCloseBtnText}>Xong</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── ADDRESS PICKER MODAL ── */}
       <Modal
@@ -707,6 +792,47 @@ const s = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: C.border,
   },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  mapBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E5F9FA',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  mapBtnText: { fontSize: 12, fontWeight: '600', color: C.primary },
+  mapBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 34,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    gap: 12,
+  },
+  mapBarInfo: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  mapBarText: { flex: 1, fontSize: 14, fontWeight: '600', color: '#111827' },
+  mapCloseBtn: {
+    backgroundColor: '#0EA5AE',
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  mapCloseBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
   placeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
