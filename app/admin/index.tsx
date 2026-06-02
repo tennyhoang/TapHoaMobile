@@ -5,25 +5,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  StatusBar,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import ScreenHeader from '@/components/ScreenHeader';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { adminService, type AdminStats } from '@/services/admin.service';
+import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-};
 
 const NAV_ITEMS = [
   {
@@ -44,7 +34,6 @@ const NAV_ITEMS = [
 
 export default function AdminDashboard() {
   const unauthorized = useRoleGuard('Admin');
-  const { top } = useSafeAreaInsets();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
@@ -52,7 +41,7 @@ export default function AdminDashboard() {
     adminService
       .getStats()
       .then(setStats)
-      .catch(() => {})
+      .catch(() => console.warn('Failed to load admin stats'))
       .finally(() => setLoadingStats(false));
   }, []);
 
@@ -60,14 +49,7 @@ export default function AdminDashboard() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
-
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Admin Dashboard</Text>
-      </View>
+      <ScreenHeader title="Admin Dashboard" />
 
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
         {/* Stats */}
@@ -129,23 +111,6 @@ export default function AdminDashboard() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: C.primaryDark,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
   body: { padding: 16, paddingBottom: 40 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 12 },
 

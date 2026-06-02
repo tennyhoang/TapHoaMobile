@@ -17,20 +17,12 @@ import { flashSaleService } from '@/services/flashsale.service';
 import { cartService } from '@/services/cart.service';
 import ProductImage from '@/components/ProductImage';
 import { useToast } from '@/components/Toast';
+import EmptyState from '@/components/EmptyState';
 import { formatCurrency, formatCountdown } from '@/lib/utils';
 import type { FlashSaleSession, FlashSaleProduct } from '@/types';
+import { C } from '@/constants/Colors';
 
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#FFF8F0',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  sale: '#F59E0B',
-  saleDark: '#D97706',
-};
+const FLASH_BG = '#FFF8F0';
 
 export default function FlashSaleScreen() {
   const { top } = useSafeAreaInsets();
@@ -47,7 +39,7 @@ export default function FlashSaleScreen() {
       const data = await flashSaleService.getCurrent();
       setSession(data);
     } catch {
-      // silently handle
+      console.warn('Failed to load flash sale');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -167,20 +159,16 @@ export default function FlashSaleScreen() {
           <ActivityIndicator color={C.sale} size="large" />
         </View>
       ) : !session ? (
-        <View style={s.empty}>
-          <View style={s.emptyIcon}>
-            <Ionicons name="flash-outline" size={52} color={C.sale} />
-          </View>
-          <Text style={s.emptyTitle}>Không có Flash Sale</Text>
-          <Text style={s.emptyText}>Hiện chưa có phiên Flash Sale nào đang diễn ra</Text>
-          <TouchableOpacity
-            style={s.shopBtn}
-            onPress={() => router.push('/(tabs)/products' as any)}
-            activeOpacity={0.85}
-          >
-            <Text style={s.shopBtnText}>Xem sản phẩm thường</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          icon="flash-outline"
+          iconColor={C.sale}
+          title="Không có Flash Sale"
+          subtitle="Hiện chưa có phiên Flash Sale nào đang diễn ra"
+          action={{
+            label: 'Xem sản phẩm thường',
+            onPress: () => router.push('/(tabs)/products' as any),
+          }}
+        />
       ) : (
         <FlatList
           data={session.products ?? []}
@@ -216,7 +204,7 @@ export default function FlashSaleScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
+  root: { flex: 1, backgroundColor: FLASH_BG },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   header: {

@@ -103,11 +103,11 @@ npx eas build --profile production --platform all
 
 ## Testing
 
-186 tests across 28 suites:
+232 tests across 34 suites:
 
 - **Services**: auth, cart, orders, products, profile, hubs, vouchers, driver, agent, articles, admin, notifications, reviews, addresses, wallet, flashsale, categories
-- **Components**: ErrorScreen, OfflineBanner, ProductCard, Skeleton
-- **Screens**: Login, Orders, Profile
+- **Components**: ErrorScreen, OfflineBanner, ProductCard, ProductImage, Skeleton, TabBar, Toast
+- **Screens**: Login, Orders, Profile, Cart, Checkout, Order Detail
 
 ```bash
 npm test                    # run all tests

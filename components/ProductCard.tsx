@@ -15,16 +15,7 @@ import { useWishlist } from '@/lib/wishlist-context';
 import { haptics } from '@/lib/haptics';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
-
-const C = {
-  primary: '#0EA5AE',
-  text: '#111827',
-  muted: '#6B7280',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  discount: '#EF4444',
-  heart: '#F43F5E',
-};
+import { C } from '@/constants/Colors';
 
 type Props = {
   product: Product;

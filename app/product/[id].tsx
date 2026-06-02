@@ -24,20 +24,10 @@ import { useWishlist } from '@/lib/wishlist-context';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 import { useToast } from '@/components/Toast';
 import type { Product } from '@/types';
+import { C } from '@/constants/Colors';
 
 const { width: W } = Dimensions.get('window');
 const IMG_H = W * 0.85;
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  error: '#EF4444',
-};
 
 export default function ProductDetailScreen() {
   const { bottom } = useSafeAreaInsets();
@@ -65,7 +55,7 @@ export default function ProductDetailScreen() {
         productsService
           .getAll({ categoryId: p.categoryId, pageSize: 8 })
           .then(r => setRelated((r.items ?? []).filter(x => x.id !== p.id)))
-          .catch(() => {});
+          .catch(() => console.warn('Failed to load related products'));
         Animated.parallel([
           Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
           Animated.spring(slideAnim, {

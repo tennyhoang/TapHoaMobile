@@ -11,19 +11,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { C } from '@/constants/Colors';
 import { useAuth } from '@/lib/auth-context';
 import { profileService } from '@/services/profile.service';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  error: '#EF4444',
-};
 
 const MENU_ITEMS = [
   { icon: 'wallet-outline', label: 'Ví của tôi', color: '#22C55E', route: '/wallet' },

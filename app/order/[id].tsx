@@ -6,20 +6,21 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
   Alert,
   Clipboard,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import ScreenHeader from '@/components/ScreenHeader';
+import StatusBadge from '@/components/StatusBadge';
 import { ordersService } from '@/services/orders.service';
 import * as ScreenCapture from 'expo-screen-capture';
 import * as StoreReview from 'expo-store-review';
 import { useToast } from '@/components/Toast';
+import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
-import type { Order, OrderStatus } from '@/types';
+import type { Order } from '@/types';
 
 const BANK_CODE = 'MB';
 const ACCOUNT_NO = '0000000001';
@@ -85,57 +86,7 @@ function PaymentQR({ amount, paymentRef }: { amount: number; paymentRef: string 
   );
 }
 
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  error: '#EF4444',
-};
-
-const STATUS_CONFIG: Record<
-  OrderStatus,
-  { label: string; color: string; bg: string; icon: string }
-> = {
-  PendingPayment: {
-    label: 'Chờ thanh toán',
-    color: '#F59E0B',
-    bg: '#FEF3C7',
-    icon: 'time-outline',
-  },
-  Paid_WaitingForBatch: {
-    label: 'Đã thanh toán',
-    color: '#3B82F6',
-    bg: '#EFF6FF',
-    icon: 'checkmark-circle-outline',
-  },
-  ShippingToHub: {
-    label: 'Đang vận chuyển',
-    color: '#8B5CF6',
-    bg: '#F5F3FF',
-    icon: 'bicycle-outline',
-  },
-  InHub_ReadyForPickup: {
-    label: 'Sẵn sàng lấy hàng',
-    color: C.primary,
-    bg: '#E5F9FA',
-    icon: 'storefront-outline',
-  },
-  Completed: {
-    label: 'Hoàn thành',
-    color: '#22C55E',
-    bg: '#F0FDF4',
-    icon: 'checkmark-done-outline',
-  },
-  Cancelled: { label: 'Đã huỷ', color: C.error, bg: '#FEF2F2', icon: 'close-circle-outline' },
-  Refunded: { label: 'Đã hoàn tiền', color: C.muted, bg: C.bg, icon: 'return-down-back-outline' },
-};
-
 export default function OrderDetailScreen() {
-  const { top } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -203,7 +154,6 @@ export default function OrderDetailScreen() {
   }
   if (!order) return null;
 
-  const status = STATUS_CONFIG[order.status];
   const canCancel = order.status === 'PendingPayment' || order.status === 'Paid_WaitingForBatch';
   const canRefund = order.status === 'Completed';
 
@@ -227,28 +177,18 @@ export default function OrderDetailScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
-
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Chi tiết đơn hàng</Text>
-      </View>
+      <ScreenHeader title="Chi tiết đơn hàng" />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.body}>
         {/* Status */}
-        <View style={[s.statusCard, { backgroundColor: status.bg }]}>
-          <Ionicons name={status.icon as any} size={32} color={status.color} />
-          <Text style={[s.statusLabel, { color: status.color }]}>{status.label}</Text>
-          {order.status === 'PendingPayment' && (
-            <View style={s.refreshRow}>
-              <Ionicons name="time-outline" size={13} color={C.muted} />
-              <Text style={s.refreshHint}>Tự động cập nhật mỗi 15 giây</Text>
-            </View>
-          )}
-          {order.cancelReason && <Text style={s.cancelReason}>Lý do: {order.cancelReason}</Text>}
-        </View>
+        <StatusBadge status={order.status} size="lg" />
+        {order.status === 'PendingPayment' && (
+          <View style={s.refreshRow}>
+            <Ionicons name="time-outline" size={13} color={C.muted} />
+            <Text style={s.refreshHint}>Tự động cập nhật mỗi 15 giây</Text>
+          </View>
+        )}
+        {order.cancelReason && <Text style={s.cancelReason}>Lý do: {order.cancelReason}</Text>}
 
         {/* QR payment */}
         {order.status === 'PendingPayment' && order.paymentRef && (
@@ -580,24 +520,6 @@ export default function OrderDetailScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: C.primaryDark,
-    paddingTop: 0,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
   body: { padding: 16, paddingBottom: 40 },
   statusCard: {
     borderRadius: 16,

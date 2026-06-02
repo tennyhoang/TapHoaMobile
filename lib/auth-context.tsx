@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(JSON.parse(savedUser));
         }
       } catch {
-        // Ignore secure store errors on first launch
+        console.warn('Secure store read failed on first launch');
       } finally {
         setIsLoading(false);
       }
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(accessToken);
     setUser(userData);
     // Request push notification permission after successful login
-    registerPushNotifications().catch(() => {});
+    registerPushNotifications().catch(() => console.warn('Push notification registration failed'));
   };
 
   const updateUser = async (partial: Partial<User>) => {

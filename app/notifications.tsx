@@ -15,17 +15,9 @@ import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { notificationsService } from '@/services/notifications.service';
 import ErrorScreen from '@/components/ErrorScreen';
+import EmptyState from '@/components/EmptyState';
 import type { Notification, NotificationType } from '@/types';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-};
+import { C } from '@/constants/Colors';
 
 const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string }> = {
   OrderStatus: { icon: 'receipt-outline', color: C.primary },
@@ -81,7 +73,9 @@ export default function NotificationsScreen() {
 
   const handleTap = async (item: Notification) => {
     if (!item.isRead) {
-      await notificationsService.markRead(item.id).catch(() => {});
+      await notificationsService
+        .markRead(item.id)
+        .catch(() => console.warn('Failed to mark notification as read'));
       setNotifications(prev => prev.map(n => (n.id === item.id ? { ...n, isRead: true } : n)));
     }
     if (item.type === 'OrderStatus' && item.data?.orderId) {
@@ -95,7 +89,7 @@ export default function NotificationsScreen() {
       await notificationsService.markAllRead();
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch {
-      /* silent */
+      console.warn('Failed to mark all notifications as read');
     } finally {
       setMarkingAll(false);
     }
@@ -188,10 +182,7 @@ export default function NotificationsScreen() {
           onEndReachedThreshold={0.3}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           ListEmptyComponent={
-            <View style={s.empty}>
-              <Ionicons name="notifications-off-outline" size={52} color="#D1D5DB" />
-              <Text style={s.emptyText}>Không có thông báo nào</Text>
-            </View>
+            <EmptyState icon="notifications-off-outline" title="Không có thông báo nào" />
           }
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color={C.primary} style={{ padding: 16 }} /> : null

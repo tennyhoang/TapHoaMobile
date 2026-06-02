@@ -6,32 +6,22 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
   RefreshControl,
   Alert,
   ScrollView,
 } from 'react-native';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import ScreenHeader from '@/components/ScreenHeader';
+import EmptyState from '@/components/EmptyState';
+import StatusBadge from '@/components/StatusBadge';
+import { C } from '@/constants/Colors';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { adminService } from '@/services/admin.service';
 import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import ErrorScreen from '@/components/ErrorScreen';
 import type { Order, OrderStatus } from '@/types';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  error: '#EF4444',
-};
 
 const STATUS_TABS: { label: string; value: OrderStatus | '' }[] = [
   { label: 'Tất cả', value: '' },
@@ -43,26 +33,6 @@ const STATUS_TABS: { label: string; value: OrderStatus | '' }[] = [
   { label: 'Đã huỷ', value: 'Cancelled' },
 ];
 
-const STATUS_COLOR: Record<string, string> = {
-  PendingPayment: '#F59E0B',
-  Paid_WaitingForBatch: '#3B82F6',
-  ShippingToHub: '#8B5CF6',
-  InHub_ReadyForPickup: C.primary,
-  Completed: '#22C55E',
-  Cancelled: C.error,
-  Refunded: C.muted,
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  PendingPayment: 'Chờ thanh toán',
-  Paid_WaitingForBatch: 'Đã thanh toán',
-  ShippingToHub: 'Đang vận chuyển',
-  InHub_ReadyForPickup: 'Tại Hub',
-  Completed: 'Hoàn thành',
-  Cancelled: 'Đã huỷ',
-  Refunded: 'Hoàn tiền',
-};
-
 const NEXT_STATUSES: Partial<Record<OrderStatus, { label: string; value: OrderStatus }[]>> = {
   Paid_WaitingForBatch: [{ label: 'Gửi đến Hub', value: 'ShippingToHub' }],
   ShippingToHub: [{ label: 'Đã tới Hub', value: 'InHub_ReadyForPickup' }],
@@ -71,7 +41,6 @@ const NEXT_STATUSES: Partial<Record<OrderStatus, { label: string; value: OrderSt
 
 export default function AdminOrdersScreen() {
   const unauthorized = useRoleGuard('Admin');
-  const { top } = useSafeAreaInsets();
   const { show } = useToast();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -160,7 +129,6 @@ export default function AdminOrdersScreen() {
   if (unauthorized) return null;
 
   const renderOrder = ({ item }: { item: Order }) => {
-    const color = STATUS_COLOR[item.status] ?? C.muted;
     const nextActions = NEXT_STATUSES[item.status] ?? [];
     const isUpdating = updatingId === item.id;
 
@@ -179,9 +147,10 @@ export default function AdminOrdersScreen() {
               })}
             </Text>
           </View>
-          <View style={[s.statusBadge, { backgroundColor: color + '18' }]}>
-            <Text style={[s.statusText, { color }]}>{STATUS_LABEL[item.status]}</Text>
-          </View>
+          <StatusBadge
+            status={item.status}
+            label={item.status === 'InHub_ReadyForPickup' ? 'Tại Hub' : undefined}
+          />
         </View>
 
         <View style={s.orderMeta}>
@@ -224,14 +193,7 @@ export default function AdminOrdersScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
-
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Quản lý đơn hàng</Text>
-      </View>
+      <ScreenHeader title="Quản lý đơn hàng" />
 
       {/* Status tabs */}
       <ScrollView
@@ -283,12 +245,7 @@ export default function AdminOrdersScreen() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          ListEmptyComponent={
-            <View style={s.center}>
-              <Ionicons name="receipt-outline" size={52} color="#D1D5DB" />
-              <Text style={s.emptyText}>Không có đơn hàng nào</Text>
-            </View>
-          }
+          ListEmptyComponent={<EmptyState icon="receipt-outline" title="Không có đơn hàng nào" />}
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color={C.primary} style={{ padding: 16 }} /> : null
           }
@@ -301,23 +258,6 @@ export default function AdminOrdersScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: C.primaryDark,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
 
   tabs: { backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   tabsContent: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
@@ -346,9 +286,6 @@ const s = StyleSheet.create({
   orderTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   orderId: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 2 },
   orderDate: { fontSize: 12, color: C.muted },
-  statusBadge: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  statusText: { fontSize: 12, fontWeight: '700' },
-
   orderMeta: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontSize: 12, color: C.muted },

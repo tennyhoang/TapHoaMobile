@@ -70,8 +70,7 @@
         }
       ],
       "@sentry/react-native",
-      "expo-web-browser",
-      "expo-localization"
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

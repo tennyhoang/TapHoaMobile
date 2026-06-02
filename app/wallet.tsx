@@ -23,17 +23,9 @@ import { useToast } from '@/components/Toast';
 import { biometrics } from '@/lib/biometrics';
 import * as ScreenCapture from 'expo-screen-capture';
 import { formatCurrency } from '@/lib/utils';
+import EmptyState from '@/components/EmptyState';
 import type { WalletTransaction, WalletTransactionType } from '@/types';
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-};
+import { C } from '@/constants/Colors';
 
 const BANK_CODE = 'MB';
 const ACCOUNT_NO = '0000000001';
@@ -267,12 +259,7 @@ export default function WalletScreen() {
           ListHeaderComponent={
             transactions.length > 0 ? <Text style={s.listHeader}>Lịch sử giao dịch</Text> : null
           }
-          ListEmptyComponent={
-            <View style={s.empty}>
-              <Ionicons name="receipt-outline" size={48} color="#D1D5DB" />
-              <Text style={s.emptyText}>Chưa có giao dịch nào</Text>
-            </View>
-          }
+          ListEmptyComponent={<EmptyState icon="receipt-outline" title="Chưa có giao dịch nào" />}
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color={C.primary} style={{ padding: 16 }} /> : null
           }

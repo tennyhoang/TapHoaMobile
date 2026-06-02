@@ -1,26 +1,8 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-  Linking,
-} from 'react-native';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-const C = {
-  primaryDark: '#067478',
-  primary: '#0EA5AE',
-  text: '#111827',
-  muted: '#6B7280',
-  border: '#F3F4F6',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-};
+import { C } from '@/constants/Colors';
+import ScreenHeader from '@/components/ScreenHeader';
 
 const FAQS = [
   {
@@ -87,18 +69,11 @@ const CONTACTS = [
 ];
 
 export default function HelpScreen() {
-  const { top } = useSafeAreaInsets();
   const [expanded, setExpanded] = useState<number | null>(null);
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Hỗ trợ & FAQ</Text>
-      </View>
+      <ScreenHeader title="Hỗ trợ & FAQ" />
 
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
         {/* Contact */}
@@ -150,23 +125,6 @@ export default function HelpScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: C.primaryDark,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
   body: { padding: 16, paddingBottom: 40 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 12, marginTop: 8 },
   contactCard: {

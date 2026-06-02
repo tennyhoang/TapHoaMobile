@@ -9,6 +9,7 @@ jest.mock('react-native-reanimated', () => {
     ScrollView,
     createAnimatedComponent: c => c,
     useSharedValue: v => ({ value: v }),
+    useDerivedValue: fn => ({ value: fn() }),
     useAnimatedStyle: () => ({}),
     useAnimatedScrollHandler: () => ({}),
     withSpring: v => v,
@@ -32,7 +33,6 @@ jest.mock('react-native-reanimated', () => {
 
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {
-  const { View } = require('react-native');
   return {
     SafeAreaProvider: ({ children }) => children,
     SafeAreaView: ({ children }) => children,

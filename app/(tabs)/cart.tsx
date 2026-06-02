@@ -19,9 +19,11 @@ import { useCartCount } from '@/lib/cart-context';
 import { formatCurrency } from '@/lib/utils';
 import type { Cart, CartItem } from '@/types';
 import { C } from '@/constants/Colors';
+import { useToast } from '@/components/Toast';
 
 export default function CartScreen() {
   const { top } = useSafeAreaInsets();
+  const { show } = useToast();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -60,7 +62,7 @@ export default function CartScreen() {
       }
       refreshCount();
     } catch {
-      /* silent */
+      show('Có lỗi xảy ra', 'error');
     } finally {
       setUpdating(null);
     }
@@ -73,7 +75,7 @@ export default function CartScreen() {
       setCart({ items: [], totalAmount: 0, totalItems: 0 });
       refreshCount();
     } catch {
-      /* silent */
+      show('Có lỗi xảy ra', 'error');
     } finally {
       setLoading(false);
     }

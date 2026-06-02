@@ -21,6 +21,7 @@ import { categoriesService } from '@/services/categories.service';
 import { cartService } from '@/services/cart.service';
 import { storage } from '@/lib/storage';
 import ProductCard from '@/components/ProductCard';
+import { C } from '@/constants/Colors';
 import type { Product, Category } from '@/types';
 
 const HISTORY_KEY = 'taphoa_search_history';
@@ -41,16 +42,6 @@ async function saveHistory(query: string, current: string[]): Promise<string[]> 
   await storage.setItem(HISTORY_KEY, JSON.stringify(next));
   return next;
 }
-
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-};
 
 const SORT_OPTIONS = [
   { label: 'Mặc định', value: '' },
@@ -127,7 +118,7 @@ export default function SearchScreen() {
     categoriesService
       .getAll()
       .then(setCategories)
-      .catch(() => {});
+      .catch(() => console.warn('Failed to load categories'));
     if (q?.trim()) {
       setLoading(true);
       fetchProducts(q, 1, true);
@@ -192,7 +183,7 @@ export default function SearchScreen() {
     try {
       await cartService.add(product.id, 1);
     } catch {
-      /* silent */
+      console.warn('Failed to add to cart');
     }
   };
 
