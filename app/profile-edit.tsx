@@ -8,8 +8,11 @@ import {
   TextInput,
   ActivityIndicator,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
@@ -17,6 +20,22 @@ import { useAuth } from '@/lib/auth-context';
 import { profileService } from '@/services/profile.service';
 import { useToast } from '@/components/Toast';
 import { biometrics } from '@/lib/biometrics';
+
+const CLOUDINARY_CLOUD = 'doy14nwx0';
+const CLOUDINARY_PRESET = 'taphoa_unsigned';
+
+async function uploadAvatar(uri: string): Promise<string> {
+  const form = new FormData();
+  form.append('file', { uri, type: 'image/jpeg', name: 'avatar.jpg' } as any);
+  form.append('upload_preset', CLOUDINARY_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+    method: 'POST',
+    body: form,
+  });
+  const data = await res.json();
+  if (!res.ok || !data.secure_url) throw new Error(data.error?.message ?? 'Upload thất bại');
+  return data.secure_url as string;
+}
 
 const C = {
   primary: '#0EA5AE',
@@ -36,6 +55,8 @@ export default function ProfileEditScreen() {
   const { show } = useToast();
   const [fullName, setFullName] = useState(user?.fullName ?? '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ?? '');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     profileService
@@ -43,6 +64,7 @@ export default function ProfileEditScreen() {
       .then(me => {
         setFullName(me.fullName);
         setPhoneNumber(me.phoneNumber ?? '');
+        setAvatarUrl(me.avatarUrl ?? null);
       })
       .catch(() => {});
   }, []);
@@ -57,6 +79,37 @@ export default function ProfileEditScreen() {
   const [pwError, setPwError] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
+
+  const handlePickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Cần quyền truy cập', 'Vui lòng cấp quyền truy cập thư viện ảnh trong Cài đặt.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    setUploadingAvatar(true);
+    try {
+      const url = await uploadAvatar(result.assets[0].uri);
+      setAvatarUrl(url);
+      await profileService.update({
+        fullName: fullName.trim(),
+        phoneNumber: phoneNumber.trim() || undefined,
+        avatarUrl: url,
+      });
+      await updateUser({ fullName: fullName.trim(), phoneNumber: phoneNumber.trim() || undefined });
+      show('Ảnh đại diện đã được cập nhật');
+    } catch {
+      show('Không thể tải ảnh lên', 'error');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!fullName.trim()) {
@@ -127,11 +180,29 @@ export default function ProfileEditScreen() {
         contentContainerStyle={s.body}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Avatar placeholder */}
+        {/* Avatar */}
         <View style={s.avatarSection}>
-          <View style={s.avatar}>
-            <Text style={s.avatarText}>{fullName.charAt(0)?.toUpperCase() ?? '?'}</Text>
-          </View>
+          <TouchableOpacity
+            style={s.avatarWrap}
+            onPress={handlePickAvatar}
+            activeOpacity={0.8}
+            disabled={uploadingAvatar}
+          >
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={s.avatarImg} contentFit="cover" />
+            ) : (
+              <View style={s.avatar}>
+                <Text style={s.avatarText}>{fullName.charAt(0)?.toUpperCase() ?? '?'}</Text>
+              </View>
+            )}
+            <View style={s.cameraBtn}>
+              {uploadingAvatar ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Ionicons name="camera" size={14} color="#fff" />
+              )}
+            </View>
+          </TouchableOpacity>
           <Text style={s.email}>{user?.email}</Text>
         </View>
 
@@ -309,6 +380,7 @@ const s = StyleSheet.create({
   body: { padding: 16, paddingBottom: 40 },
 
   avatarSection: { alignItems: 'center', marginBottom: 24, marginTop: 8 },
+  avatarWrap: { position: 'relative', marginBottom: 10 },
   avatar: {
     width: 80,
     height: 80,
@@ -318,9 +390,28 @@ const s = StyleSheet.create({
     borderColor: C.primary + '44',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+  },
+  avatarImg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: C.primary + '44',
   },
   avatarText: { fontSize: 32, fontWeight: '700', color: C.primary },
+  cameraBtn: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: C.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
   email: { fontSize: 13, color: C.muted },
 
   section: { marginBottom: 20 },

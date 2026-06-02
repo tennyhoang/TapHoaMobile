@@ -103,6 +103,7 @@ export type Order = {
   status: OrderStatus;
   totalAmount: number;
   walletAmountUsed: number;
+  paymentMethod?: 'COD' | 'BankTransfer' | 'Wallet';
   note?: string;
   hub: Hub;
   items: OrderItem[];

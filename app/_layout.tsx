@@ -73,7 +73,9 @@ export default Sentry.wrap(function RootLayout() {
                   <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="reviews/[id]" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="wishlist" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="admin/index" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="admin/products" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="admin/orders" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="articles" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="flash-sale" options={{ animation: 'slide_from_bottom' }} />
                   <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />

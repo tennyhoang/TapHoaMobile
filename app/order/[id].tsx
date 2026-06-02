@@ -467,6 +467,21 @@ export default function OrderDetailScreen() {
                 </Text>
                 <Text style={s.itemQty}>x{item.quantity}</Text>
                 <Text style={s.itemPrice}>{formatCurrency(item.subtotal)}</Text>
+                {order.status === 'Completed' && (
+                  <TouchableOpacity
+                    style={s.reviewChip}
+                    onPress={() =>
+                      router.push(
+                        `/reviews/${item.productId}?name=${encodeURIComponent(item.productName)}` as any
+                      )
+                    }
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons name="star-outline" size={13} color="#F59E0B" />
+                    <Text style={s.reviewChipText}>Đánh giá</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
           </View>
@@ -736,6 +751,18 @@ const s = StyleSheet.create({
     borderColor: '#FDE68A',
   },
   rateBtnText: { fontSize: 14, fontWeight: '600', color: '#D97706' },
+  reviewChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+  },
+  reviewChipText: { fontSize: 11, fontWeight: '600', color: '#D97706' },
 });
 
 const q = StyleSheet.create({

@@ -32,4 +32,7 @@ export const authService = {
 
   forgotPassword: (email: string) =>
     request<{ message: string }>('/auth/forgot-password', { email }),
+
+  socialLogin: (provider: 'Google' | 'Facebook', idToken: string) =>
+    request<AuthResponse>('/auth/social', { provider, idToken }),
 };

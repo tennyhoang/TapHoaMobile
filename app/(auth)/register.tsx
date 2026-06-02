@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,17 @@ import {
   ScrollView,
   ActivityIndicator,
   StatusBar,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Google from 'expo-auth-session/providers/google';
+import * as Facebook from 'expo-auth-session/providers/facebook';
+import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/lib/auth-context';
 import { authService } from '@/services/auth.service';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const C = {
   primary: '#0EA5AE',
@@ -44,7 +50,49 @@ export default function RegisterScreen() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
   const [error, setError] = useState('');
+
+  const [, googleResponse, googlePrompt] = Google.useAuthRequest({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+  });
+
+  const [, fbResponse, fbPrompt] = Facebook.useAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
+  });
+
+  const handleSocialLogin = useCallback(
+    async (provider: 'Google' | 'Facebook', token: string) => {
+      setSocialLoading(provider === 'Google' ? 'google' : 'facebook');
+      setError('');
+      try {
+        const res = await authService.socialLogin(provider, token);
+        await login(res.accessToken, res.email, res.fullName, res.role);
+        router.replace('/(tabs)' as any);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : `Đăng ký với ${provider} thất bại`);
+      } finally {
+        setSocialLoading(null);
+      }
+    },
+    [login]
+  );
+
+  useEffect(() => {
+    if (googleResponse?.type === 'success') {
+      const token = googleResponse.authentication?.idToken;
+      if (token) handleSocialLogin('Google', token);
+    }
+  }, [googleResponse, handleSocialLogin]);
+
+  useEffect(() => {
+    if (fbResponse?.type === 'success') {
+      const token = fbResponse.authentication?.accessToken;
+      if (token) handleSocialLogin('Facebook', token);
+    }
+  }, [fbResponse, handleSocialLogin]);
 
   const cardY = useMemo(() => new Animated.Value(60), []);
   const cardOpacity = useMemo(() => new Animated.Value(0), []);
@@ -267,6 +315,49 @@ export default function RegisterScreen() {
               )}
             </TouchableOpacity>
 
+            <View style={s.dividerRow}>
+              <View style={s.dividerLine} />
+              <Text style={s.dividerText}>hoặc</Text>
+              <View style={s.dividerLine} />
+            </View>
+
+            <TouchableOpacity
+              style={[s.socialBtn, socialLoading === 'google' && s.socialBtnDim]}
+              onPress={() => googlePrompt()}
+              disabled={!!socialLoading}
+              activeOpacity={0.82}
+            >
+              {socialLoading === 'google' ? (
+                <ActivityIndicator color={C.text} size="small" />
+              ) : (
+                <>
+                  <Image
+                    source={{
+                      uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png',
+                    }}
+                    style={s.socialIcon}
+                  />
+                  <Text style={s.socialBtnText}>Tiếp tục với Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[s.socialBtn, s.fbBtn, socialLoading === 'facebook' && s.socialBtnDim]}
+              onPress={() => fbPrompt()}
+              disabled={!!socialLoading}
+              activeOpacity={0.82}
+            >
+              {socialLoading === 'facebook' ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="logo-facebook" size={20} color="#fff" />
+                  <Text style={[s.socialBtnText, { color: '#fff' }]}>Tiếp tục với Facebook</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
             <View style={s.footer}>
               <Text style={s.footerText}>Đã có tài khoản? </Text>
               <TouchableOpacity onPress={() => router.back()}>
@@ -440,6 +531,26 @@ const s = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   footerText: { fontSize: 14, color: C.muted },
   footerLink: { fontSize: 14, color: C.primary, fontWeight: '600' },
+
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: C.border },
+  dividerText: { fontSize: 13, color: C.muted },
+  socialBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    height: 50,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: C.inputBg,
+    marginBottom: 12,
+  },
+  fbBtn: { backgroundColor: '#1877F2', borderColor: '#1877F2' },
+  socialBtnDim: { opacity: 0.65 },
+  socialIcon: { width: 20, height: 20 },
+  socialBtnText: { fontSize: 15, fontWeight: '600', color: C.text },
   tosRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 16 },
   checkbox: {
     width: 20,
