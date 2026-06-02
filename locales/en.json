@@ -1,0 +1,34 @@
+{
+  "common": {
+    "retry": "Retry",
+    "loading": "Loading...",
+    "error_network": "No connection",
+    "error_network_msg": "Check your network and try again",
+    "add_to_cart": "Add to cart",
+    "out_of_stock": "Out of stock",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save changes",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "forgot_password": "Forgot password?"
+  },
+  "product": {
+    "add_to_cart": "Add to cart",
+    "in_stock": "In stock",
+    "out_of_stock": "Out of stock",
+    "reviews": "reviews",
+    "related": "Similar products"
+  },
+  "order": {
+    "my_orders": "My Orders",
+    "empty": "No orders yet",
+    "cancel": "Cancel order",
+    "refund": "Request refund"
+  }
+}

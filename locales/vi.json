@@ -1,0 +1,34 @@
+{
+  "common": {
+    "retry": "Thử lại",
+    "loading": "Đang tải...",
+    "error_network": "Không có kết nối",
+    "error_network_msg": "Kiểm tra mạng và thử lại",
+    "add_to_cart": "Thêm vào giỏ",
+    "out_of_stock": "Hết hàng",
+    "cancel": "Huỷ",
+    "confirm": "Xác nhận",
+    "save": "Lưu thay đổi",
+    "logout": "Đăng xuất"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "forgot_password": "Quên mật khẩu?"
+  },
+  "product": {
+    "add_to_cart": "Thêm vào giỏ",
+    "in_stock": "Còn hàng",
+    "out_of_stock": "Hết hàng",
+    "reviews": "đánh giá",
+    "related": "Sản phẩm tương tự"
+  },
+  "order": {
+    "my_orders": "Đơn hàng của tôi",
+    "empty": "Chưa có đơn hàng nào",
+    "cancel": "Huỷ đơn hàng",
+    "refund": "Yêu cầu hoàn trả"
+  }
+}

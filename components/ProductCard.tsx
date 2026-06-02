@@ -89,6 +89,8 @@ export default function ProductCard({ product, onAddToCart }: Props) {
         onPressOut={() => {
           cardScale.value = withSpring(1, { damping: 10, stiffness: 300 });
         }}
+        accessibilityRole="button"
+        accessibilityLabel={product.name}
       >
         {/* Image */}
         <View style={s.imgWrap}>
@@ -102,7 +104,12 @@ export default function ProductCard({ product, onAddToCart }: Props) {
           )}
 
           {/* Wishlist */}
-          <Pressable onPress={handleWishlist} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Pressable
+            onPress={handleWishlist}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={wishlisted ? 'Xoá khỏi yêu thích' : 'Thêm vào yêu thích'}
+          >
             <Animated.View style={[s.heartBtn, heartStyle]}>
               <Ionicons
                 name={wishlisted ? 'heart' : 'heart-outline'}
@@ -139,7 +146,12 @@ export default function ProductCard({ product, onAddToCart }: Props) {
 
       {/* Add to cart — outside Pressable to avoid event clash */}
       {onAddToCart && (
-        <Pressable onPress={handleAddToCart} style={s.cartBtnWrap}>
+        <Pressable
+          onPress={handleAddToCart}
+          style={s.cartBtnWrap}
+          accessibilityRole="button"
+          accessibilityLabel={`Thêm ${product.name} vào giỏ`}
+        >
           <Animated.View style={[s.cartBtn, cartStyle]}>
             <Ionicons name="add" size={18} color="#fff" />
           </Animated.View>
