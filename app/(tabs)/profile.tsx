@@ -38,7 +38,7 @@ const MENU_ITEMS = [
   },
   { icon: 'create-outline', label: 'Chỉnh sửa hồ sơ', color: '#3B82F6', route: '/profile-edit' },
   { icon: 'book-outline', label: 'Cẩm nang mua sắm', color: '#16A34A', route: '/articles' },
-  { icon: 'help-circle-outline', label: 'Hỗ trợ', color: C.muted, route: null },
+  { icon: 'help-circle-outline', label: 'Hỗ trợ & FAQ', color: C.muted, route: '/help' },
 ];
 
 export default function ProfileScreen() {

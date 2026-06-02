@@ -79,6 +79,7 @@ export default Sentry.wrap(function RootLayout() {
                   <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
                   <Stack.Screen name="privacy-policy" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="terms" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="help" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="+not-found" />
                 </Stack>
               </ToastProvider>

@@ -205,6 +205,25 @@ export default function OrderDetailScreen() {
 
   const status = STATUS_CONFIG[order.status];
   const canCancel = order.status === 'PendingPayment' || order.status === 'Paid_WaitingForBatch';
+  const canRefund = order.status === 'Completed';
+
+  const handleRefund = () => {
+    Alert.alert('Yêu cầu hoàn trả', 'Bạn muốn hoàn trả đơn hàng này?', [
+      { text: 'Huỷ', style: 'cancel' },
+      {
+        text: 'Xác nhận',
+        onPress: async () => {
+          try {
+            await ordersService.requestRefund(id!, 'Khách hàng yêu cầu hoàn trả');
+            show('Yêu cầu hoàn trả đã được gửi!');
+            fetchOrder();
+          } catch {
+            show('Không thể gửi yêu cầu hoàn trả', 'error');
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={s.root}>
@@ -490,6 +509,14 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
+        {/* Refund request */}
+        {canRefund && (
+          <TouchableOpacity style={s.refundBtn} onPress={handleRefund} activeOpacity={0.8}>
+            <Ionicons name="return-down-back-outline" size={17} color="#8B5CF6" />
+            <Text style={s.refundBtnText}>Yêu cầu hoàn trả</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Cancel */}
         {canCancel && (
           <TouchableOpacity
@@ -683,6 +710,19 @@ const s = StyleSheet.create({
     backgroundColor: C.card,
   },
   shopBtnText: { fontSize: 14, fontWeight: '600', color: C.primary },
+  refundBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    borderRadius: 14,
+    marginBottom: 10,
+    backgroundColor: '#F5F3FF',
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+  },
+  refundBtnText: { fontSize: 14, fontWeight: '600', color: '#8B5CF6' },
   rateBtn: {
     flexDirection: 'row',
     alignItems: 'center',
