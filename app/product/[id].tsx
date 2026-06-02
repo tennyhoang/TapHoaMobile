@@ -20,6 +20,7 @@ import ProductCard from '@/components/ProductCard';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
 import { useCartCount } from '@/lib/cart-context';
+import { useWishlist } from '@/lib/wishlist-context';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 import { useToast } from '@/components/Toast';
 import type { Product } from '@/types';
@@ -49,6 +50,7 @@ export default function ProductDetailScreen() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [related, setRelated] = useState<Product[]>([]);
   const { refreshCount } = useCartCount();
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { show } = useToast();
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const slideAnim = useMemo(() => new Animated.Value(30), []);
@@ -145,6 +147,17 @@ export default function ProductDetailScreen() {
           <View style={s.headerActions}>
             <TouchableOpacity style={s.headerBtn} onPress={handleShare} activeOpacity={0.8}>
               <Ionicons name="share-outline" size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.headerBtn}
+              onPress={() => product && toggleWishlist(product.id)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={product && isWishlisted(product.id) ? 'heart' : 'heart-outline'}
+                size={20}
+                color={product && isWishlisted(product.id) ? '#F43F5E' : '#fff'}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               style={s.headerBtn}

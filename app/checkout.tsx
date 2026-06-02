@@ -19,8 +19,11 @@ import { ordersService } from '@/services/orders.service';
 import { cartService } from '@/services/cart.service';
 import { walletService } from '@/services/wallet.service';
 import { addressesService } from '@/services/addresses.service';
+import { vouchersService } from '@/services/vouchers.service';
 import { biometrics } from '@/lib/biometrics';
 import { formatCurrency } from '@/lib/utils';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import * as Location from 'expo-location';
 import type { Hub, Cart, Address } from '@/types';
 
 const C = {
@@ -35,22 +38,6 @@ const C = {
 };
 
 type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet';
-
-type VoucherResult = { discount: number; type: 'percent' | 'flat'; label: string };
-
-const VOUCHERS: Record<string, VoucherResult> = {
-  TAPHOA10: { discount: 10, type: 'percent', label: 'Giảm 10%' },
-  NEWUSER15: { discount: 15, type: 'percent', label: 'Giảm 15% cho khách mới' },
-  SALE20: { discount: 20, type: 'percent', label: 'Giảm 20%' },
-  FREESHIP: { discount: 20000, type: 'flat', label: 'Giảm 20.000đ' },
-};
-
-function applyVoucher(code: string, total: number): { ok: boolean; msg: string; discount: number } {
-  const v = VOUCHERS[code.trim().toUpperCase()];
-  if (!v) return { ok: false, msg: 'Mã voucher không hợp lệ', discount: 0 };
-  const discount = v.type === 'percent' ? Math.round((total * v.discount) / 100) : v.discount;
-  return { ok: true, msg: v.label, discount };
-}
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc: string }[] = [
   {
@@ -88,10 +75,15 @@ export default function CheckoutScreen() {
   const [voucherDiscount, setVoucherDiscount] = useState(0);
   const [voucherMsg, setVoucherMsg] = useState('');
   const [voucherOk, setVoucherOk] = useState(false);
+  const [applyingVoucher, setApplyingVoucher] = useState(false);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [addrModalVisible, setAddrModalVisible] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(
+    null
+  );
 
   useEffect(() => {
     Promise.all([
@@ -113,15 +105,33 @@ export default function CheckoutScreen() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleApplyVoucher = () => {
-    const total = cart?.totalAmount ?? 0;
-    const result = applyVoucher(voucherCode, total);
-    setVoucherOk(result.ok);
-    setVoucherMsg(result.msg);
-    setVoucherDiscount(result.discount);
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim() || applyingVoucher) return;
+    setApplyingVoucher(true);
+    try {
+      const result = await vouchersService.validate(voucherCode.trim(), cart?.totalAmount ?? 0);
+      setVoucherOk(true);
+      setVoucherMsg(result.label);
+      setVoucherDiscount(result.discount);
+    } catch {
+      setVoucherOk(false);
+      setVoucherMsg('Mã voucher không hợp lệ hoặc đã hết hạn');
+      setVoucherDiscount(0);
+    } finally {
+      setApplyingVoucher(false);
+    }
   };
 
   const finalAmount = Math.max(0, (cart?.totalAmount ?? 0) - voucherDiscount);
+
+  const openMap = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status === 'granted') {
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+    }
+    setMapVisible(true);
+  };
 
   const handlePlaceOrder = async () => {
     if (!selectedHub) {
@@ -138,6 +148,7 @@ export default function CheckoutScreen() {
         hubId: selectedHub.id,
         note: note.trim() || undefined,
         paymentMethod,
+        voucherCode: voucherOk && voucherCode.trim() ? voucherCode.trim() : undefined,
       });
       router.replace(`/order/${order.id}` as any);
     } catch (err) {
@@ -222,7 +233,15 @@ export default function CheckoutScreen() {
 
         {/* Hub selection */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Điểm nhận hàng</Text>
+          <View style={s.sectionRow}>
+            <Text style={s.sectionTitle}>Điểm nhận hàng</Text>
+            {hubs.length > 0 && (
+              <TouchableOpacity style={s.mapBtn} onPress={openMap} activeOpacity={0.8}>
+                <Ionicons name="map-outline" size={14} color={C.primary} />
+                <Text style={s.mapBtnText}>Xem bản đồ</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           {hubs.length === 0 ? (
             <View style={[s.card, s.emptyHub]}>
               <Ionicons name="alert-circle-outline" size={20} color={C.muted} />
@@ -317,12 +336,16 @@ export default function CheckoutScreen() {
               onSubmitEditing={handleApplyVoucher}
             />
             <TouchableOpacity
-              style={[s.voucherBtn, !voucherCode.trim() && s.voucherBtnDim]}
+              style={[s.voucherBtn, (!voucherCode.trim() || applyingVoucher) && s.voucherBtnDim]}
               onPress={handleApplyVoucher}
-              disabled={!voucherCode.trim()}
+              disabled={!voucherCode.trim() || applyingVoucher}
               activeOpacity={0.85}
             >
-              <Text style={s.voucherBtnText}>Áp dụng</Text>
+              {applyingVoucher ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={s.voucherBtnText}>Áp dụng</Text>
+              )}
             </TouchableOpacity>
           </View>
           {!!voucherMsg && (
@@ -388,6 +411,68 @@ export default function CheckoutScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* ── HUB MAP MODAL ── */}
+      <Modal visible={mapVisible} animationType="slide" onRequestClose={() => setMapVisible(false)}>
+        <View style={{ flex: 1 }}>
+          <MapView
+            style={{ flex: 1 }}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+            initialRegion={
+              userLocation
+                ? { ...userLocation, latitudeDelta: 0.05, longitudeDelta: 0.05 }
+                : hubs[0]?.latitude
+                  ? {
+                      latitude: hubs[0].latitude,
+                      longitude: hubs[0].longitude,
+                      latitudeDelta: 0.1,
+                      longitudeDelta: 0.1,
+                    }
+                  : {
+                      latitude: 10.7769,
+                      longitude: 106.7009,
+                      latitudeDelta: 0.1,
+                      longitudeDelta: 0.1,
+                    }
+            }
+            showsUserLocation
+            showsMyLocationButton
+          >
+            {hubs.map(hub => (
+              <Marker
+                key={hub.id}
+                coordinate={{ latitude: hub.latitude, longitude: hub.longitude }}
+                title={hub.name}
+                description={`${hub.address}, ${hub.ward}`}
+                pinColor={selectedHub?.id === hub.id ? '#0EA5AE' : '#EF4444'}
+                onPress={() => {
+                  setSelectedHub(hub);
+                  setMapVisible(false);
+                }}
+              />
+            ))}
+          </MapView>
+
+          {/* Close + info bar */}
+          <View style={s.mapBar}>
+            {selectedHub && (
+              <View style={s.mapBarInfo}>
+                <Ionicons name="storefront-outline" size={16} color="#0EA5AE" />
+                <Text style={s.mapBarText} numberOfLines={1}>
+                  {selectedHub.name}
+                </Text>
+              </View>
+            )}
+            <TouchableOpacity
+              style={s.mapCloseBtn}
+              onPress={() => setMapVisible(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={s.mapCloseBtnText}>Xong</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── ADDRESS PICKER MODAL ── */}
       <Modal
@@ -708,6 +793,47 @@ const s = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: C.border,
   },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  mapBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E5F9FA',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  mapBtnText: { fontSize: 12, fontWeight: '600', color: C.primary },
+  mapBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 34,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    gap: 12,
+  },
+  mapBarInfo: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  mapBarText: { flex: 1, fontSize: 14, fontWeight: '600', color: '#111827' },
+  mapCloseBtn: {
+    backgroundColor: '#0EA5AE',
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  mapCloseBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
   placeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
