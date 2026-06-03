@@ -145,7 +145,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('renders products when session is active', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
@@ -156,7 +155,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows "Flash Sale" title', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
@@ -165,7 +163,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows session name in header', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
@@ -174,7 +171,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows countdown timer', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
@@ -183,7 +179,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows "Kết thúc sau" label', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
@@ -192,7 +187,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows banner with product count', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
@@ -201,7 +195,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows discount percentage badge', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     // (50000-35000)/50000 = 30%
@@ -211,7 +204,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows low stock badge for products with <= 5 remaining', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     // product2 has stockRemaining=2
@@ -221,7 +213,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows sold out state when stock remaining is 0', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
@@ -230,7 +221,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('renders flash sale prices', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
@@ -240,7 +230,6 @@ describe('FlashSaleScreen', () => {
   });
 
   it('renders category names for products', async () => {
-    jest.useFakeTimers();
     (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
