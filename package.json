@@ -71,7 +71,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
     "test": "jest --watchAll=false --forceExit",
     "test:watch": "jest",
-    "test:coverage": "jest --coverage --watchAll=false --forceExit",
+    "test:coverage": "jest --coverage --watchAll=false --forceExit --runInBand",
     "prepare": "husky"
   },
   "private": true
