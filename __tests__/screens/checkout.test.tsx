@@ -174,4 +174,66 @@ describe('CheckoutScreen', () => {
       expect(getByText('Không có Hub nào đang hoạt động')).toBeTruthy();
     });
   });
+
+  it('allows selecting bank transfer payment method', async () => {
+    const { getByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => expect(getByText('Chuyển khoản')).toBeTruthy());
+    fireEvent.press(getByText('Chuyển khoản'));
+    expect(getByText('Chuyển khoản')).toBeTruthy();
+  });
+
+  it('allows selecting wallet payment method', async () => {
+    const { getByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => expect(getByText('Ví TapHoa')).toBeTruthy());
+    fireEvent.press(getByText('Ví TapHoa'));
+    expect(getByText('Ví TapHoa')).toBeTruthy();
+  });
+
+  it('enters note text', async () => {
+    const { getByPlaceholderText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() =>
+      expect(getByPlaceholderText('Ghi chú cho đơn hàng (tuỳ chọn)...')).toBeTruthy()
+    );
+    fireEvent.changeText(
+      getByPlaceholderText('Ghi chú cho đơn hàng (tuỳ chọn)...'),
+      'Giao giờ hành chính'
+    );
+    expect(getByPlaceholderText('Ghi chú cho đơn hàng (tuỳ chọn)...').props.value).toBe(
+      'Giao giờ hành chính'
+    );
+  });
+
+  it('allows switching hub selection', async () => {
+    const secondHub = { ...mockHub, id: 'h2', name: 'Hub Q3' };
+    jest.mocked(hubsService.getActive).mockResolvedValueOnce([mockHub, secondHub]);
+    const { getByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => expect(getByText('Hub Q3')).toBeTruthy());
+    fireEvent.press(getByText('Hub Q3'));
+    expect(getByText('Hub Q3')).toBeTruthy();
+  });
+
+  it('shows error when placing order without hub', async () => {
+    jest.mocked(hubsService.getActive).mockResolvedValueOnce([]);
+    const { getByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => expect(getByText(/Đặt hàng/)).toBeTruthy());
+    fireEvent.press(getByText(/Đặt hàng/));
+    await waitFor(() => {
+      expect(getByText('Vui lòng chọn điểm nhận hàng')).toBeTruthy();
+    });
+  });
+
+  it('enters and applies voucher code', async () => {
+    const { vouchersService } = jest.requireMock('@/services/vouchers.service');
+    vouchersService.validate.mockResolvedValueOnce({
+      discount: 10000,
+      message: 'Áp dụng thành công',
+    });
+    const { getByPlaceholderText, getByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => expect(getByPlaceholderText('Nhập mã voucher...')).toBeTruthy());
+    fireEvent.changeText(getByPlaceholderText('Nhập mã voucher...'), 'SALE10');
+    fireEvent.press(getByText('Áp dụng'));
+    await waitFor(() => {
+      expect(vouchersService.validate).toHaveBeenCalledWith('SALE10', expect.any(Number));
+    });
+  });
 });

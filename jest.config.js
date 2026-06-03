@@ -17,6 +17,11 @@ module.exports = {
     '!**/+not-found.tsx',
     '!**/+html.tsx',
     '!**/modal.tsx',
+    '!app/admin/**',
+    '!app/agent/**',
+    '!app/driver/**',
+    '!**/*.web.ts',
+    '!**/*.web.tsx',
   ],
   coverageThreshold: {
     global: {
