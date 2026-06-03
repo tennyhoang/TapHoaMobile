@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import CheckoutScreen from '@/app/checkout/page';
+import CheckoutScreen from '@/app/checkout/index';
 import { cartService } from '@/services/cart.service';
 import { hubsService } from '@/services/hubs.service';
 import { ordersService } from '@/services/orders.service';

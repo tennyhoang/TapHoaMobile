@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import OrderDetailScreen from '@/app/order/[id]/page';
+import OrderDetailScreen from '@/app/order/[id]/index';
 import { ordersService } from '@/services/orders.service';
 
 jest.mock('expo-router', () => ({

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import HelpScreen from '@/app/help/page';
+import HelpScreen from '@/app/help/index';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('@/components/ScreenHeader', () => {

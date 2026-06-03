@@ -13,7 +13,7 @@ import { ToastProvider } from '@/components/Toast';
 import { ThemeProvider } from '@/lib/theme';
 import OfflineBanner from '@/components/OfflineBanner';
 import { storage } from '@/lib/storage';
-import { ONBOARDING_KEY } from '@/app/onboarding/page';
+import { ONBOARDING_KEY } from '@/app/onboarding/index';
 import { addNotificationListener } from '@/lib/notifications';
 
 export { ErrorBoundary } from 'expo-router';

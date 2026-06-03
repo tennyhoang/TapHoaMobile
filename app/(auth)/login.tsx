@@ -50,14 +50,16 @@ export default function LoginScreen() {
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
 
+  const isWeb = Platform.OS === 'web';
+
   const [, googleResponse, googlePrompt] = Google.useAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? 'not-configured',
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   });
 
   const [, fbResponse, fbPrompt] = Facebook.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
+    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? 'not-configured',
   });
 
   const handleSocialLogin = useCallback(
@@ -268,43 +270,55 @@ export default function LoginScreen() {
             </View>
 
             {/* Google */}
-            <TouchableOpacity
-              style={[s.socialBtn, socialLoading === 'google' && s.socialBtnDim]}
-              onPress={() => googlePrompt()}
-              disabled={!!socialLoading}
-              activeOpacity={0.82}
-            >
-              {socialLoading === 'google' ? (
-                <ActivityIndicator color={C.text} size="small" />
-              ) : (
-                <>
-                  <Image
-                    source={{
-                      uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png',
-                    }}
-                    style={s.socialIcon}
-                  />
-                  <Text style={s.socialBtnText}>Tiếp tục với Google</Text>
-                </>
-              )}
-            </TouchableOpacity>
+            {isWeb ? (
+              <View style={s.webSocialNote}>
+                <Ionicons name="phone-portrait-outline" size={14} color={C.muted} />
+                <Text style={s.webSocialNoteText}>
+                  Đăng nhập Google/Facebook chỉ khả dụng trên ứng dụng di động
+                </Text>
+              </View>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={[s.socialBtn, socialLoading === 'google' && s.socialBtnDim]}
+                  onPress={() => googlePrompt()}
+                  disabled={!!socialLoading}
+                  activeOpacity={0.82}
+                >
+                  {socialLoading === 'google' ? (
+                    <ActivityIndicator color={C.text} size="small" />
+                  ) : (
+                    <>
+                      <Image
+                        source={{
+                          uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png',
+                        }}
+                        style={s.socialIcon}
+                      />
+                      <Text style={s.socialBtnText}>Tiếp tục với Google</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
 
-            {/* Facebook */}
-            <TouchableOpacity
-              style={[s.socialBtn, s.fbBtn, socialLoading === 'facebook' && s.socialBtnDim]}
-              onPress={() => fbPrompt()}
-              disabled={!!socialLoading}
-              activeOpacity={0.82}
-            >
-              {socialLoading === 'facebook' ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  <Ionicons name="logo-facebook" size={20} color="#fff" />
-                  <Text style={[s.socialBtnText, { color: '#fff' }]}>Tiếp tục với Facebook</Text>
-                </>
-              )}
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.socialBtn, s.fbBtn, socialLoading === 'facebook' && s.socialBtnDim]}
+                  onPress={() => fbPrompt()}
+                  disabled={!!socialLoading}
+                  activeOpacity={0.82}
+                >
+                  {socialLoading === 'facebook' ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <>
+                      <Ionicons name="logo-facebook" size={20} color="#fff" />
+                      <Text style={[s.socialBtnText, { color: '#fff' }]}>
+                        Tiếp tục với Facebook
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
 
             {/* Register link */}
             <View style={s.footer}>
@@ -465,4 +479,15 @@ const s = StyleSheet.create({
   socialBtnDim: { opacity: 0.65 },
   socialIcon: { width: 20, height: 20 },
   socialBtnText: { fontSize: 15, fontWeight: '600', color: C.text },
+  webSocialNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  webSocialNoteText: { fontSize: 13, color: C.muted, flex: 1 },
 });

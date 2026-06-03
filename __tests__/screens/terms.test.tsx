@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import TermsScreen from '@/app/terms/page';
+import TermsScreen from '@/app/terms/index';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 

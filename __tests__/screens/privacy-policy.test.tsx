@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import PrivacyPolicyScreen from '@/app/privacy-policy/page';
+import PrivacyPolicyScreen from '@/app/privacy-policy/index';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 

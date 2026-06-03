@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import AgentScreen from '@/app/agent/index/page';
+import AgentScreen from '@/app/agent/index/index';
 import { agentService } from '@/services/agent.service';
 
 jest.mock('@/services/agent.service', () => ({

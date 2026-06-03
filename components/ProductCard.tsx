@@ -96,9 +96,11 @@ export default function ProductCard({ product, onAddToCart }: Props) {
 
           {/* Wishlist */}
           <Pressable
-            onPress={handleWishlist}
+            onPress={e => {
+              e.stopPropagation?.();
+              handleWishlist();
+            }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
             accessibilityLabel={wishlisted ? 'Xoá khỏi yêu thích' : 'Thêm vào yêu thích'}
           >
             <Animated.View style={[s.heartBtn, heartStyle]}>

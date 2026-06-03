@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import OnboardingScreen from '@/app/onboarding/page';
+import OnboardingScreen from '@/app/onboarding/index';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('@/lib/storage', () => ({

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import AdminOrdersScreen from '@/app/admin/orders/page';
+import AdminOrdersScreen from '@/app/admin/orders/index';
 import { adminService } from '@/services/admin.service';
 
 jest.mock('@/services/admin.service', () => ({

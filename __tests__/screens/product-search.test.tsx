@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import SearchScreen from '@/app/product/search/page';
+import SearchScreen from '@/app/product/search/index';
 import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
 

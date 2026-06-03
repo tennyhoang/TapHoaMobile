@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import ReviewsScreen from '@/app/reviews/[id]/page';
+import ReviewsScreen from '@/app/reviews/[id]/index';
 import { reviewsService } from '@/services/reviews.service';
 
 jest.mock('@/services/reviews.service', () => ({
