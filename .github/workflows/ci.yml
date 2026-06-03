@@ -78,6 +78,22 @@ jobs:
           path: coverage/
           retention-days: 7
 
+      - name: Upload source maps to Sentry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if [ -n "$SENTRY_AUTH_TOKEN" ]; then
+            npx @sentry/cli releases new "${{ github.sha }}"
+            npx @sentry/cli releases set-commits "${{ github.sha }}" --auto
+            npx @sentry/cli releases finalize "${{ github.sha }}"
+          else
+            echo "SENTRY_AUTH_TOKEN not configured, skipping source map upload"
+          fi
+        continue-on-error: true
+
   # ─────────────────────────────────────────
   # Job 3: Dependency security audit
   # ─────────────────────────────────────────
