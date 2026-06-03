@@ -20,8 +20,8 @@ import { useToast } from '@/components/Toast';
 import type { Product } from '@/types';
 import { C } from '@/constants/Colors';
 
-const CLOUDINARY_CLOUD = 'doy14nwx0';
-const CLOUDINARY_PRESET = 'taphoa_unsigned';
+const CLOUDINARY_CLOUD = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD ?? 'doy14nwx0';
+const CLOUDINARY_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_PRESET ?? 'taphoa_unsigned';
 
 function isCloudinaryUrl(url?: string | null) {
   return url?.startsWith('https://res.cloudinary.com/') ?? false;
