@@ -1,5 +1,6 @@
 import { storage } from '@/lib/storage';
 import { API_V1 } from '@/constants/api';
+import i18next from '@/lib/i18n';
 
 const TOKEN_KEY = 'taphoa_token';
 
@@ -25,10 +26,11 @@ async function handleResponse<T>(res: Response): Promise<T> {
     await storage.deleteItem(TOKEN_KEY);
     await storage.deleteItem('taphoa_user');
     _onUnauthorized?.();
-    throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    throw new Error(i18next.t('errors.session_expired'));
   }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message || `Lỗi ${res.status}`);
+  if (!res.ok)
+    throw new Error(data?.message || i18next.t('errors.error_with_status', { status: res.status }));
   return data as T;
 }
 

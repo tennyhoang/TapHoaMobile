@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import type { OrderStatus } from '@/types';
 import { ORDER_STATUS_CONFIG } from '@/lib/status-config';
 
@@ -11,8 +12,9 @@ type StatusBadgeProps = {
 };
 
 export default function StatusBadge({ status, size = 'sm', label }: StatusBadgeProps) {
+  const { t } = useTranslation();
   const config = ORDER_STATUS_CONFIG[status];
-  const displayLabel = label ?? config.label;
+  const displayLabel = label ?? t(config.labelKey);
 
   if (size === 'lg') {
     return (

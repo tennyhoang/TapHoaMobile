@@ -1,5 +1,6 @@
 import { Tabs, Redirect } from 'expo-router';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
 import { useCartCount } from '@/lib/cart-context';
@@ -7,6 +8,7 @@ import TabBar from '@/components/TabBar';
 import Colors from '@/constants/Colors';
 
 export default function TabLayout() {
+  const { t } = useTranslation();
   const { token, isLoading } = useAuth();
   const { itemCount, refreshCount } = useCartCount();
 
@@ -31,7 +33,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Trang chủ',
+          title: t('tab.home'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
@@ -40,7 +42,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="products"
         options={{
-          title: 'Sản phẩm',
+          title: t('tab.products'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'storefront' : 'storefront-outline'}
@@ -53,7 +55,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cart"
         options={{
-          title: 'Giỏ hàng',
+          title: t('tab.cart'),
           tabBarBadge: itemCount > 0 ? (itemCount > 99 ? '99+' : itemCount) : undefined,
           tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
           tabBarIcon: ({ color, focused }) => (
@@ -64,7 +66,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Tài khoản',
+          title: t('tab.profile'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
           ),

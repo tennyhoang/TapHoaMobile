@@ -2,7 +2,7 @@ import { C } from '@/constants/Colors';
 import type { OrderStatus } from '@/types';
 
 export type StatusConfig = {
-  label: string;
+  labelKey: string;
   color: string;
   bg: string;
   icon: string;
@@ -10,43 +10,43 @@ export type StatusConfig = {
 
 export const ORDER_STATUS_CONFIG: Record<OrderStatus, StatusConfig> = {
   PendingPayment: {
-    label: 'Chờ thanh toán',
+    labelKey: 'status.PendingPayment',
     color: '#F59E0B',
     bg: '#FEF3C7',
     icon: 'time-outline',
   },
   Paid_WaitingForBatch: {
-    label: 'Đã thanh toán',
+    labelKey: 'status.Paid_WaitingForBatch',
     color: '#3B82F6',
     bg: '#EFF6FF',
     icon: 'checkmark-circle-outline',
   },
   ShippingToHub: {
-    label: 'Đang vận chuyển',
+    labelKey: 'status.ShippingToHub',
     color: '#8B5CF6',
     bg: '#F5F3FF',
     icon: 'bicycle-outline',
   },
   InHub_ReadyForPickup: {
-    label: 'Sẵn sàng lấy hàng',
+    labelKey: 'status.InHub_ReadyForPickup',
     color: C.primary,
     bg: '#E5F9FA',
     icon: 'storefront-outline',
   },
   Completed: {
-    label: 'Hoàn thành',
+    labelKey: 'status.Completed',
     color: '#22C55E',
     bg: '#F0FDF4',
     icon: 'checkmark-done-outline',
   },
   Cancelled: {
-    label: 'Đã huỷ',
+    labelKey: 'status.Cancelled',
     color: C.error,
     bg: '#FEF2F2',
     icon: 'close-circle-outline',
   },
   Refunded: {
-    label: 'Hoàn tiền',
+    labelKey: 'status.Refunded',
     color: C.muted,
     bg: '#F8F9FA',
     icon: 'return-down-back-outline',
