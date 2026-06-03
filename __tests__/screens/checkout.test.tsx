@@ -7,6 +7,7 @@ import { hubsService } from '@/services/hubs.service';
 import { ordersService } from '@/services/orders.service';
 import { walletService } from '@/services/wallet.service';
 import { addressesService } from '@/services/addresses.service';
+import { vouchersService } from '@/services/vouchers.service';
 
 jest.mock('@/services/cart.service', () => ({
   cartService: { get: jest.fn() },
@@ -25,6 +26,9 @@ jest.mock('@/services/addresses.service', () => ({
 }));
 jest.mock('@/services/vouchers.service', () => ({
   vouchersService: { validate: jest.fn() },
+}));
+jest.mock('expo-router', () => ({
+  router: { replace: jest.fn(), push: jest.fn(), back: jest.fn() },
 }));
 jest.mock('@/lib/biometrics', () => ({
   biometrics: { authenticate: jest.fn().mockResolvedValue(true) },
@@ -172,6 +176,96 @@ describe('CheckoutScreen', () => {
     const { getByText } = render(<CheckoutScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Không có Hub nào đang hoạt động')).toBeTruthy();
+    });
+  });
+
+  it('shows add address button when no address is available', async () => {
+    jest.mocked(addressesService.getAll).mockResolvedValueOnce([]);
+    const { getByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => {
+      expect(getByText('Thêm địa chỉ người nhận')).toBeTruthy();
+    });
+  });
+
+  it('shows error when place order without hub selected', async () => {
+    jest.mocked(hubsService.getActive).mockResolvedValueOnce([]);
+    const { getByText, findByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => getByText('Xác nhận đơn hàng'));
+    const placeBtn = getByText(/Đặt hàng/);
+    await act(async () => {
+      fireEvent.press(placeBtn);
+    });
+    expect(await findByText('Vui lòng chọn điểm nhận hàng')).toBeTruthy();
+  });
+
+  it('applies voucher successfully', async () => {
+    jest
+      .mocked(vouchersService.validate)
+      .mockResolvedValueOnce({ label: 'Giảm 10%', discount: 10000 } as any);
+    const { getByText, getByPlaceholderText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => getByText('Xác nhận đơn hàng'));
+    const input = getByPlaceholderText('Nhập mã voucher...');
+    fireEvent.changeText(input, 'SALE10');
+    fireEvent.press(getByText('Áp dụng'));
+    await waitFor(() => {
+      expect(getByText('Giảm 10%')).toBeTruthy();
+    });
+  });
+
+  it('shows error when voucher is invalid', async () => {
+    jest.mocked(vouchersService.validate).mockRejectedValueOnce(new Error('Invalid'));
+    const { getByText, getByPlaceholderText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => getByText('Xác nhận đơn hàng'));
+    const input = getByPlaceholderText('Nhập mã voucher...');
+    fireEvent.changeText(input, 'INVALID');
+    fireEvent.press(getByText('Áp dụng'));
+    await waitFor(() => {
+      expect(getByText('Mã voucher không hợp lệ hoặc đã hết hạn')).toBeTruthy();
+    });
+  });
+
+  it('switches payment method to Wallet and shows balance', async () => {
+    jest.mocked(walletService.getBalance).mockResolvedValueOnce({ balance: 200000 } as any);
+    const { getByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => getByText('Xác nhận đơn hàng'));
+    fireEvent.press(getByText('Ví TapHoa'));
+    await waitFor(() => {
+      expect(getByText(/200.000/)).toBeTruthy();
+    });
+  });
+
+  it('cancels order when biometric auth fails', async () => {
+    const { biometrics } = jest.requireMock('@/lib/biometrics');
+    biometrics.authenticate.mockResolvedValueOnce(false);
+    jest.mocked(ordersService.create).mockResolvedValueOnce({ id: 'order-1' } as any);
+    const { getByText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => getByText(/Đặt hàng/));
+    await act(async () => {
+      fireEvent.press(getByText(/Đặt hàng/));
+    });
+    expect(ordersService.create).not.toHaveBeenCalled();
+  });
+
+  it('shows discount row when voucher is applied', async () => {
+    jest
+      .mocked(vouchersService.validate)
+      .mockResolvedValueOnce({ label: 'Giảm 20K', discount: 20000 } as any);
+    const { getByText, getByPlaceholderText } = render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => getByText('Xác nhận đơn hàng'));
+    const input = getByPlaceholderText('Nhập mã voucher...');
+    fireEvent.changeText(input, 'SALE20');
+    fireEvent.press(getByText('Áp dụng'));
+    await waitFor(() => {
+      expect(getByText('Voucher')).toBeTruthy();
+    });
+  });
+
+  it('navigates back when initial data fetch fails', async () => {
+    jest.mocked(cartService.get).mockRejectedValueOnce(new Error('fail'));
+    const { router } = jest.requireMock('expo-router');
+    render(<CheckoutScreen />, { wrapper });
+    await waitFor(() => {
+      expect(router.back).toHaveBeenCalled();
     });
   });
 });

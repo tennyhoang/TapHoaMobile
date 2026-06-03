@@ -58,4 +58,45 @@ describe('ProfileScreen', () => {
     fireEvent.press(getByText('Ví của tôi'));
     expect(router.push).toHaveBeenCalledWith('/wallet');
   });
+
+  it('calls logout and navigates on logout button press', async () => {
+    const mockLogout = jest.fn().mockResolvedValue(undefined);
+    mockUseAuth.mockReturnValue({ user: customerUser, logout: mockLogout });
+    const { getByText } = render(<ProfileScreen />, { wrapper });
+    const { router } = jest.requireMock('expo-router');
+    fireEvent.press(getByText('Đăng xuất'));
+    await new Promise(r => setTimeout(r, 0));
+    expect(mockLogout).toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith('/(auth)/login');
+  });
+
+  it('shows delete account confirmation dialog', () => {
+    const { Alert } = require('react-native');
+    Alert.alert = jest.fn();
+    const { getByText } = render(<ProfileScreen />, { wrapper });
+    fireEvent.press(getByText('Xoá tài khoản'));
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Xoá tài khoản',
+      expect.any(String),
+      expect.any(Array)
+    );
+  });
+
+  it('renders Agent portal button for Agent role', () => {
+    mockUseAuth.mockReturnValue({ user: { ...customerUser, role: 'Agent' }, logout: jest.fn() });
+    const { getByText } = render(<ProfileScreen />, { wrapper });
+    expect(getByText('Cổng Agent')).toBeTruthy();
+  });
+
+  it('renders Driver portal button for Driver role', () => {
+    mockUseAuth.mockReturnValue({ user: { ...customerUser, role: 'Driver' }, logout: jest.fn() });
+    const { getByText } = render(<ProfileScreen />, { wrapper });
+    expect(getByText('Cổng Tài xế')).toBeTruthy();
+  });
+
+  it('renders legal links', () => {
+    const { getByText } = render(<ProfileScreen />, { wrapper });
+    expect(getByText('Chính sách bảo mật')).toBeTruthy();
+    expect(getByText('Điều khoản sử dụng')).toBeTruthy();
+  });
 });

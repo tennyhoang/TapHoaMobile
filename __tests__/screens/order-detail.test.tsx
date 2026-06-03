@@ -10,7 +10,7 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: jest.fn(), push: jest.fn(), back: jest.fn() }),
   useLocalSearchParams: () => ({ id: 'order-1' }),
   useFocusEffect: (cb: any) => {
-    React.useEffect(() => cb(), []);
+    cb();
   },
   Redirect: () => null,
   Stack: { Screen: () => null },
