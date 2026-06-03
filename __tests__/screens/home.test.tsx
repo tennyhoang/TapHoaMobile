@@ -203,26 +203,22 @@ jest.setTimeout(60000);
 
 describe('HomeScreen', () => {
   beforeEach(() => {
-    jest
-      .mocked(productsService.getAll)
-      .mockResolvedValue({
-        items: mockProducts,
-        totalCount: 2,
-        page: 1,
-        pageSize: 8,
-        totalPages: 1,
-      } as any);
+    jest.mocked(productsService.getAll).mockResolvedValue({
+      items: mockProducts,
+      totalCount: 2,
+      page: 1,
+      pageSize: 8,
+      totalPages: 1,
+    } as any);
     jest.mocked(categoriesService.getAll).mockResolvedValue(mockCategories);
     jest.mocked(flashSaleService.getCurrent).mockResolvedValue(mockFlashSale);
-    jest
-      .mocked(ordersService.getMyOrders)
-      .mockResolvedValue({
-        items: [mockActiveOrder],
-        totalCount: 1,
-        page: 1,
-        pageSize: 10,
-        totalPages: 1,
-      } as any);
+    jest.mocked(ordersService.getMyOrders).mockResolvedValue({
+      items: [mockActiveOrder],
+      totalCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalPages: 1,
+    } as any);
     jest.mocked(articlesService.getAll).mockResolvedValue(mockArticles);
   });
 
