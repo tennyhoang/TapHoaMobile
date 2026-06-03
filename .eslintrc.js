@@ -18,4 +18,15 @@ module.exports = {
     jest: true,
   },
   ignorePatterns: ['node_modules/', '.expo/', 'dist/', 'coverage/', 'android/', 'ios/'],
+  overrides: [
+    {
+      files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+      rules: {
+        // jest.mock() factories must use require() — ES imports are not allowed inside them
+        '@typescript-eslint/no-require-imports': 'off',
+        'react/display-name': 'off',
+        'no-console': 'off',
+      },
+    },
+  ],
 };
