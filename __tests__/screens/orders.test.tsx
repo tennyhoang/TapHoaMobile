@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import OrdersScreen from '@/app/orders';
+import OrdersScreen from '@/app/orders/page';
 import { ordersService } from '@/services/orders.service';
 
 const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;

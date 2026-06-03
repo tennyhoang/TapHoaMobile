@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import DriverScreen from '@/app/driver/index';
+import DriverScreen from '@/app/driver/index/page';
 import { driverService } from '@/services/driver.service';
 
 jest.mock('@/services/driver.service', () => ({

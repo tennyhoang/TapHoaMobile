@@ -20,7 +20,6 @@ import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Order } from '@/types';
 
-// Agent screen uses its own brand palette (indigo/purple), intentionally separate from C
 const C = {
   primary: '#4F46E5',
   primaryLight: '#EEF2FF',
@@ -175,8 +174,6 @@ export default function AgentScreen() {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
-
-      {/* Header */}
       <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.blob} />
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
@@ -184,8 +181,6 @@ export default function AgentScreen() {
         </TouchableOpacity>
         <Text style={s.headerTitle}>Cổng Agent</Text>
         <Text style={s.headerSub}>Quản lý đơn hàng tại Hub của bạn</Text>
-
-        {/* Stats row */}
         <View style={s.statsRow}>
           {[
             { label: 'Đang về', count: incomingOrders.length, color: '#A78BFA' },
@@ -200,7 +195,6 @@ export default function AgentScreen() {
         </View>
       </View>
 
-      {/* Tab bar */}
       <View style={s.tabs}>
         {TABS.map(t => (
           <TouchableOpacity
@@ -220,7 +214,6 @@ export default function AgentScreen() {
         ))}
       </View>
 
-      {/* Search */}
       <View style={s.searchWrap}>
         <Ionicons name="search-outline" size={16} color={C.muted} />
         <TextInput
@@ -246,7 +239,6 @@ export default function AgentScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
         }
       >
-        {/* ── ĐANG VỀ HUB ── */}
         {tab === 'incoming' &&
           (filtered(incomingOrders).length === 0 ? (
             <View style={s.empty}>
@@ -300,7 +292,6 @@ export default function AgentScreen() {
             ))
           ))}
 
-        {/* ── CHỜ KHÁCH LẤY ── */}
         {tab === 'ready' &&
           (filtered(readyOrders).length === 0 ? (
             <View style={s.empty}>
@@ -354,7 +345,6 @@ export default function AgentScreen() {
             ))
           ))}
 
-        {/* ── LỊCH SỬ ── */}
         {tab === 'history' &&
           (filtered(historyOrders).length === 0 ? (
             <View style={s.empty}>
@@ -399,7 +389,6 @@ export default function AgentScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   center: { alignItems: 'center', justifyContent: 'center' },
-
   header: {
     backgroundColor: C.primaryDark,
     paddingHorizontal: 16,
@@ -436,7 +425,6 @@ const s = StyleSheet.create({
   },
   statCount: { fontSize: 24, fontWeight: '900' },
   statLabel: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-
   tabs: {
     flexDirection: 'row',
     backgroundColor: C.card,
@@ -457,7 +445,6 @@ const s = StyleSheet.create({
   tabLabel: { fontSize: 11, fontWeight: '600', color: C.muted },
   tabBadge: { borderRadius: 10, paddingHorizontal: 5, paddingVertical: 1 },
   tabBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
-
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -469,10 +456,8 @@ const s = StyleSheet.create({
     borderBottomColor: C.border,
   },
   searchInput: { flex: 1, fontSize: 14, color: C.text, height: 32 },
-
   body: { flex: 1 },
   bodyContent: { padding: 16, paddingBottom: 40, gap: 10 },
-
   orderCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -505,7 +490,6 @@ const s = StyleSheet.create({
   orderMeta: { fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 3 },
   hubRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   hubText: { fontSize: 11, color: C.muted, flex: 1 },
-
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -518,9 +502,7 @@ const s = StyleSheet.create({
   },
   actionBtnDim: { opacity: 0.6 },
   actionBtnText: { fontSize: 11, fontWeight: '700', color: '#fff' },
-
   historyCount: { fontSize: 12, color: C.muted, marginBottom: 4 },
-
   empty: { alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 60 },
   emptyTitle: { fontSize: 15, fontWeight: '700', color: C.muted },
   emptySub: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', lineHeight: 18 },

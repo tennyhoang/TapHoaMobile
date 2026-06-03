@@ -20,7 +20,6 @@ import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { DriverHubBatch, Order, OptimizeRouteResponse, AssignedWarehouseDto } from '@/types';
 
-// Driver screen uses its own brand palette (purple), intentionally separate from C
 const C = {
   primary: '#7C3AED',
   primaryLight: '#EDE9FE',
@@ -75,7 +74,6 @@ export default function DriverScreen() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pickingUp, setPickingUp] = useState(false);
 
-  // Route tab state
   const [selectedHubIds, setSelectedHubIds] = useState<Set<string> | null>(null);
   const [routeResult, setRouteResult] = useState<OptimizeRouteResponse | null>(null);
   const [optimizing, setOptimizing] = useState(false);
@@ -167,7 +165,6 @@ export default function DriverScreen() {
     }
   };
 
-  // Route helpers
   const routeBases =
     transitOrders.length > 0
       ? transitOrders.reduce<
@@ -295,8 +292,6 @@ export default function DriverScreen() {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
-
-      {/* Header */}
       <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.blob} />
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
@@ -309,8 +304,6 @@ export default function DriverScreen() {
           </View>
           <Text style={s.headerSub}>Nhận hàng từ kho — giao đến Hub</Text>
         </View>
-
-        {/* Confirm pickup FAB in header */}
         {tab === 'pickup' && selected.size > 0 && (
           <TouchableOpacity
             style={[s.pickupFab, pickingUp && { opacity: 0.6 }]}
@@ -330,7 +323,6 @@ export default function DriverScreen() {
         )}
       </View>
 
-      {/* Tab bar */}
       <View style={s.tabs}>
         {TABS.map(t => (
           <TouchableOpacity
@@ -358,10 +350,8 @@ export default function DriverScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
         }
       >
-        {/* ── TAB: CẦN LẤY ── */}
         {tab === 'pickup' && (
           <>
-            {/* Hub summary cards */}
             {batches.length > 0 && (
               <ScrollView
                 horizontal
@@ -380,7 +370,6 @@ export default function DriverScreen() {
                 ))}
               </ScrollView>
             )}
-
             {allPickupOrders.length === 0 ? (
               <View style={s.empty}>
                 <Ionicons name="cube-outline" size={48} color="#D1D5DB" />
@@ -451,7 +440,6 @@ export default function DriverScreen() {
           </>
         )}
 
-        {/* ── TAB: ĐANG GIAO ── */}
         {tab === 'transit' &&
           (transitOrders.length === 0 ? (
             <View style={s.empty}>
@@ -500,7 +488,6 @@ export default function DriverScreen() {
             ))
           ))}
 
-        {/* ── TAB: HÔM NAY ── */}
         {tab === 'history' &&
           (historyOrders.length === 0 ? (
             <View style={s.empty}>
@@ -513,7 +500,7 @@ export default function DriverScreen() {
               <Text style={s.historyCount}>{historyOrders.length} đơn hoàn thành hôm nay</Text>
               {historyOrders.map(order => (
                 <View key={order.id} style={[s.orderCard, s.orderCardGreen]}>
-                  <View style={[s.doneIcon]}>
+                  <View style={s.doneIcon}>
                     <Ionicons name="checkmark-circle" size={20} color={C.green} />
                   </View>
                   <View style={s.orderInfo}>
@@ -538,7 +525,6 @@ export default function DriverScreen() {
             </>
           ))}
 
-        {/* ── TAB: LỘ TRÌNH ── */}
         {tab === 'route' && (
           <View style={s.routeWrap}>
             {routeList.length === 0 ? (
@@ -549,7 +535,6 @@ export default function DriverScreen() {
               </View>
             ) : (
               <>
-                {/* Hub picker */}
                 <View style={s.routeCard}>
                   <View style={s.routeCardHeader}>
                     <Text style={s.routeCardTitle}>Chọn Hub cần giao</Text>
@@ -602,7 +587,6 @@ export default function DriverScreen() {
                   })}
                 </View>
 
-                {/* Warehouse info */}
                 <View style={s.routeCard}>
                   <Text style={s.routeCardTitle}>Kho xuất phát</Text>
                   {warehouseError ? (
@@ -624,7 +608,6 @@ export default function DriverScreen() {
                   ) : (
                     <ActivityIndicator color={C.primary} style={{ marginVertical: 12 }} />
                   )}
-
                   {warehouse && !warehouseError && (
                     <TouchableOpacity
                       style={[
@@ -650,7 +633,6 @@ export default function DriverScreen() {
                   )}
                 </View>
 
-                {/* Route result */}
                 {routeResult && (
                   <View style={s.routeResult}>
                     <TouchableOpacity
@@ -665,7 +647,6 @@ export default function DriverScreen() {
                         Mở Google Maps — {routeResult.stops.length} điểm
                       </Text>
                     </TouchableOpacity>
-
                     <View style={s.routeHeader}>
                       <Text style={s.routeCardTitle}>Thứ tự giao hàng</Text>
                       <View
@@ -688,7 +669,6 @@ export default function DriverScreen() {
                         </Text>
                       </View>
                     </View>
-
                     {routeResult.stops.map(stop => {
                       const batch = selectedBatches[stop.originalIndex];
                       return (
@@ -736,7 +716,6 @@ export default function DriverScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   center: { alignItems: 'center', justifyContent: 'center' },
-
   header: {
     backgroundColor: C.primaryDark,
     paddingHorizontal: 16,
@@ -783,7 +762,6 @@ const s = StyleSheet.create({
     elevation: 4,
   },
   pickupFabText: { fontSize: 13, fontWeight: '700', color: '#fff' },
-
   tabs: {
     flexDirection: 'row',
     backgroundColor: C.card,
@@ -810,11 +788,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   tabBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
-
   body: { flex: 1 },
   bodyContent: { padding: 16, paddingBottom: 40, gap: 10 },
-
-  // Hub summary scroll
   hubScroll: { marginBottom: 4, marginHorizontal: -16 },
   hubScrollContent: { paddingHorizontal: 16, gap: 10, paddingBottom: 4 },
   hubCard: {
@@ -828,8 +803,6 @@ const s = StyleSheet.create({
   hubCardName: { fontSize: 12, fontWeight: '700', color: C.primaryDark, marginBottom: 4 },
   hubCardCount: { fontSize: 22, fontWeight: '900', color: C.primary },
   hubCardAmount: { fontSize: 11, color: C.primary, marginTop: 2 },
-
-  // Select row
   selectRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -838,8 +811,6 @@ const s = StyleSheet.create({
   },
   selectAll: { fontSize: 13, fontWeight: '600', color: C.primary },
   selectCount: { fontSize: 12, color: C.muted },
-
-  // Order cards
   orderCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -893,13 +864,9 @@ const s = StyleSheet.create({
   },
   doneIcon: { width: 38, alignItems: 'center', justifyContent: 'center' },
   historyCount: { fontSize: 12, color: C.muted, marginBottom: 4 },
-
-  // Empty state
   empty: { alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 60 },
   emptyTitle: { fontSize: 15, fontWeight: '700', color: C.muted },
   emptySub: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', lineHeight: 18 },
-
-  // Route tab
   routeWrap: { gap: 12 },
   routeCard: {
     backgroundColor: C.card,
@@ -932,7 +899,6 @@ const s = StyleSheet.create({
   hubPickMeta: { alignItems: 'flex-end' },
   hubPickCount: { fontSize: 13, fontWeight: '700', color: C.primary },
   hubPickAmount: { fontSize: 11, color: C.muted },
-
   warehouseWarning: {
     flexDirection: 'row',
     gap: 10,
@@ -956,7 +922,6 @@ const s = StyleSheet.create({
   },
   warehouseName: { fontSize: 14, fontWeight: '700', color: C.primaryDark, marginBottom: 2 },
   warehouseAddr: { fontSize: 12, color: C.primary },
-
   optimizeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -969,8 +934,6 @@ const s = StyleSheet.create({
   },
   optimizeBtnDim: { opacity: 0.45 },
   optimizeBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
-
-  // Route result
   routeResult: { gap: 10 },
   openMapsBtn: {
     flexDirection: 'row',

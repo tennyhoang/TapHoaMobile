@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import AdminProductsScreen from '@/app/admin/products';
+import AdminProductsScreen from '@/app/admin/products/page';
 import { productsService } from '@/services/products.service';
 
 jest.mock('@/services/products.service', () => ({

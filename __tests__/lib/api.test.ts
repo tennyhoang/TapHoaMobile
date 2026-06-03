@@ -1,6 +1,19 @@
 import * as SecureStore from 'expo-secure-store';
 import { api } from '../../lib/api';
 
+jest.mock('@/lib/i18n', () => ({
+  __esModule: true,
+  default: {
+    t: (key: string, opts?: Record<string, unknown>) => {
+      if (key === 'errors.error_with_status') return `Lỗi ${opts?.status}`;
+      if (key === 'errors.session_expired') return 'Phiên đăng nhập đã hết hạn';
+      return key;
+    },
+    isInitialized: true,
+    language: 'vi',
+  },
+}));
+
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
 

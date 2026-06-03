@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import WalletScreen from '@/app/wallet';
+import WalletScreen from '@/app/wallet/page';
 import { walletService } from '@/services/wallet.service';
 
 jest.mock('expo-router', () => ({

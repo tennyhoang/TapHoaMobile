@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import FlashSaleScreen from '@/app/flash-sale';
+import FlashSaleScreen from '@/app/flash-sale/page';
 import { flashSaleService } from '@/services/flashsale.service';
 
 jest.mock('@/services/flashsale.service', () => ({

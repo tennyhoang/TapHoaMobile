@@ -55,6 +55,18 @@ console.error = (...args) => {
   _origError(...args);
 };
 
+// Mock expo-localization (used by lib/i18n.ts)
+jest.mock('expo-localization', () => ({
+  getLocales: () => [{ languageCode: 'vi', regionCode: 'VN' }],
+}));
+
+// Mock react-i18next and i18next globally so useTranslation() works in tests
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key) => key, i18n: { language: 'vi', changeLanguage: jest.fn() } }),
+  initReactI18next: { type: '3rdParty', init: () => {} },
+  Trans: ({ children }) => children,
+}));
+
 // Mock expo-router
 jest.mock('expo-router', () => ({
   router: {

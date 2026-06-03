@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import ProfileEditScreen from '@/app/profile-edit';
+import ProfileEditScreen from '@/app/profile-edit/page';
 import { profileService } from '@/services/profile.service';
 
 const mockUseAuth = jest.fn();

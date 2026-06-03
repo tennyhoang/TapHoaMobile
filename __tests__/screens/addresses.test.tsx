@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import AddressesScreen from '@/app/addresses';
+import AddressesScreen from '@/app/addresses/page';
 import { addressesService } from '@/services/addresses.service';
 
 jest.mock('@/services/addresses.service', () => ({
