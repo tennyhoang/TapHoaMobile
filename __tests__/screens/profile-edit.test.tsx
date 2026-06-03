@@ -49,7 +49,14 @@ const defaultUser = {
 describe('ProfileEditScreen', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({ user: defaultUser, updateUser: mockUpdateUser });
-    mockProfile.getMe.mockRejectedValue(new Error('no network'));
+    mockProfile.getMe.mockResolvedValue({
+      id: 'u1',
+      email: 'test@example.com',
+      fullName: 'Test User',
+      phoneNumber: '0123456789',
+      avatarUrl: null,
+      isActive: true,
+    });
     mockProfile.update.mockRejectedValue(new Error('no update'));
     mockProfile.changePassword.mockRejectedValue(new Error('no pw change'));
     (jest.requireMock('@/lib/biometrics') as any).biometrics.authenticate.mockResolvedValue(true);
@@ -70,9 +77,9 @@ describe('ProfileEditScreen', () => {
     });
   });
 
-  it('renders form fields', () => {
+  it('renders form fields', async () => {
     const { getByPlaceholderText, getByText } = render(<ProfileEditScreen />, { wrapper });
-    expect(getByPlaceholderText('Nhập họ và tên')).toBeTruthy();
+    await waitFor(() => expect(getByPlaceholderText('Nhập họ và tên')).toBeTruthy());
     expect(getByPlaceholderText('Nhập số điện thoại')).toBeTruthy();
     expect(getByText('Lưu thay đổi')).toBeTruthy();
     expect(getByText('Chỉnh sửa hồ sơ')).toBeTruthy();
@@ -124,8 +131,9 @@ describe('ProfileEditScreen', () => {
     expect(mockShowToast).toHaveBeenCalledWith('Server error', 'error');
   });
 
-  it('toggles password section', () => {
+  it('toggles password section', async () => {
     const { getByText, queryAllByPlaceholderText } = render(<ProfileEditScreen />, { wrapper });
+    await waitFor(() => expect(mockProfile.getMe).toHaveBeenCalled());
     expect(queryAllByPlaceholderText('••••••••')).toHaveLength(0);
     fireEvent.press(getByText('Đổi mật khẩu'));
     expect(queryAllByPlaceholderText('••••••••').length).toBeGreaterThan(0);
