@@ -88,7 +88,6 @@ const mockCart = jest.mocked(cartService);
 
 describe('ProductDetailScreen', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
     mockServices.getById.mockResolvedValue(mockProduct as any);
     mockServices.getAll.mockResolvedValue({
       items: mockRelated,
@@ -97,10 +96,6 @@ describe('ProductDetailScreen', () => {
       pageSize: 8,
       totalPages: 1,
     } as any);
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it('shows loading indicator initially', () => {
