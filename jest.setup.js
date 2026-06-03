@@ -48,6 +48,13 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn(),
 }));
 
+// Suppress act() warnings — unavoidable with async state updates in useEffect chains
+const _origError = console.error.bind(console);
+console.error = (...args) => {
+  if (typeof args[0] === 'string' && args[0].includes('not wrapped in act')) return;
+  _origError(...args);
+};
+
 // Mock expo-router
 jest.mock('expo-router', () => ({
   router: {

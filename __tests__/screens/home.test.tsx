@@ -83,6 +83,10 @@ jest.mock('@/components/Skeleton', () => ({
   },
 }));
 
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: () => null,
+}));
+
 jest.mock('@/components/EmptyState', () => {
   const { View, Text } = jest.requireActual('react-native');
   const Mock = ({ title }: any) => (
