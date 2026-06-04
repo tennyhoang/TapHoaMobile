@@ -18,7 +18,8 @@
       "distribution": "internal",
       "channel": "staging",
       "env": {
-        "APP_ENV": "staging"
+        "APP_ENV": "staging",
+        "GOOGLE_MAPS_API_KEY": "${GOOGLE_MAPS_API_KEY}"
       },
       "android": {
         "buildType": "apk"
