@@ -9,7 +9,9 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "APP_ENV": "development"
+        "APP_ENV": "development",
+        "SENTRY_ORG": "tennyhoang",
+        "SENTRY_PROJECT": "taphoamobile"
       }
     },
     "staging": {
@@ -42,7 +44,8 @@
       "channel": "production",
       "autoIncrement": true,
       "env": {
-        "APP_ENV": "production"
+        "APP_ENV": "production",
+        "GOOGLE_MAPS_API_KEY": "${GOOGLE_MAPS_API_KEY}"
       }
     }
   },
@@ -53,9 +56,9 @@
         "track": "internal"
       },
       "ios": {
-        "appleId": "CONFIGURE_YOUR_APPLE_ID",
-        "ascAppId": "CONFIGURE_YOUR_APP_STORE_CONNECT_ID",
-        "appleTeamId": "CONFIGURE_YOUR_TEAM_ID"
+        "appleId": "${APPLE_ID}",
+        "ascAppId": "${ASC_APP_ID}",
+        "appleTeamId": "${APPLE_TEAM_ID}"
       }
     }
   }

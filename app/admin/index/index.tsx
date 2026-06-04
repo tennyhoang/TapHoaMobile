@@ -41,7 +41,9 @@ export default function AdminDashboard() {
     adminService
       .getStats()
       .then(setStats)
-      .catch(() => console.warn('Failed to load admin stats'))
+      .catch(() => {
+        if (__DEV__) console.warn('Failed to load admin stats');
+      })
       .finally(() => setLoadingStats(false));
   }, []);
 

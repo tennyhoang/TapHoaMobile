@@ -16,7 +16,6 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/lib/auth-context';
 import { authService } from '@/services/auth.service';
@@ -45,7 +44,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
+  const [socialLoading, setSocialLoading] = useState<'google' | null>(null);
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
@@ -58,20 +57,16 @@ export default function LoginScreen() {
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   });
 
-  const [, fbResponse, fbPrompt] = Facebook.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? 'not-configured',
-  });
-
   const handleSocialLogin = useCallback(
-    async (provider: 'Google' | 'Facebook', token: string) => {
-      setSocialLoading(provider === 'Google' ? 'google' : 'facebook');
+    async (provider: 'Google', token: string) => {
+      setSocialLoading('google');
       setError('');
       try {
         const res = await authService.socialLogin(provider, token);
         await login(res.accessToken, res.email, res.fullName, res.role);
         router.replace('/(tabs)' as any);
       } catch (err) {
-        setError(err instanceof Error ? err.message : `Đăng nhập ${provider} thất bại`);
+        setError(err instanceof Error ? err.message : 'Đăng nhập thất bại');
       } finally {
         setSocialLoading(null);
       }
@@ -85,13 +80,6 @@ export default function LoginScreen() {
       if (token) handleSocialLogin('Google', token);
     }
   }, [googleResponse, handleSocialLogin]);
-
-  useEffect(() => {
-    if (fbResponse?.type === 'success') {
-      const token = fbResponse.authentication?.accessToken;
-      if (token) handleSocialLogin('Facebook', token);
-    }
-  }, [fbResponse, handleSocialLogin]);
 
   const cardY = useMemo(() => new Animated.Value(60), []);
   const cardOpacity = useMemo(() => new Animated.Value(0), []);
@@ -212,6 +200,7 @@ export default function LoginScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  testID="login-email-input"
                 />
               </View>
             </View>
@@ -228,6 +217,7 @@ export default function LoginScreen() {
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
+                  testID="login-password-input"
                 />
                 <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={s.eyeBtn}>
                   <Ionicons
@@ -254,6 +244,7 @@ export default function LoginScreen() {
               onPress={handleLogin}
               disabled={loading}
               activeOpacity={0.82}
+              testID="login-submit-btn"
             >
               {loading ? (
                 <ActivityIndicator color={C.white} size="small" />
@@ -274,7 +265,7 @@ export default function LoginScreen() {
               <View style={s.webSocialNote}>
                 <Ionicons name="phone-portrait-outline" size={14} color={C.muted} />
                 <Text style={s.webSocialNoteText}>
-                  Đăng nhập Google/Facebook chỉ khả dụng trên ứng dụng di động
+                  Đăng nhập Google chỉ khả dụng trên ứng dụng di động
                 </Text>
               </View>
             ) : (
@@ -296,24 +287,6 @@ export default function LoginScreen() {
                         style={s.socialIcon}
                       />
                       <Text style={s.socialBtnText}>Tiếp tục với Google</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[s.socialBtn, s.fbBtn, socialLoading === 'facebook' && s.socialBtnDim]}
-                  onPress={() => fbPrompt()}
-                  disabled={!!socialLoading}
-                  activeOpacity={0.82}
-                >
-                  {socialLoading === 'facebook' ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <>
-                      <Ionicons name="logo-facebook" size={20} color="#fff" />
-                      <Text style={[s.socialBtnText, { color: '#fff' }]}>
-                        Tiếp tục với Facebook
-                      </Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -475,7 +448,7 @@ const s = StyleSheet.create({
     backgroundColor: C.inputBg,
     marginBottom: 12,
   },
-  fbBtn: { backgroundColor: '#1877F2', borderColor: '#1877F2' },
+
   socialBtnDim: { opacity: 0.65 },
   socialIcon: { width: 20, height: 20 },
   socialBtnText: { fontSize: 15, fontWeight: '600', color: C.text },

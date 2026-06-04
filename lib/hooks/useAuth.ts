@@ -32,7 +32,7 @@ export function useForgotPassword() {
 
 export function useSocialLogin() {
   return useMutation({
-    mutationFn: ({ provider, idToken }: { provider: 'Google' | 'Facebook'; idToken: string }) =>
+    mutationFn: ({ provider, idToken }: { provider: 'Google'; idToken: string }) =>
       authService.socialLogin(provider, idToken),
   });
 }

@@ -218,6 +218,7 @@ export default function CartScreen() {
               style={s.checkoutBtn}
               activeOpacity={0.85}
               onPress={() => router.push('/checkout' as any)}
+              testID="cart-checkout-btn"
             >
               <Text style={s.checkoutText}>Đặt hàng</Text>
               <Ionicons name="arrow-forward" size={20} color="#fff" />

@@ -56,7 +56,9 @@ export default function ProductDetailScreen() {
         productsService
           .getAll({ categoryId: p.categoryId, pageSize: 8 })
           .then(r => setRelated((r.items ?? []).filter(x => x.id !== p.id)))
-          .catch(() => console.warn('Failed to load related products'));
+          .catch(() => {
+            if (__DEV__) console.warn('Failed to load related products');
+          });
         Animated.parallel([
           Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
           Animated.spring(slideAnim, {

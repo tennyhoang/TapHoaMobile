@@ -21,8 +21,8 @@ import { useToast } from '@/components/Toast';
 import { C } from '@/constants/Colors';
 import { biometrics } from '@/lib/biometrics';
 
-const CLOUDINARY_CLOUD = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD ?? 'doy14nwx0';
-const CLOUDINARY_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_PRESET ?? 'taphoa_unsigned';
+const CLOUDINARY_CLOUD = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD!;
+const CLOUDINARY_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_PRESET!;
 
 async function uploadAvatar(uri: string): Promise<string> {
   const form = new FormData();
@@ -54,7 +54,9 @@ export default function ProfileEditScreen() {
         setPhoneNumber(me.phoneNumber ?? '');
         setAvatarUrl(me.avatarUrl ?? null);
       })
-      .catch(() => console.warn('Failed to load profile'));
+      .catch(() => {
+        if (__DEV__) console.warn('Failed to load profile');
+      });
   }, []);
   const [saving, setSaving] = useState(false);
   const [profileError, setProfileError] = useState('');

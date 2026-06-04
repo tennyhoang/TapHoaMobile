@@ -39,7 +39,7 @@ export default function FlashSaleScreen() {
       const data = await flashSaleService.getCurrent();
       setSession(data);
     } catch {
-      console.warn('Failed to load flash sale');
+      if (__DEV__) console.warn('Failed to load flash sale');
     } finally {
       setLoading(false);
       setRefreshing(false);

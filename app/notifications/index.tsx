@@ -73,9 +73,9 @@ export default function NotificationsScreen() {
 
   const handleTap = async (item: Notification) => {
     if (!item.isRead) {
-      await notificationsService
-        .markRead(item.id)
-        .catch(() => console.warn('Failed to mark notification as read'));
+      await notificationsService.markRead(item.id).catch(() => {
+        if (__DEV__) console.warn('Failed to mark notification as read');
+      });
       setNotifications(prev => prev.map(n => (n.id === item.id ? { ...n, isRead: true } : n)));
     }
     if (item.type === 'OrderStatus' && item.data?.orderId) {
@@ -89,7 +89,7 @@ export default function NotificationsScreen() {
       await notificationsService.markAllRead();
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch {
-      console.warn('Failed to mark all notifications as read');
+      if (__DEV__) console.warn('Failed to mark all notifications as read');
     } finally {
       setMarkingAll(false);
     }

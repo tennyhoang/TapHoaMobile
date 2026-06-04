@@ -2,35 +2,145 @@
   "expo": {
     "name": "TapHoaMobile",
     "slug": "TapHoaMobile",
+    "description": "Tạp Hóa - Tươi ngon, giao tận nhà. Ứng dụng mua sắm tạp hóa trực tuyến với hệ thống Hub giao nhận thông minh.",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "taphoamobile",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F8F9FA",
+    "primaryColor": "#0EA5AE",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "platforms": ["ios", "android"],
+    "githubUrl": "https://github.com/tennyhoang/TapHoaMobile",
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 30000,
+      "url": "https://u.expo.dev/c98c88e9-6e61-41f9-befd-e24ecb47b73f"
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#0EA5AE",
+      "iosDisplayInForeground": true,
+      "androidMode": "default",
+      "androidCollapsedTitle": "TapHoa"
+    },
+    "locales": {
+      "vi": "./locales/vi.json",
+      "en": "./locales/en.json"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.taphoa.mobile",
+      "buildNumber": "1",
+      "deploymentTarget": "15.0",
+      "appleTeamId": "${APPLE_TEAM_ID}",
+      "config": {
+        "googleMapsApiKey": "${GOOGLE_MAPS_API_KEY}",
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "Dùng camera để quét mã QR và chụp ảnh đại diện",
         "NSPhotoLibraryUsageDescription": "Chọn ảnh từ thư viện để làm ảnh đại diện",
         "NSFaceIDUsageDescription": "Dùng Face ID để xác thực giao dịch",
-        "NSLocationWhenInUseUsageDescription": "Dùng vị trí của bạn để tìm Hub gần nhất"
+        "NSLocationWhenInUseUsageDescription": "Dùng vị trí của bạn để tìm Hub gần nhất",
+        "NSPhotoLibraryAddUsageDescription": "Cho phép lưu ảnh từ ứng dụng vào thư viện",
+        "NSUserTrackingUsageDescription": "Dữ liệu được dùng để cải thiện trải nghiệm và gửi thông báo phù hợp"
+      },
+      "entitlements": {
+        "aps-environment": "production",
+        "com.apple.developer.associated-domains": ["applinks:taphoa.vn", "applinks:taphoa.vn"]
+      },
+      "associatedDomains": ["applinks:taphoa.vn", "applinks:taphoa.vn"],
+      "usesAppleSignIn": false,
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": ["85F4.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1", "3B52.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": ["85F4.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1", "3B52.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+          }
+        ]
       }
     },
     "android": {
       "package": "com.taphoa.mobile",
+      "versionCode": 1,
       "config": {
         "googleMaps": {
           "apiKey": "${GOOGLE_MAPS_API_KEY}"
         }
       },
       "permissions": [
-        "USE_BIOMETRIC",
-        "USE_FINGERPRINT",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CONTACTS",
+        "android.permission.CALL_PHONE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CONTACTS",
+        "android.permission.CALL_PHONE"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -38,12 +148,58 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "allowBackup": false,
+      "softwareKeyboardLayoutMode": "resize",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "taphoa.vn",
+              "pathPrefix": "/order"
+            },
+            {
+              "scheme": "https",
+              "host": "taphoa.vn",
+              "pathPrefix": "/product"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "taphoa.vn",
+              "pathPrefix": "/order"
+            },
+            {
+              "scheme": "https",
+              "host": "taphoa.vn",
+              "pathPrefix": "/product"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "TapHoa",
+      "shortName": "TapHoa",
+      "description": "Tạp Hóa - Tươi ngon, giao tận nhà",
+      "lang": "vi",
+      "themeColor": "#0EA5AE",
+      "backgroundColor": "#F8F9FA",
+      "display": "standalone",
+      "orientation": "portrait"
     },
     "plugins": [
       "expo-router",
@@ -69,11 +225,44 @@
           "locationWhenInUsePermission": "Cho phép TapHoa truy cập vị trí để tìm Hub gần bạn nhất"
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Cho phép TapHoa truy cập camera để quét mã QR và chụp ảnh"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#0EA5AE"
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Dùng Face ID để xác thực giao dịch và đăng nhập"
+        }
+      ],
       "@sentry/react-native",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "react-native-maps",
+        {
+          "apiKey": "${GOOGLE_MAPS_API_KEY}"
+        }
+      ]
     ],
     "experiments": {
-      "typedRoutes": true
-    }
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c98c88e9-6e61-41f9-befd-e24ecb47b73f"
+      }
+    },
+    "owner": "tennyhoang"
   }
 }

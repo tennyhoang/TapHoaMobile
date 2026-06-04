@@ -118,13 +118,14 @@ export default function SearchScreen() {
     categoriesService
       .getAll()
       .then(setCategories)
-      .catch(() => console.warn('Failed to load categories'));
+      .catch(() => {
+        if (__DEV__) console.warn('Failed to load categories');
+      });
     if (q?.trim()) {
       setLoading(true);
       fetchProducts(q, 1, true);
     }
     setTimeout(() => inputRef.current?.focus(), 300);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -183,7 +184,7 @@ export default function SearchScreen() {
     try {
       await cartService.add(product.id, 1);
     } catch {
-      console.warn('Failed to add to cart');
+      if (__DEV__) console.warn('Failed to add to cart');
     }
   };
 

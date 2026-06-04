@@ -22,10 +22,10 @@ import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
 import type { Order } from '@/types';
 
-const BANK_CODE = 'MB';
-const ACCOUNT_NO = '0000000001';
-const ACCOUNT_NAME = 'TAPHOA TEST';
-const BANK_NAME = 'MB Bank';
+const BANK_CODE = process.env.EXPO_PUBLIC_BANK_CODE ?? 'MB';
+const ACCOUNT_NO = process.env.EXPO_PUBLIC_ACCOUNT_NO ?? '0000000001';
+const ACCOUNT_NAME = process.env.EXPO_PUBLIC_ACCOUNT_NAME ?? 'TAPHOA TEST';
+const BANK_NAME = process.env.EXPO_PUBLIC_BANK_NAME ?? 'MB Bank';
 
 function buildQrUrl(amount: number, paymentRef: string): string {
   const addInfo = encodeURIComponent(paymentRef);
@@ -69,6 +69,8 @@ function PaymentQR({ amount, paymentRef }: { amount: number; paymentRef: string 
                   <TouchableOpacity
                     onPress={() => copy(row.value, row.label)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityLabel={`Sao chép ${row.label}`}
+                    accessibilityRole="button"
                   >
                     <Ionicons name="copy-outline" size={14} color={C.primary} />
                   </TouchableOpacity>
@@ -417,6 +419,8 @@ export default function OrderDetailScreen() {
                     }
                     activeOpacity={0.7}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityLabel={`Đánh giá ${item.productName}`}
+                    accessibilityRole="button"
                   >
                     <Ionicons name="star-outline" size={13} color="#F59E0B" />
                     <Text style={s.reviewChipText}>Đánh giá</Text>
@@ -466,7 +470,13 @@ export default function OrderDetailScreen() {
 
         {/* Refund request */}
         {canRefund && (
-          <TouchableOpacity style={s.refundBtn} onPress={handleRefund} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={s.refundBtn}
+            onPress={handleRefund}
+            activeOpacity={0.8}
+            accessibilityLabel="Yêu cầu hoàn trả đơn hàng"
+            accessibilityRole="button"
+          >
             <Ionicons name="return-down-back-outline" size={17} color="#8B5CF6" />
             <Text style={s.refundBtnText}>Yêu cầu hoàn trả</Text>
           </TouchableOpacity>
@@ -479,6 +489,8 @@ export default function OrderDetailScreen() {
             onPress={handleCancel}
             disabled={cancelling}
             activeOpacity={0.8}
+            accessibilityLabel="Huỷ đơn hàng"
+            accessibilityRole="button"
           >
             {cancelling ? (
               <ActivityIndicator color={C.error} size="small" />
@@ -498,6 +510,8 @@ export default function OrderDetailScreen() {
               if (await StoreReview.hasAction()) StoreReview.requestReview();
             }}
             activeOpacity={0.8}
+            accessibilityLabel="Đánh giá ứng dụng trên App Store"
+            accessibilityRole="button"
           >
             <Ionicons name="star-outline" size={16} color="#F59E0B" />
             <Text style={s.rateBtnText}>Đánh giá ứng dụng</Text>
@@ -508,6 +522,8 @@ export default function OrderDetailScreen() {
           style={s.shopBtn}
           onPress={() => router.replace('/(tabs)' as any)}
           activeOpacity={0.8}
+          accessibilityLabel="Tiếp tục mua sắm"
+          accessibilityRole="button"
         >
           <Ionicons name="bag-outline" size={18} color={C.primary} />
           <Text style={s.shopBtnText}>Tiếp tục mua sắm</Text>

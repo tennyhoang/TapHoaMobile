@@ -55,12 +55,6 @@ const CONTACTS = [
     action: () => Linking.openURL('mailto:support@taphoa.vn'),
   },
   {
-    icon: 'logo-facebook',
-    label: 'Facebook',
-    value: 'fb.com/taphoa',
-    action: () => Linking.openURL('https://facebook.com/taphoa'),
-  },
-  {
     icon: 'call-outline',
     label: 'Hotline',
     value: '1900 1234 (8h-22h)',

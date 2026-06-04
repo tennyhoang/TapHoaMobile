@@ -16,7 +16,6 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/lib/auth-context';
 import { authService } from '@/services/auth.service';
@@ -50,7 +49,7 @@ export default function RegisterScreen() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
+  const [socialLoading, setSocialLoading] = useState<'google' | null>(null);
   const [error, setError] = useState('');
 
   const [, googleResponse, googlePrompt] = Google.useAuthRequest({
@@ -59,20 +58,16 @@ export default function RegisterScreen() {
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   });
 
-  const [, fbResponse, fbPrompt] = Facebook.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
-  });
-
   const handleSocialLogin = useCallback(
-    async (provider: 'Google' | 'Facebook', token: string) => {
-      setSocialLoading(provider === 'Google' ? 'google' : 'facebook');
+    async (provider: 'Google', token: string) => {
+      setSocialLoading('google');
       setError('');
       try {
         const res = await authService.socialLogin(provider, token);
         await login(res.accessToken, res.email, res.fullName, res.role);
         router.replace('/(tabs)' as any);
       } catch (err) {
-        setError(err instanceof Error ? err.message : `Đăng ký với ${provider} thất bại`);
+        setError(err instanceof Error ? err.message : 'Đăng ký thất bại');
       } finally {
         setSocialLoading(null);
       }
@@ -86,13 +81,6 @@ export default function RegisterScreen() {
       if (token) handleSocialLogin('Google', token);
     }
   }, [googleResponse, handleSocialLogin]);
-
-  useEffect(() => {
-    if (fbResponse?.type === 'success') {
-      const token = fbResponse.authentication?.accessToken;
-      if (token) handleSocialLogin('Facebook', token);
-    }
-  }, [fbResponse, handleSocialLogin]);
 
   const cardY = useMemo(() => new Animated.Value(60), []);
   const cardOpacity = useMemo(() => new Animated.Value(0), []);
@@ -342,22 +330,6 @@ export default function RegisterScreen() {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[s.socialBtn, s.fbBtn, socialLoading === 'facebook' && s.socialBtnDim]}
-              onPress={() => fbPrompt()}
-              disabled={!!socialLoading}
-              activeOpacity={0.82}
-            >
-              {socialLoading === 'facebook' ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  <Ionicons name="logo-facebook" size={20} color="#fff" />
-                  <Text style={[s.socialBtnText, { color: '#fff' }]}>Tiếp tục với Facebook</Text>
-                </>
-              )}
-            </TouchableOpacity>
-
             <View style={s.footer}>
               <Text style={s.footerText}>Đã có tài khoản? </Text>
               <TouchableOpacity onPress={() => router.back()}>
@@ -547,7 +519,7 @@ const s = StyleSheet.create({
     backgroundColor: C.inputBg,
     marginBottom: 12,
   },
-  fbBtn: { backgroundColor: '#1877F2', borderColor: '#1877F2' },
+
   socialBtnDim: { opacity: 0.65 },
   socialIcon: { width: 20, height: 20 },
   socialBtnText: { fontSize: 15, fontWeight: '600', color: C.text },

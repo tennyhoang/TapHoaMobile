@@ -78,6 +78,12 @@ jobs:
           path: coverage/
           retention-days: 7
 
+      - name: Build JS bundle + source maps (Android & iOS)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          npx expo export --platform android --source-maps --output-dir dist/android
+          npx expo export --platform ios     --source-maps --output-dir dist/ios
+
       - name: Upload source maps to Sentry
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         env:
@@ -85,13 +91,33 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
-          if [ -n "$SENTRY_AUTH_TOKEN" ]; then
-            npx @sentry/cli releases new "${{ github.sha }}"
-            npx @sentry/cli releases set-commits "${{ github.sha }}" --auto
-            npx @sentry/cli releases finalize "${{ github.sha }}"
-          else
-            echo "SENTRY_AUTH_TOKEN not configured, skipping source map upload"
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "⚠️  SENTRY_AUTH_TOKEN not set — skipping source map upload"
+            exit 0
           fi
+
+          RELEASE="${{ github.sha }}"
+
+          # Create release và gắn commits
+          npx @sentry/cli releases new "$RELEASE"
+          npx @sentry/cli releases set-commits "$RELEASE" --auto
+
+          # Upload source maps Android
+          npx @sentry/cli sourcemaps upload \
+            --release "$RELEASE" \
+            --dist "android" \
+            dist/android/
+
+          # Upload source maps iOS
+          npx @sentry/cli sourcemaps upload \
+            --release "$RELEASE" \
+            --dist "ios" \
+            dist/ios/
+
+          # Finalize release
+          npx @sentry/cli releases finalize "$RELEASE"
+
+          echo "✅ Source maps uploaded for release $RELEASE"
         continue-on-error: true
 
   # ─────────────────────────────────────────

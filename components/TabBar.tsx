@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/immutability */
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, {
@@ -84,6 +83,10 @@ function TabItem({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={s.tabItem}
+      accessibilityRole="tab"
+      accessibilityLabel={LABELS[route.name] ?? route.name}
+      accessibilityState={{ selected: isFocused }}
+      accessibilityHint={`Chuyển sang tab ${LABELS[route.name] ?? route.name}`}
     >
       <Animated.View style={[s.tabInner, animStyle]}>
         {isFocused && <Animated.View style={s.activePill} />}
@@ -120,7 +123,7 @@ export default function TabBar({ state, navigation, descriptors }: TabBarProps) 
   const { bottom } = useSafeAreaInsets();
 
   return (
-    <View style={[s.container, { paddingBottom: bottom || 8 }]}>
+    <View style={[s.container, { paddingBottom: bottom || 8 }]} accessibilityRole="tablist">
       <View style={s.topBorder} />
       <View style={s.row}>
         {state.routes.map((route, index) => {

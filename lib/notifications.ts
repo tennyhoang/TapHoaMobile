@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { storage } from '@/lib/storage';
+import { api } from '@/lib/api';
 
 const PUSH_TOKEN_KEY = 'taphoa_push_token';
 
@@ -32,6 +33,8 @@ export async function registerPushNotifications(): Promise<string | null> {
   try {
     const token = (await Notifications.getExpoPushTokenAsync()).data;
     await storage.setItem(PUSH_TOKEN_KEY, token);
+    // Gửi push token lên backend để server có thể gửi notification
+    api.post('/push-tokens', { token, platform: Platform.OS }).catch(() => {});
     return token;
   } catch {
     return null;

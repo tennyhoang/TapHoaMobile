@@ -13,11 +13,13 @@ module.exports = {
     'react-hooks/set-state-in-effect': 'off',
     // useMemo animation values and intentionally split effects trigger false positives
     'react-hooks/exhaustive-deps': 'off',
+    // Reanimated useSharedValue() is intentionally mutable — this rule does not apply
+    'react-hooks/immutability': 'off',
   },
   env: {
     jest: true,
   },
-  ignorePatterns: ['node_modules/', '.expo/', 'dist/', 'coverage/', 'android/', 'ios/'],
+  ignorePatterns: ['node_modules/', '.expo/', 'dist/', 'coverage/', 'android/', 'ios/', 'e2e/'],
   overrides: [
     {
       files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],

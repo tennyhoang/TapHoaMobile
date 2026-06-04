@@ -7,12 +7,14 @@
     "@react-native-community/netinfo": "12.0.1",
     "@react-navigation/native": "^7.2.5",
     "@sentry/react-native": "~7.11.0",
+    "@shopify/flash-list": "2.0.2",
     "@tanstack/react-query": "^5.101.0",
     "expo": "~56.0.8",
     "expo-auth-session": "~56.0.13",
     "expo-camera": "~56.0.7",
     "expo-constants": "~56.0.16",
     "expo-crypto": "~56.0.4",
+    "expo-dev-client": "^56.0.18",
     "expo-font": "~56.0.5",
     "expo-haptics": "~56.0.3",
     "expo-image": "~56.0.9",
@@ -30,6 +32,7 @@
     "expo-status-bar": "~56.0.4",
     "expo-store-review": "~56.0.3",
     "expo-symbols": "~56.0.5",
+    "expo-updates": "~56.0.17",
     "expo-web-browser": "~56.0.5",
     "i18next": "^26.3.0",
     "react": "19.2.3",
@@ -38,18 +41,21 @@
     "react-native": "0.85.3",
     "react-native-maps": "1.27.2",
     "react-native-reanimated": "4.3.1",
-    "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
-    "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.8.3"
+    "react-native-svg": "15.15.4",
+    "react-native-web": "~0.21.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
     "@react-native/jest-preset": "^0.85.3",
+    "@storybook/addon-ondevice-actions": "^10.4.4",
+    "@storybook/addon-ondevice-controls": "^10.4.4",
+    "@storybook/react-native": "^10.4.4",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
+    "danger": "^13.0.7",
     "eslint": "^8.57.1",
     "eslint-config-expo": "^56.0.4",
     "eslint-config-prettier": "^10.1.8",
@@ -58,12 +64,13 @@
     "jest-expo": "^56.0.4",
     "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
+    "react-native-safe-area-context": "^5.8.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
@@ -73,7 +80,8 @@
     "test": "jest --watchAll=false --forceExit",
     "test:watch": "jest",
     "test:coverage": "jest --coverage --watchAll=false --forceExit --runInBand",
-    "prepare": "husky"
+    "prepare": "husky",
+    "storybook": "expo start --port 7007"
   },
   "private": true
 }

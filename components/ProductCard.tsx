@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/immutability */
 import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, {
