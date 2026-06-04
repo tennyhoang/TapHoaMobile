@@ -166,6 +166,7 @@
       "orientation": "portrait"
     },
     "plugins": [
+      "./plugins/withGradleWrapper",
       "expo-router",
       [
         "expo-splash-screen",
