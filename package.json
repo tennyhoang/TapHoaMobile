@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
-    "@commitlint/config-conventional": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.2",
     "@react-native/jest-preset": "^0.85.3",
     "@storybook/addon-ondevice-actions": "^10.4.4",
     "@storybook/addon-ondevice-controls": "^10.4.4",
