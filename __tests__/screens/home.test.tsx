@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomeScreen from '@/app/(tabs)';
 import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
@@ -105,7 +106,12 @@ jest.mock('expo-image', () => {
   return { Image: Mock };
 });
 
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
+let queryClient: QueryClient;
+const wrapper = ({ children }: any) => (
+  <QueryClientProvider client={queryClient}>
+    <SafeAreaProvider>{children}</SafeAreaProvider>
+  </QueryClientProvider>
+);
 
 const mockCategories = [
   { id: 'cat1', name: 'Rau củ', description: '', children: [] },
@@ -207,6 +213,9 @@ jest.setTimeout(60000);
 
 describe('HomeScreen', () => {
   beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0 } },
+    });
     jest.mocked(productsService.getAll).mockResolvedValue({
       items: mockProducts,
       totalCount: 2,
@@ -224,6 +233,10 @@ describe('HomeScreen', () => {
       totalPages: 1,
     } as any);
     jest.mocked(articlesService.getAll).mockResolvedValue(mockArticles);
+  });
+
+  afterEach(() => {
+    queryClient.clear();
   });
 
   it('renders without crashing', () => {

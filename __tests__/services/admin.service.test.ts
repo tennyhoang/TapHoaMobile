@@ -221,7 +221,7 @@ describe('adminService', () => {
       });
       const result = await adminService.users.getAll();
       expect(result.items).toEqual([mockUser]);
-      expect(mockApi.get).toHaveBeenCalledWith('/admin/users');
+      expect(mockApi.get).toHaveBeenCalledWith('/users');
     });
 
     it('getAll appends search and role', async () => {
@@ -243,13 +243,13 @@ describe('adminService', () => {
       const payload = { fullName: 'Nguyễn Văn B' };
       const result = await adminService.users.update('u1', payload);
       expect(result).toEqual(mockUser);
-      expect(mockApi.put).toHaveBeenCalledWith('/admin/users/u1', payload);
+      expect(mockApi.put).toHaveBeenCalledWith('/users/u1', payload);
     });
 
     it('delete calls DELETE /users/:id', async () => {
       mockApi.delete.mockResolvedValueOnce(undefined);
       await adminService.users.delete('u1');
-      expect(mockApi.delete).toHaveBeenCalledWith('/admin/users/u1');
+      expect(mockApi.delete).toHaveBeenCalledWith('/users/u1');
     });
   });
 

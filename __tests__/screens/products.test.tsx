@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ProductsScreen from '@/app/(tabs)/products';
 import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
@@ -59,7 +60,12 @@ jest.mock('expo-image', () => ({
   Image: () => null,
 }));
 
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
+let queryClient: QueryClient;
+const wrapper = ({ children }: any) => (
+  <QueryClientProvider client={queryClient}>
+    <SafeAreaProvider>{children}</SafeAreaProvider>
+  </QueryClientProvider>
+);
 
 const mockCategories = [
   { id: 'cat1', name: 'Gạo', children: [] },
@@ -106,6 +112,17 @@ const mockPagedResult = {
 };
 
 describe('ProductsScreen', () => {
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0 } },
+    });
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+  });
+
   it('renders loading state initially', () => {
     (productsService.getAll as jest.Mock).mockReturnValue(new Promise(() => {}));
     (categoriesService.getAll as jest.Mock).mockReturnValue(new Promise(() => {}));

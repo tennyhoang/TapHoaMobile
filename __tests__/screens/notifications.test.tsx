@@ -100,7 +100,7 @@ describe('NotificationsScreen', () => {
   });
 
   it('renders error state when load fails', async () => {
-    mockService.getAll.mockRejectedValueOnce(new Error('Network error'));
+    mockService.getAll.mockRejectedValueOnce(new TypeError('Network request failed'));
     const { getByText } = render(<NotificationsScreen />, { wrapper });
     loadScreen();
     await waitFor(() => {
@@ -109,7 +109,7 @@ describe('NotificationsScreen', () => {
   });
 
   it('retries loading when Thử lại pressed', async () => {
-    mockService.getAll.mockRejectedValueOnce(new Error('Network error'));
+    mockService.getAll.mockRejectedValueOnce(new TypeError('Network request failed'));
     mockService.getAll.mockResolvedValueOnce({ items: [], totalPages: 1 });
     const { getByText } = render(<NotificationsScreen />, { wrapper });
     loadScreen();

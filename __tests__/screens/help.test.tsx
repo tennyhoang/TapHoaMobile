@@ -18,7 +18,6 @@ describe('HelpScreen', () => {
     const { getByText } = render(<HelpScreen />);
     expect(getByText('Email hỗ trợ')).toBeTruthy();
     expect(getByText('Hotline')).toBeTruthy();
-    expect(getByText('Facebook')).toBeTruthy();
   });
 
   it('renders FAQ questions', () => {

@@ -20,17 +20,21 @@ const mockFetch = jest.fn();
 const mockSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 
 function mockSuccess(data: object) {
+  const body = JSON.stringify(data);
   mockFetch.mockResolvedValueOnce({
     ok: true,
     json: async () => data,
+    text: async () => body,
   });
 }
 
 function mockFailure(status: number, message: string) {
+  const body = JSON.stringify({ message });
   mockFetch.mockResolvedValueOnce({
     ok: false,
     status,
     json: async () => ({ message }),
+    text: async () => body,
   });
 }
 
@@ -95,6 +99,7 @@ describe('api', () => {
         ok: false,
         status: 500,
         json: async () => ({}),
+        text: async () => '{}',
       });
 
       await expect(api.get('/error')).rejects.toThrow('Lỗi 500');
