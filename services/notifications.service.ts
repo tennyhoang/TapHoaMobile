@@ -1,14 +1,5 @@
 import { api } from '@/lib/api';
-import type { PagedResult } from '@/types';
-
-type Notification = {
-  id: string;
-  title: string;
-  body: string;
-  data?: Record<string, unknown>;
-  read: boolean;
-  createdAt: string;
-};
+import type { PagedResult, Notification } from '@/types';
 
 export const notificationsService = {
   getAll: (page = 1, pageSize = 20): Promise<PagedResult<Notification>> =>

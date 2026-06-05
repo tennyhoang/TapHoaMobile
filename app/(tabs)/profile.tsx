@@ -131,6 +131,22 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {user?.role === 'WarehouseManager' && (
+          <View style={[s.card, { marginBottom: 16 }]}>
+            <TouchableOpacity
+              style={s.menuItem}
+              activeOpacity={0.7}
+              onPress={() => router.push('/warehouse' as any)}
+            >
+              <View style={[s.menuIcon, { backgroundColor: '#0891B218' }]}>
+                <Ionicons name="business-outline" size={20} color="#0891B2" />
+              </View>
+              <Text style={s.menuLabel}>Cổng Quản lý kho</Text>
+              <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {user?.role === 'Admin' && (
           <View style={[s.card, { marginBottom: 16 }]}>
             <TouchableOpacity

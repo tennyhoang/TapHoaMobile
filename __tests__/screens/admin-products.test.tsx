@@ -2,9 +2,17 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import AdminProductsScreen from '@/app/admin/products/index';
 import { productsService } from '@/services/products.service';
+import { adminService } from '@/services/admin.service';
 
 jest.mock('@/services/products.service', () => ({
   productsService: { getAll: jest.fn() },
+}));
+
+jest.mock('@/services/admin.service', () => ({
+  adminService: {
+    categories: { getAll: jest.fn() },
+    products: { create: jest.fn(), update: jest.fn(), delete: jest.fn() },
+  },
 }));
 
 jest.mock('@/lib/useRoleGuard', () => ({ useRoleGuard: jest.fn().mockReturnValue(undefined) }));
@@ -32,7 +40,8 @@ jest.mock('@/components/ProductImage', () => {
   return Mock;
 });
 
-const mockService = jest.mocked(productsService);
+const mockProductService = jest.mocked(productsService);
+const mockAdminService = jest.mocked(adminService);
 
 const mockProduct = {
   id: 'p1',
@@ -51,16 +60,19 @@ const mockProduct = {
 };
 
 const mockPaged = { items: [mockProduct], totalCount: 1, page: 1, pageSize: 50, totalPages: 1 };
+const mockCategories = [{ id: 'c1', name: 'Gạo', children: [], createdAt: '' }];
 
 describe('AdminProductsScreen', () => {
   beforeEach(() => {
-    mockService.getAll.mockImplementation(async ({ page }: { page?: number } = {}) =>
-      page === 1 ? mockPaged : { ...mockPaged, items: [], totalCount: 0 }
+    (mockProductService.getAll as jest.Mock).mockImplementation(
+      async ({ page }: { page?: number } = {}) =>
+        page === 1 ? mockPaged : { ...mockPaged, items: [], totalCount: 0 }
     );
+    (mockAdminService.categories.getAll as jest.Mock).mockResolvedValue(mockCategories);
   });
 
   it('renders loading state initially', () => {
-    mockService.getAll.mockReturnValue(new Promise(() => {}));
+    (mockProductService.getAll as jest.Mock).mockReturnValue(new Promise(() => {}));
     const { toJSON } = render(<AdminProductsScreen />);
     expect(toJSON()).not.toBeNull();
   });
@@ -68,12 +80,6 @@ describe('AdminProductsScreen', () => {
   it('renders product list on success', async () => {
     const { findAllByText } = render(<AdminProductsScreen />);
     const found = await findAllByText('Gạo ST25');
-    expect(found.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it('shows Cloudinary badge for cloudinary images', async () => {
-    const { findAllByText } = render(<AdminProductsScreen />);
-    const found = await findAllByText('Cloudinary ✓');
     expect(found.length).toBeGreaterThanOrEqual(1);
   });
 

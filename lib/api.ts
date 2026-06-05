@@ -28,7 +28,13 @@ async function handleResponse<T>(res: Response): Promise<T> {
     _onUnauthorized?.();
     throw new Error(i18next.t('errors.session_expired'));
   }
-  const data = await res.json().catch(() => ({}));
+  const text = await res.text().catch(() => '');
+  let data: any;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = null;
+  }
   if (!res.ok)
     throw new Error(data?.message || i18next.t('errors.error_with_status', { status: res.status }));
   return data as T;

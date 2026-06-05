@@ -101,11 +101,13 @@ const mockProduct3 = {
   stockRemaining: 0,
 };
 
+const future = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+const past = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 const mockSession = {
   sessionId: 's1',
   name: 'Flash Sale Cuối Tuần',
-  startTime: '2025-01-01T10:00:00Z',
-  endTime: '2025-01-01T22:00:00Z',
+  startTime: past,
+  endTime: future,
   products: [mockProduct1, mockProduct2, mockProduct3],
 };
 

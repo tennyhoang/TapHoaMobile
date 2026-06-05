@@ -22,7 +22,7 @@ export {
   useSetDefaultAddress,
   useDeleteAddress,
 } from './useAddresses';
-export { useWalletBalance, useWalletTransactions, useTopUp } from './useWallet';
+export { useWalletBalance, useWalletTransactions, useInitiateTopup } from './useWallet';
 export {
   useNotifications,
   useUnreadCount,

@@ -16,6 +16,9 @@ import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 import { C } from '@/constants/Colors';
 
+const NOW = Date.now();
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
 type Props = {
   product: Product;
   onAddToCart?: (product: Product) => void;
@@ -26,6 +29,7 @@ export default function ProductCard({ product, onAddToCart }: Props) {
   const pct = hasDiscount ? discountPercent(product.price, product.discountPrice!) : 0;
   const { isWishlisted, toggle } = useWishlist();
   const wishlisted = isWishlisted(product.id);
+  const isNew = !!product.createdAt && NOW - new Date(product.createdAt).getTime() < SEVEN_DAYS_MS;
 
   // Card press scale
   const cardScale = useSharedValue(1);
@@ -86,12 +90,19 @@ export default function ProductCard({ product, onAddToCart }: Props) {
         <View style={s.imgWrap}>
           <ProductImage uri={product.thumbnailUrl} style={s.img} name={product.name} />
 
-          {/* Discount badge */}
-          {hasDiscount && (
-            <View style={s.discountBadge}>
-              <Text style={s.discountText}>-{pct}%</Text>
-            </View>
-          )}
+          {/* Badges */}
+          <View style={s.badgeStack}>
+            {isNew && (
+              <View style={s.newBadge}>
+                <Text style={s.newBadgeText}>Mới</Text>
+              </View>
+            )}
+            {hasDiscount && (
+              <View style={s.discountBadge}>
+                <Text style={s.discountText}>-{pct}%</Text>
+              </View>
+            )}
+          </View>
 
           {/* Wishlist */}
           <Pressable
@@ -114,18 +125,13 @@ export default function ProductCard({ product, onAddToCart }: Props) {
 
         {/* Info */}
         <View style={s.info}>
-          <Text style={s.category} numberOfLines={1}>
-            {product.categoryName}
-          </Text>
           <Text style={s.name} numberOfLines={2}>
             {product.name}
           </Text>
-
-          <View style={s.priceRow}>
-            <Text style={s.price}>{formatCurrency(product.discountPrice ?? product.price)}</Text>
-            {hasDiscount && <Text style={s.originalPrice}>{formatCurrency(product.price)}</Text>}
-          </View>
-
+          <Text style={s.price} numberOfLines={1}>
+            {formatCurrency(product.discountPrice ?? product.price)}
+          </Text>
+          {hasDiscount && <Text style={s.originalPrice}>{formatCurrency(product.price)}</Text>}
           {product.reviewCount > 0 && (
             <View style={s.ratingRow}>
               <Ionicons name="star" size={10} color="#F59E0B" />
@@ -156,6 +162,7 @@ export default function ProductCard({ product, onAddToCart }: Props) {
 const s = StyleSheet.create({
   card: {
     flex: 1,
+    flexShrink: 0,
     backgroundColor: C.card,
     borderRadius: 16,
     borderWidth: 1,
@@ -174,10 +181,20 @@ const s = StyleSheet.create({
   },
   img: { width: '100%', height: '100%' },
 
-  discountBadge: {
+  badgeStack: {
     position: 'absolute',
     top: 8,
     left: 8,
+    gap: 4,
+  },
+  newBadge: {
+    backgroundColor: '#16A34A',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  newBadgeText: { fontSize: 10, fontWeight: '800', color: '#fff' },
+  discountBadge: {
     backgroundColor: C.discount,
     borderRadius: 6,
     paddingHorizontal: 6,
@@ -203,25 +220,15 @@ const s = StyleSheet.create({
   },
 
   info: { padding: 10, paddingBottom: 44 },
-  category: {
-    fontSize: 10,
-    color: C.primary,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 3,
-  },
-  name: { fontSize: 13, fontWeight: '600', color: C.text, lineHeight: 18, marginBottom: 5 },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    flexWrap: 'wrap',
-    marginBottom: 4,
-  },
+  name: { fontSize: 13, fontWeight: '600', color: C.text, lineHeight: 18, marginBottom: 4 },
   price: { fontSize: 15, fontWeight: '800', color: C.primary },
-  originalPrice: { fontSize: 11, color: C.muted, textDecorationLine: 'line-through' },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  originalPrice: {
+    fontSize: 11,
+    color: C.muted,
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
+  },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
   rating: { fontSize: 11, fontWeight: '600', color: C.text },
   reviewCount: { fontSize: 11, color: C.muted },
 

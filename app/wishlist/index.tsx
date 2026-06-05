@@ -26,7 +26,7 @@ export default function WishlistScreen() {
   const { show } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState<'network' | 'error' | false>(false);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async () => {
@@ -42,8 +42,8 @@ export default function WishlistScreen() {
         .filter((r): r is PromiseFulfilledResult<Product> => r.status === 'fulfilled')
         .map(r => r.value);
       setProducts(valid);
-    } catch {
-      setHasError(true);
+    } catch (e) {
+      setHasError(e instanceof TypeError ? 'network' : 'error');
     } finally {
       setLoading(false);
     }
@@ -154,7 +154,7 @@ export default function WishlistScreen() {
         </View>
       ) : hasError ? (
         <ErrorScreen
-          type="network"
+          type={hasError || 'error'}
           onRetry={() => {
             setLoading(true);
             fetchProducts();

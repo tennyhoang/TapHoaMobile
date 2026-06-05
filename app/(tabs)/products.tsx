@@ -207,7 +207,6 @@ export default function ProductsScreen() {
           data={products}
           keyExtractor={item => item.id}
           numColumns={productColumns}
-          estimatedItemSize={220}
           contentContainerStyle={{ ...s.grid, gap: cardGap }}
           showsVerticalScrollIndicator={false}
           refreshControl={

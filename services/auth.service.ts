@@ -34,5 +34,5 @@ export const authService = {
     request<{ message: string }>('/auth/forgot-password', { email }),
 
   socialLogin: (provider: 'Google', idToken: string) =>
-    request<AuthResponse>('/auth/social', { provider, idToken }),
+    request<AuthResponse>('/auth/social-login', { provider, token: idToken }),
 };

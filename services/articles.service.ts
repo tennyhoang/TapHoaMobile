@@ -37,6 +37,19 @@ export function getArticleImage(article: Article): string {
   return article.imageUrl || DEFAULT_IMAGES[article.category] || DEFAULT_IMAGES['dinh-duong'];
 }
 
+export type ArticlePayload = {
+  title: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  imageUrl?: string | null;
+  readTimeMinutes: number;
+};
+
 export const articlesService = {
   getAll: (): Promise<Article[]> => api.get<Article[]>('/articles'),
+  create: (payload: ArticlePayload): Promise<Article> => api.post('/articles', payload),
+  update: (id: string, payload: ArticlePayload): Promise<Article> =>
+    api.put(`/articles/${id}`, payload),
+  delete: (id: string): Promise<void> => api.delete(`/articles/${id}`),
 };

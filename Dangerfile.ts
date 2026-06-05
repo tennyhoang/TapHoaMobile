@@ -1,4 +1,4 @@
-import { danger, warn, fail, message } from 'danger';
+import { danger, warn, fail, message, schedule } from 'danger';
 
 const { pr } = danger.github;
 const modifiedFiles = danger.git.modified_files;
@@ -38,12 +38,14 @@ const srcFiles = allChangedFiles.filter(
     (f.startsWith('app/') || f.startsWith('components/') || f.startsWith('services/')) &&
     (f.endsWith('.ts') || f.endsWith('.tsx'))
 );
-for (const file of srcFiles) {
-  const content = danger.github.utils.fileContents(file);
-  if (content && /console\.log\(/.test(content)) {
-    warn(`\`console.log\` found in ${file} — dùng logger thay thế.`);
+schedule(async () => {
+  for (const file of srcFiles) {
+    const content = await danger.github.utils.fileContents(file);
+    if (content && /console\.log\(/.test(content)) {
+      warn(`\`console.log\` found in ${file} — dùng logger thay thế.`);
+    }
   }
-}
+});
 
 // ── Label automation ────────────────────────────────────────────────────────
 const labels: string[] = [];

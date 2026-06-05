@@ -43,12 +43,6 @@ describe('ProductCard', () => {
     expect(priceTexts.length).toBeGreaterThan(0);
   });
 
-  it('renders category name', () => {
-    const { getByText } = render(<ProductCard product={mockProduct} />);
-    // textTransform:'uppercase' is a style, not applied by RNTL — match the raw value
-    expect(getByText('Thực phẩm')).toBeTruthy();
-  });
-
   it('renders discount badge when discountPrice is set', () => {
     const { getByText } = render(<ProductCard product={mockProduct} />);
     expect(getByText('-20%')).toBeTruthy();

@@ -30,6 +30,48 @@ const NAV_ITEMS = [
     color: '#FF6B00',
     route: '/admin/products',
   },
+  {
+    icon: 'list-outline',
+    label: 'Danh mục',
+    desc: 'Tạo, sửa, xóa danh mục sản phẩm',
+    color: '#8B5CF6',
+    route: '/admin/categories',
+  },
+  {
+    icon: 'flash-outline',
+    label: 'Flash Sale',
+    desc: 'Quản lý chương trình flash sale',
+    color: '#EF4444',
+    route: '/admin/flash-sale',
+  },
+  {
+    icon: 'people-outline',
+    label: 'Người dùng',
+    desc: 'Quản lý tài khoản người dùng',
+    color: '#22C55E',
+    route: '/admin/users',
+  },
+  {
+    icon: 'wallet-outline',
+    label: 'Ví & Rút tiền',
+    desc: 'Duyệt yêu cầu rút tiền',
+    color: '#F59E0B',
+    route: '/admin/wallet',
+  },
+  {
+    icon: 'business-outline',
+    label: 'Kho hàng',
+    desc: 'Quản lý kho và hub',
+    color: '#06B6D4',
+    route: '/admin/hubs',
+  },
+  {
+    icon: 'book-outline',
+    label: 'Cẩm nang',
+    desc: 'Quản lý bài viết hướng dẫn',
+    color: '#16A34A',
+    route: '/admin/articles',
+  },
 ];
 
 export default function AdminDashboard() {

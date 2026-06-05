@@ -133,24 +133,25 @@ export default function WalletScreen() {
     }
     const confirmed = await biometrics.authenticate('Xác nhận nạp tiền vào ví');
     if (!confirmed) return;
-    const ref = `NT${Date.now()}`;
-    setPaymentRef(ref);
-    setTopUpStep('qr');
-  };
-
-  const handleConfirmTransfer = async () => {
     setConfirming(true);
     try {
-      const res = await walletService.topUp(finalAmount, paymentRef);
-      setBalance(res.balance);
-      setTopUpVisible(false);
-      show('Nạp tiền thành công!');
-      load();
+      // Server tạo paymentRef và lưu DB — webhook bank sẽ tự xác nhận
+      const res = await walletService.initiateTopup(finalAmount);
+      setPaymentRef(res.paymentRef);
+      setTopUpStep('qr');
     } catch {
-      show('Chưa xác nhận được — vui lòng thử lại sau', 'error');
+      show('Không thể tạo yêu cầu nạp tiền', 'error');
     } finally {
       setConfirming(false);
     }
+  };
+
+  const handleConfirmTransfer = () => {
+    // Thanh toán được xác nhận tự động qua webhook ngân hàng.
+    // Đóng modal và reload balance — số dư sẽ cập nhật sau vài giây.
+    setTopUpVisible(false);
+    show('Đã ghi nhận! Số dư sẽ cập nhật sau khi ngân hàng xác nhận.');
+    setTimeout(() => load(), 3000);
   };
 
   const renderTx = ({ item }: { item: WalletTransaction }) => {
@@ -355,15 +356,21 @@ export default function WalletScreen() {
                 )}
 
                 <TouchableOpacity
-                  style={[s.confirmBtn, finalAmount < 10_000 && s.confirmBtnDim]}
+                  style={[s.confirmBtn, (finalAmount < 10_000 || confirming) && s.confirmBtnDim]}
                   onPress={handleConfirmAmount}
-                  disabled={finalAmount < 10_000}
+                  disabled={finalAmount < 10_000 || confirming}
                   activeOpacity={0.85}
                   accessibilityLabel="Tiếp tục nạp tiền"
                   accessibilityRole="button"
                 >
-                  <Text style={s.confirmBtnText}>Tiếp tục</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#fff" />
+                  {confirming ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <>
+                      <Text style={s.confirmBtnText}>Tiếp tục</Text>
+                      <Ionicons name="arrow-forward" size={16} color="#fff" />
+                    </>
+                  )}
                 </TouchableOpacity>
               </>
             ) : (

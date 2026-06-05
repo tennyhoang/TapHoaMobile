@@ -54,7 +54,7 @@
         "aps-environment": "production",
         "com.apple.developer.associated-domains": ["applinks:taphoa.vn", "applinks:taphoa.vn"]
       },
-      "associatedDomains": ["applinks:taphoa.vn", "applinks:taphoa.vn"],
+      "associatedDomains": ["applinks:taphoa.vn"],
       "usesAppleSignIn": false,
       "privacyManifests": {
         "NSPrivacyTracking": false,

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { walletService } from '@/services/wallet.service';
 import { queryKeys } from './queryKeys';
 import type { WalletBalance, WalletTransaction, PagedResult } from '@/types';
@@ -24,14 +24,8 @@ export function useWalletTransactions(
   });
 }
 
-export function useTopUp() {
-  const qc = useQueryClient();
+export function useInitiateTopup() {
   return useMutation({
-    mutationFn: ({ amount, paymentRef }: { amount: number; paymentRef: string }) =>
-      walletService.topUp(amount, paymentRef),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.wallet.balance });
-      qc.invalidateQueries({ queryKey: queryKeys.wallet.transactions() });
-    },
+    mutationFn: ({ amount }: { amount: number }) => walletService.initiateTopup(amount),
   });
 }

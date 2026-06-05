@@ -21,6 +21,12 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, StatusConfig> = {
     bg: '#EFF6FF',
     icon: 'checkmark-circle-outline',
   },
+  PackedAtWarehouse: {
+    labelKey: 'status.PackedAtWarehouse',
+    color: '#0891B2',
+    bg: '#E0F2FE',
+    icon: 'cube-outline',
+  },
   ShippingToHub: {
     labelKey: 'status.ShippingToHub',
     color: '#8B5CF6',

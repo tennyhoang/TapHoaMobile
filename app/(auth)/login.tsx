@@ -54,7 +54,9 @@ export default function LoginScreen() {
   const [, googleResponse, googlePrompt] = Google.useAuthRequest({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? 'not-configured',
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    androidClientId:
+      process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ??
+      process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   });
 
   const handleSocialLogin = useCallback(
@@ -232,7 +234,7 @@ export default function LoginScreen() {
             {/* Forgot password */}
             <TouchableOpacity
               style={s.forgotBtn}
-              onPress={() => router.push('/(auth)/forgot-password' as any)}
+              onPress={() => router.push('/forgot-password' as any)}
               activeOpacity={0.7}
             >
               <Text style={s.forgotText}>Quên mật khẩu?</Text>
@@ -296,7 +298,7 @@ export default function LoginScreen() {
             {/* Register link */}
             <View style={s.footer}>
               <Text style={s.footerText}>Chưa có tài khoản? </Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/register' as any)}>
+              <TouchableOpacity onPress={() => router.push('/register' as any)}>
                 <Text style={s.footerLink}>Đăng ký ngay</Text>
               </TouchableOpacity>
             </View>

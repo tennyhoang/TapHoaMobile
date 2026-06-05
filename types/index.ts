@@ -83,6 +83,7 @@ export type Hub = {
 export type OrderStatus =
   | 'PendingPayment'
   | 'Paid_WaitingForBatch'
+  | 'PackedAtWarehouse'
   | 'ShippingToHub'
   | 'InHub_ReadyForPickup'
   | 'Completed'
@@ -195,4 +196,123 @@ export type Notification = {
   isRead: boolean;
   createdAt: string;
   data?: Record<string, string>;
+};
+
+export type AdminUser = {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  role: string;
+  isActive: boolean;
+  agentHubId?: string;
+  createdAt: string;
+  warehouseId?: string;
+  warehouseName?: string;
+  managedWarehouseId?: string;
+  managedWarehouseName?: string;
+};
+
+export type AdminFlashSaleSession = {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+  createdAt: string;
+  itemCount: number;
+};
+
+export type AdminFlashSaleItem = {
+  id: string;
+  productId: string;
+  productName: string;
+  thumbnailUrl?: string;
+  originalPrice: number;
+  flashSalePrice: number;
+  flashSaleStock: number;
+  soldCount: number;
+};
+
+export type WithdrawRequest = {
+  id: string;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  holderName: string;
+  status: 'Pending' | 'Completed' | 'Rejected';
+  createdAt: string;
+  processedAt?: string;
+  adminNote?: string;
+  userName: string;
+  userEmail: string;
+};
+
+export type Warehouse = {
+  id: string;
+  name: string;
+  address: string;
+  ward: string;
+  district: string;
+  province: string;
+  phoneNumber?: string;
+  isActive?: boolean;
+};
+
+export type WarehouseOrderStatus = 'Paid_WaitingForBatch' | 'PackedAtWarehouse' | 'ShippingToHub';
+
+export type WarehouseOrder = {
+  id: string;
+  status: WarehouseOrderStatus;
+  totalAmount: number;
+  createdAt: string;
+  paidAt?: string;
+  packedAtWarehouseAt?: string;
+  note?: string;
+  hub: { id: string; name: string; address: string };
+  customer: { fullName: string; phoneNumber?: string };
+  items: {
+    productId: string;
+    name: string;
+    thumbnailUrl?: string;
+    quantity: number;
+    unitPrice: number;
+  }[];
+};
+
+export type WarehouseInventoryItem = {
+  id: string;
+  name: string;
+  thumbnailUrl?: string;
+  stock: number;
+  price: number;
+  categoryName: string;
+  isLowStock: boolean;
+  isOutOfStock: boolean;
+};
+
+export type WarehouseDriver = {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  isActive: boolean;
+  activeOrders: number;
+};
+
+export type WarehouseDashboard = {
+  warehouse: {
+    id: string;
+    name: string;
+    address: string;
+    district: string;
+    province: string;
+    isActive: boolean;
+  } | null;
+  pendingOrders: number;
+  packedOrders: number;
+  shippingOrders: number;
+  packedToday: number;
+  activeDrivers: number;
+  lowStockProducts: number;
 };

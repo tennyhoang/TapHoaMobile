@@ -129,7 +129,7 @@ const SUB_BANNERS = [
 
 export default function HomeScreen() {
   const { top } = useSafeAreaInsets();
-  const { cardGap } = useLayout();
+  useLayout();
   const { user } = useAuth();
   const { show } = useToast();
   const { itemCount, refreshCount } = useCartCount();
@@ -467,7 +467,7 @@ export default function HomeScreen() {
         )}
 
         {/* ── FLASH SALE ── */}
-        {flashSale && (
+        {flashSale?.products?.length ? (
           <View style={s.section}>
             <View style={[s.flashHeaderRow, s.sectionHeaderFlash]}>
               <View style={s.flashTitleRow}>
@@ -475,7 +475,13 @@ export default function HomeScreen() {
                   <Ionicons name="flash" size={16} color="#fff" />
                 </View>
                 <Text style={s.flashTitle}>Flash Sale</Text>
-                <Text style={s.flashCountdown}>{countdown}</Text>
+                {new Date(flashSale.endTime) > new Date() ? (
+                  <Text style={s.flashCountdown}>{countdown}</Text>
+                ) : (
+                  <View style={s.endedBadge}>
+                    <Text style={s.endedBadgeText}>Đã kết thúc</Text>
+                  </View>
+                )}
               </View>
               <TouchableOpacity onPress={() => router.push('/flash-sale' as any)}>
                 <Text style={s.seeAll}>Xem tất cả →</Text>
@@ -487,53 +493,41 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={s.flashScroll}
             >
-              {(flashSale.products ?? []).slice(0, 8).map(item => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={s.flashCard}
-                  onPress={() => router.push(`/product/${item.id}` as any)}
-                  activeOpacity={0.88}
-                >
-                  <View style={s.flashImgWrap}>
-                    <ProductImage
-                      uri={item.thumbnailUrl}
-                      style={StyleSheet.absoluteFill}
-                      name={item.name}
-                    />
-                    <View style={s.flashBadge}>
-                      <Text style={s.flashBadgeText}>
-                        -
-                        {Math.round(
-                          ((item.originalPrice - item.flashSalePrice) / item.originalPrice) * 100
-                        )}
-                        %
+              {(flashSale.products ?? []).slice(0, 8).map(item => {
+                const pct = Math.round(
+                  ((item.originalPrice - item.flashSalePrice) / item.originalPrice) * 100
+                );
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={s.flashCard}
+                    onPress={() => router.push(`/product/${item.id}` as any)}
+                    activeOpacity={0.88}
+                  >
+                    <View style={s.flashImgWrap}>
+                      <ProductImage
+                        uri={item.thumbnailUrl}
+                        style={StyleSheet.absoluteFill}
+                        name={item.name}
+                      />
+                      <View style={s.flashBadge}>
+                        <Text style={s.flashBadgeText}>-{pct}%</Text>
+                      </View>
+                    </View>
+                    <View style={s.flashInfo}>
+                      <Text style={s.flashName} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <Text style={s.flashPrice} numberOfLines={1}>
+                        {formatCurrency(item.flashSalePrice)}
                       </Text>
                     </View>
-                  </View>
-                  <View style={s.flashInfo}>
-                    <Text style={s.flashName} numberOfLines={2}>
-                      {item.name}
-                    </Text>
-                    <Text style={s.flashPrice}>{formatCurrency(item.flashSalePrice)}</Text>
-                    <Text style={s.flashOriginal}>{formatCurrency(item.originalPrice)}</Text>
-                    <View style={s.stockBarWrap}>
-                      <View
-                        style={[
-                          s.stockBar,
-                          {
-                            width:
-                              `${Math.min(100, (item.soldCount / item.flashSaleStock) * 100)}%` as any,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={s.stockText}>Còn {item.stockRemaining}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
-        )}
+        ) : null}
 
         {/* ── NEW PRODUCTS ── */}
         <View style={s.section}>
@@ -548,19 +542,31 @@ export default function HomeScreen() {
           </View>
 
           {loading ? (
-            <View style={[s.productGrid, { gap: cardGap }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.newProductScroll}
+            >
               {[1, 2, 3, 4].map(i => (
-                <ProductCardSkeleton key={i} />
+                <View key={i} style={s.newProductCard}>
+                  <ProductCardSkeleton />
+                </View>
               ))}
-            </View>
+            </ScrollView>
           ) : products.length === 0 ? (
             <EmptyState icon="leaf-outline" title="Chưa có sản phẩm" />
           ) : (
-            <View style={[s.productGrid, { gap: cardGap }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.newProductScroll}
+            >
               {products.map(p => (
-                <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
+                <View key={p.id} style={s.newProductCard}>
+                  <ProductCard product={p} onAddToCart={handleAddToCart} />
+                </View>
               ))}
-            </View>
+            </ScrollView>
           )}
         </View>
 
@@ -603,11 +609,17 @@ export default function HomeScreen() {
                 <Text style={s.seeAll}>Xem tất cả →</Text>
               </TouchableOpacity>
             </View>
-            <View style={[s.productGrid, { gap: cardGap }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.discountScroll}
+            >
               {discountProducts.map(p => (
-                <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
+                <View key={p.id} style={s.newProductCard}>
+                  <ProductCard product={p} onAddToCart={handleAddToCart} />
+                </View>
               ))}
-            </View>
+            </ScrollView>
           </View>
         )}
 
@@ -866,21 +878,24 @@ const s = StyleSheet.create({
   },
   flashTitle: { fontSize: 18, fontWeight: '800', color: C.text },
   flashCountdown: { fontSize: 14, fontWeight: '700', color: '#D97706', letterSpacing: 0.5 },
+  endedBadge: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  endedBadgeText: { fontSize: 11, fontWeight: '600', color: '#9CA3AF' },
   flashScroll: { gap: 12, paddingBottom: 4 },
   flashCard: {
-    width: 150,
+    width: 140,
+    flexShrink: 0,
     backgroundColor: C.card,
-    borderRadius: 16,
+    borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: C.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
-  flashImgWrap: { width: '100%', height: 130, backgroundColor: '#FEF3C7' },
+  flashImgWrap: { width: '100%', height: 140, backgroundColor: '#FEF3C7' },
   flashBadge: {
     position: 'absolute',
     top: 8,
@@ -890,20 +905,10 @@ const s = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  flashBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
-  flashInfo: { padding: 10 },
-  flashName: { fontSize: 12, fontWeight: '600', color: C.text, marginBottom: 4, lineHeight: 16 },
-  flashPrice: { fontSize: 13, fontWeight: '800', color: '#EF4444' },
-  flashOriginal: { fontSize: 11, color: C.muted, textDecorationLine: 'line-through' },
-  stockBarWrap: {
-    height: 4,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 2,
-    marginTop: 6,
-    overflow: 'hidden',
-  },
-  stockBar: { height: '100%', backgroundColor: '#F59E0B', borderRadius: 2 },
-  stockText: { fontSize: 10, color: C.muted, marginTop: 3 },
+  flashBadgeText: { fontSize: 11, fontWeight: '800', color: '#fff' },
+  flashInfo: { padding: 8 },
+  flashName: { fontSize: 12, fontWeight: '600', color: C.text, marginBottom: 4 },
+  flashPrice: { fontSize: 15, fontWeight: '800', color: '#EF4444' },
 
   // Products
   productGrid: { flexDirection: 'row', flexWrap: 'wrap' },
@@ -1137,4 +1142,9 @@ const s = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 15,
   },
+
+  // New Products horizontal scroll
+  newProductScroll: { gap: 12, paddingBottom: 4 },
+  newProductCard: { width: 150, flexShrink: 0 },
+  discountScroll: { gap: 12, paddingBottom: 4 },
 });

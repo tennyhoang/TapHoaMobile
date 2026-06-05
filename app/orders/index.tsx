@@ -31,7 +31,7 @@ export default function OrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState<'network' | 'error' | false>(false);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | undefined>(undefined);
 
   const load = useCallback(async (status?: OrderStatus) => {
@@ -39,8 +39,8 @@ export default function OrdersScreen() {
     try {
       const res = await ordersService.getMyOrders({ pageSize: 50, status });
       setOrders(res.items ?? []);
-    } catch {
-      setHasError(true);
+    } catch (e) {
+      setHasError(e instanceof TypeError ? 'network' : 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -121,7 +121,7 @@ export default function OrdersScreen() {
         </View>
       ) : hasError ? (
         <ErrorScreen
-          type="network"
+          type={hasError || 'error'}
           onRetry={() => {
             setLoading(true);
             load(filterStatus);

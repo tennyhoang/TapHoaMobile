@@ -71,10 +71,6 @@ export default Sentry.wrap(function RootLayout() {
                   <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="(auth)" />
                     <Stack.Screen name="(tabs)" />
-                    <Stack.Screen
-                      name="(auth)/forgot-password"
-                      options={{ animation: 'slide_from_right' }}
-                    />
                     <Stack.Screen name="product/[id]" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen
                       name="product/search"
@@ -98,6 +94,26 @@ export default Sentry.wrap(function RootLayout() {
                       options={{ animation: 'slide_from_right' }}
                     />
                     <Stack.Screen name="admin/orders" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen
+                      name="admin/orders/[id]"
+                      options={{ animation: 'slide_from_right' }}
+                    />
+                    <Stack.Screen
+                      name="admin/categories"
+                      options={{ animation: 'slide_from_right' }}
+                    />
+                    <Stack.Screen
+                      name="admin/flash-sale"
+                      options={{ animation: 'slide_from_right' }}
+                    />
+                    <Stack.Screen name="admin/users" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="admin/wallet" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="admin/hubs" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen
+                      name="admin/articles"
+                      options={{ animation: 'slide_from_right' }}
+                    />
+                    <Stack.Screen name="warehouse" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="articles" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="flash-sale" options={{ animation: 'slide_from_bottom' }} />
                     <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />

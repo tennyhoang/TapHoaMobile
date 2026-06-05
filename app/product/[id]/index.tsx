@@ -424,7 +424,7 @@ const s = StyleSheet.create({
   relatedTitle: { fontSize: 17, fontWeight: '800', color: C.text },
   seeAll: { fontSize: 13, color: C.primary, fontWeight: '600' },
   relatedScroll: { gap: 12, paddingBottom: 4 },
-  relatedCard: { width: 150 },
+  relatedCard: { width: 150, flexShrink: 0 },
 
   bottomBar: {
     position: 'absolute',
