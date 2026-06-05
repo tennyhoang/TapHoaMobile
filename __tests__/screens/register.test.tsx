@@ -24,9 +24,6 @@ jest.mock('@expo/vector-icons', () => {
 jest.mock('expo-auth-session/providers/google', () => ({
   useAuthRequest: () => [null, null, jest.fn()],
 }));
-jest.mock('expo-auth-session/providers/facebook', () => ({
-  useAuthRequest: () => [null, null, jest.fn()],
-}));
 jest.mock('expo-web-browser', () => ({ maybeCompleteAuthSession: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: any) => children,
@@ -221,11 +218,6 @@ describe('RegisterScreen', () => {
   it('Google social login button is present', () => {
     const { getByText } = render(<RegisterScreen />);
     expect(getByText('Tiếp tục với Google')).toBeTruthy();
-  });
-
-  it('Facebook social login button is present', () => {
-    const { getByText } = render(<RegisterScreen />);
-    expect(getByText('Tiếp tục với Facebook')).toBeTruthy();
   });
 
   it('"Đã có tài khoản? Đăng nhập" link navigates back', () => {
