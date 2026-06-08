@@ -136,32 +136,24 @@ describe('ProductsScreen', () => {
   });
 
   it('searching calls productsService.getAll with search term', async () => {
-    jest.useFakeTimers();
     (productsService.getAll as jest.Mock).mockResolvedValue(mockPagedResult);
     (categoriesService.getAll as jest.Mock).mockResolvedValue(mockCategories);
     const { getByPlaceholderText } = render(<ProductsScreen />, { wrapper });
 
-    await waitFor(() => {
-      expect(productsService.getAll).toHaveBeenCalled();
-    });
-
+    await waitFor(() => expect(productsService.getAll).toHaveBeenCalled());
     (productsService.getAll as jest.Mock).mockClear();
 
-    await act(async () => {
-      fireEvent.changeText(getByPlaceholderText('Tìm kiếm sản phẩm...'), 'gạo');
-    });
+    fireEvent.changeText(getByPlaceholderText('Tìm kiếm sản phẩm...'), 'gạo');
 
-    await act(async () => {
-      jest.advanceTimersByTime(400);
-    });
-
-    await waitFor(() => {
-      expect(productsService.getAll).toHaveBeenCalledWith(
-        expect.objectContaining({ search: 'gạo' })
-      );
-    });
-
-    jest.useRealTimers();
+    // Debounce is 400ms — waitFor retries for 2s with real timers
+    await waitFor(
+      () => {
+        expect(productsService.getAll).toHaveBeenCalledWith(
+          expect.objectContaining({ search: 'gạo' })
+        );
+      },
+      { timeout: 2000 }
+    );
   });
 
   it('shows empty state when no products found', async () => {
