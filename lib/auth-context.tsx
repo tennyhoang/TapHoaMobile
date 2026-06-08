@@ -94,12 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateUser = async (partial: Partial<User>) => {
-    setUser(prev => {
-      if (!prev) return prev;
-      const updated = { ...prev, ...partial };
-      storage.setItem(USER_KEY, JSON.stringify(updated));
-      return updated;
-    });
+    if (!user) return;
+    const updated = { ...user, ...partial };
+    await storage.setItem(USER_KEY, JSON.stringify(updated));
+    setUser(updated);
   };
 
   return (
