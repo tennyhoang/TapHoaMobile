@@ -1,5 +1,6 @@
 import { Tabs, Redirect } from 'expo-router';
 import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
@@ -16,7 +17,14 @@ export default function TabLayout() {
     if (token) refreshCount();
   }, [token]);
 
-  if (isLoading) return null;
+  if (isLoading)
+    return (
+      <View
+        style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}
+      >
+        <ActivityIndicator color="#0EA5AE" size="large" />
+      </View>
+    );
   if (!token) return <Redirect href={'/(auth)/login' as any} />;
 
   const tint = Colors.light.primary;
