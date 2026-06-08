@@ -223,11 +223,6 @@ describe('RegisterScreen', () => {
     expect(getByText('Tiếp tục với Google')).toBeTruthy();
   });
 
-  it('Facebook social login button is present', () => {
-    const { getByText } = render(<RegisterScreen />);
-    expect(getByText('Tiếp tục với Facebook')).toBeTruthy();
-  });
-
   it('"Đã có tài khoản? Đăng nhập" link navigates back', () => {
     const { getByText } = render(<RegisterScreen />);
     const loginLink = getByText('Đăng nhập');

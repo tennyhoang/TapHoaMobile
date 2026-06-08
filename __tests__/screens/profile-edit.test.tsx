@@ -49,7 +49,14 @@ const defaultUser = {
 describe('ProfileEditScreen', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({ user: defaultUser, updateUser: mockUpdateUser });
-    mockProfile.getMe.mockRejectedValue(new Error('no network'));
+    mockProfile.getMe.mockResolvedValue({
+      id: 'u1',
+      email: 'test@example.com',
+      fullName: 'Test User',
+      phoneNumber: '0123456789',
+      avatarUrl: null,
+      isActive: true,
+    });
     mockProfile.update.mockRejectedValue(new Error('no update'));
     mockProfile.changePassword.mockRejectedValue(new Error('no pw change'));
     (jest.requireMock('@/lib/biometrics') as any).biometrics.authenticate.mockResolvedValue(true);

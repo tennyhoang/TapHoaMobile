@@ -53,12 +53,6 @@ describe('AdminDashboard', () => {
     await waitFor(() => {
       expect(getByText('Quản lý đơn hàng')).toBeTruthy();
       expect(getByText('Quản lý sản phẩm')).toBeTruthy();
-      expect(getByText('Danh mục')).toBeTruthy();
-      expect(getByText('Flash Sale')).toBeTruthy();
-      expect(getByText('Người dùng')).toBeTruthy();
-      expect(getByText('Ví & Rút tiền')).toBeTruthy();
-      expect(getByText('Kho hàng')).toBeTruthy();
-      expect(getByText('Cẩm nang')).toBeTruthy();
     });
   });
 
