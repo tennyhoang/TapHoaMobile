@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  FlatList,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
@@ -11,7 +11,6 @@ import {
   RefreshControl,
   StatusBar,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { productsService } from '@/services/products.service';
@@ -20,7 +19,7 @@ import { cartService } from '@/services/cart.service';
 import ProductCard from '@/components/ProductCard';
 import { useToast } from '@/components/Toast';
 import { useLayout } from '@/lib/layout';
-import type { Product } from '@/types';
+import type { Product, Category } from '@/types';
 import { C } from '@/constants/Colors';
 import EmptyState from '@/components/EmptyState';
 
@@ -35,71 +34,90 @@ export default function ProductsScreen() {
   const { top } = useSafeAreaInsets();
   const { productColumns, cardGap } = useLayout();
   const { show } = useToast();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('newest');
   const [isNew, setIsNew] = useState(false);
   const [isDiscount, setIsDiscount] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const queryClient = useQueryClient();
+  useEffect(() => {
+    categoriesService
+      .getAll()
+      .then(setCategories)
+      .catch(() => console.warn('Failed to load categories'));
+  }, []);
+
+  const fetchProducts = useCallback(
+    async (p: number, reset = false) => {
+      try {
+        const res = await productsService.getAll({
+          search: search || undefined,
+          categoryId: selectedCat ?? undefined,
+          sortBy,
+          page: p,
+          pageSize: 20,
+          isNew: isNew || undefined,
+          isDiscount: isDiscount || undefined,
+        });
+        setProducts(prev => (reset ? res.items : [...prev, ...res.items]));
+        setTotalPages(res.totalPages);
+        setPage(p);
+      } catch {
+        console.warn('Failed to load products');
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+        setRefreshing(false);
+      }
+    },
+    [search, selectedCat, sortBy, isNew, isDiscount]
+  );
+
+  useEffect(() => {
+    setLoading(true);
+    setPage(1);
+    fetchProducts(1, true);
+  }, [selectedCat, sortBy, isNew, isDiscount]);
 
   // Debounce search
-  const handleSearchChange = (text: string) => {
-    setSearch(text);
+  useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => setDebouncedSearch(text), 400);
-  };
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['products-categories'],
-    queryFn: () => categoriesService.getAll().then(r => r ?? []),
-  });
-
-  const {
-    data,
-    isLoading: loading,
-    isFetchingNextPage: loadingMore,
-    isFetching: refreshing,
-    fetchNextPage,
-    hasNextPage,
-    refetch,
-  } = useInfiniteQuery({
-    queryKey: ['products-list', debouncedSearch, selectedCat, sortBy, isNew, isDiscount],
-    queryFn: ({ pageParam = 1 }) =>
-      productsService.getAll({
-        search: debouncedSearch || undefined,
-        categoryId: selectedCat ?? undefined,
-        sortBy,
-        page: pageParam as number,
-        pageSize: 20,
-        isNew: isNew || undefined,
-        isDiscount: isDiscount || undefined,
-      }),
-    getNextPageParam: (lastPage, pages) =>
-      lastPage.totalPages > pages.length ? pages.length + 1 : undefined,
-    initialPageParam: 1,
-  });
-  const products = data?.pages.flatMap(p => p.items) ?? [];
+    searchTimer.current = setTimeout(() => {
+      setLoading(true);
+      fetchProducts(1, true);
+    }, 400);
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
+  }, [search]);
 
   const handleLoadMore = () => {
-    if (loadingMore || !hasNextPage) return;
-    fetchNextPage();
+    if (loadingMore || page >= totalPages) return;
+    setLoadingMore(true);
+    fetchProducts(page + 1);
   };
 
-  const addToCartMutation = useMutation({
-    mutationFn: (productId: string) => cartService.add(productId, 1),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
-    onError: () => show('Không thể thêm vào giỏ hàng', 'error'),
-  });
-
-  const handleAddToCart = (product: Product) => {
-    show(`Đã thêm "${product.name}" vào giỏ`);
-    addToCartMutation.mutate(product.id);
+  const handleAddToCart = async (product: Product) => {
+    try {
+      await cartService.add(product.id, 1);
+      show(`Đã thêm "${product.name}" vào giỏ`);
+    } catch {
+      show('Không thể thêm vào giỏ hàng', 'error');
+    }
   };
 
-  const onRefresh = () => refetch();
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchProducts(1, true);
+  };
 
   return (
     <View style={s.root}>
@@ -116,7 +134,7 @@ export default function ProductsScreen() {
             placeholder="Tìm kiếm sản phẩm..."
             placeholderTextColor="#9CA3AF"
             value={search}
-            onChangeText={handleSearchChange}
+            onChangeText={setSearch}
             returnKeyType="search"
           />
           {search.length > 0 && (
@@ -203,11 +221,13 @@ export default function ProductsScreen() {
           subtitle="Thử thay đổi bộ lọc hoặc từ khóa"
         />
       ) : (
-        <FlashList
+        <FlatList
           data={products}
           keyExtractor={item => item.id}
           numColumns={productColumns}
-          contentContainerStyle={{ ...s.grid, gap: cardGap }}
+          key={productColumns}
+          contentContainerStyle={[s.grid, { gap: cardGap }]}
+          columnWrapperStyle={{ gap: cardGap }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />

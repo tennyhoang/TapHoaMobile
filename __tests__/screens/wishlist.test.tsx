@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import WishlistScreen from '@/app/wishlist/index';
+import WishlistScreen from '@/app/wishlist';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
 

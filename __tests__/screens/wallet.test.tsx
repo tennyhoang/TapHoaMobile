@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import WalletScreen from '@/app/wallet/index';
+import WalletScreen from '@/app/wallet';
 import { walletService } from '@/services/wallet.service';
 
 jest.mock('expo-router', () => ({
@@ -9,12 +9,7 @@ jest.mock('expo-router', () => ({
 }));
 
 jest.mock('@/services/wallet.service', () => ({
-  walletService: {
-    getBalance: jest.fn(),
-    getTransactions: jest.fn(),
-    topUp: jest.fn(),
-    initiateTopup: jest.fn(),
-  },
+  walletService: { getBalance: jest.fn(), getTransactions: jest.fn(), topUp: jest.fn() },
 }));
 
 const mockToastShow = jest.fn();
@@ -80,7 +75,6 @@ describe('WalletScreen', () => {
       pageSize: 20,
       totalPages: 1,
     } as any);
-    mockService.initiateTopup.mockResolvedValue({ paymentRef: 'REF123' });
   });
 
   it('shows loading indicator initially', () => {
@@ -199,7 +193,8 @@ describe('WalletScreen', () => {
     });
   });
 
-  it('calls walletService.initiateTopup when confirming amount', async () => {
+  it('calls walletService.topUp when confirming transfer', async () => {
+    mockService.topUp.mockResolvedValueOnce({ balance: 300000 });
     const { getByText, getAllByText } = render(<WalletScreen />, { wrapper });
     await waitFor(() => getByText('200.000 ₫'));
     fireEvent.press(getAllByText('Nạp tiền')[0]);
@@ -209,8 +204,12 @@ describe('WalletScreen', () => {
     await act(async () => {
       fireEvent.press(getByText('Tiếp tục'));
     });
+    await waitFor(() => getByText('Đã chuyển khoản xong'));
+    await act(async () => {
+      fireEvent.press(getByText('Đã chuyển khoản xong'));
+    });
     await waitFor(() => {
-      expect(mockService.initiateTopup).toHaveBeenCalledWith(100000);
+      expect(mockService.topUp).toHaveBeenCalled();
     });
   });
 

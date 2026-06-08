@@ -20,6 +20,7 @@ import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Order } from '@/types';
 
+// Agent screen uses its own brand palette (indigo/purple), intentionally separate from C
 const C = {
   primary: '#4F46E5',
   primaryLight: '#EEF2FF',

@@ -27,9 +27,9 @@ import EmptyState from '@/components/EmptyState';
 import type { WalletTransaction, WalletTransactionType } from '@/types';
 import { C } from '@/constants/Colors';
 
-const BANK_CODE = process.env.EXPO_PUBLIC_BANK_CODE ?? 'MB';
-const ACCOUNT_NO = process.env.EXPO_PUBLIC_ACCOUNT_NO ?? '0000000001';
-const ACCOUNT_NAME = process.env.EXPO_PUBLIC_ACCOUNT_NAME ?? 'TAPHOA TEST';
+const BANK_CODE = 'MB';
+const ACCOUNT_NO = '0000000001';
+const ACCOUNT_NAME = 'TAPHOA TEST';
 
 const PRESET_AMOUNTS = [50_000, 100_000, 200_000, 500_000, 1_000_000, 2_000_000];
 
@@ -133,25 +133,24 @@ export default function WalletScreen() {
     }
     const confirmed = await biometrics.authenticate('Xác nhận nạp tiền vào ví');
     if (!confirmed) return;
+    const ref = `NT${Date.now()}`;
+    setPaymentRef(ref);
+    setTopUpStep('qr');
+  };
+
+  const handleConfirmTransfer = async () => {
     setConfirming(true);
     try {
-      // Server tạo paymentRef và lưu DB — webhook bank sẽ tự xác nhận
-      const res = await walletService.initiateTopup(finalAmount);
-      setPaymentRef(res.paymentRef);
-      setTopUpStep('qr');
+      const res = await walletService.topUp(finalAmount, paymentRef);
+      setBalance(res.balance);
+      setTopUpVisible(false);
+      show('Nạp tiền thành công!');
+      load();
     } catch {
-      show('Không thể tạo yêu cầu nạp tiền', 'error');
+      show('Chưa xác nhận được — vui lòng thử lại sau', 'error');
     } finally {
       setConfirming(false);
     }
-  };
-
-  const handleConfirmTransfer = () => {
-    // Thanh toán được xác nhận tự động qua webhook ngân hàng.
-    // Đóng modal và reload balance — số dư sẽ cập nhật sau vài giây.
-    setTopUpVisible(false);
-    show('Đã ghi nhận! Số dư sẽ cập nhật sau khi ngân hàng xác nhận.');
-    setTimeout(() => load(), 3000);
   };
 
   const renderTx = ({ item }: { item: WalletTransaction }) => {
@@ -192,13 +191,7 @@ export default function WalletScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       <View style={[s.header, { paddingTop: top + 16 }]}>
-        <TouchableOpacity
-          style={s.backBtn}
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-          accessibilityLabel="Quay lại"
-          accessibilityRole="button"
-        >
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Ví của tôi</Text>
@@ -221,13 +214,7 @@ export default function WalletScreen() {
 
       {/* Action buttons */}
       <View style={s.actionsRow}>
-        <TouchableOpacity
-          style={s.actionBtn}
-          onPress={openTopUp}
-          activeOpacity={0.8}
-          accessibilityLabel="Nạp tiền vào ví"
-          accessibilityRole="button"
-        >
+        <TouchableOpacity style={s.actionBtn} onPress={openTopUp} activeOpacity={0.8}>
           <View style={s.actionIcon}>
             <Ionicons name="add-circle-outline" size={22} color={C.primary} />
           </View>
@@ -238,8 +225,6 @@ export default function WalletScreen() {
           style={s.actionBtn}
           onPress={() => router.push('/orders' as any)}
           activeOpacity={0.8}
-          accessibilityLabel="Xem lịch sử giao dịch"
-          accessibilityRole="button"
         >
           <View style={s.actionIcon}>
             <Ionicons name="receipt-outline" size={22} color="#8B5CF6" />
@@ -247,12 +232,7 @@ export default function WalletScreen() {
           <Text style={s.actionLabel}>Lịch sử dùng</Text>
         </TouchableOpacity>
         <View style={s.actionDivider} />
-        <TouchableOpacity
-          style={s.actionBtn}
-          activeOpacity={0.8}
-          accessibilityLabel="Trung tâm hỗ trợ"
-          accessibilityRole="button"
-        >
+        <TouchableOpacity style={s.actionBtn} activeOpacity={0.8}>
           <View style={s.actionIcon}>
             <Ionicons name="help-circle-outline" size={22} color="#F59E0B" />
           </View>
@@ -318,8 +298,6 @@ export default function WalletScreen() {
                         setCustomAmount('');
                       }}
                       activeOpacity={0.8}
-                      accessibilityLabel={`Nạp ${formatCurrency(amt)}`}
-                      accessibilityRole="button"
                     >
                       <Text
                         style={[s.presetChipText, selectedAmount === amt && s.presetChipTextActive]}
@@ -356,21 +334,13 @@ export default function WalletScreen() {
                 )}
 
                 <TouchableOpacity
-                  style={[s.confirmBtn, (finalAmount < 10_000 || confirming) && s.confirmBtnDim]}
+                  style={[s.confirmBtn, finalAmount < 10_000 && s.confirmBtnDim]}
                   onPress={handleConfirmAmount}
-                  disabled={finalAmount < 10_000 || confirming}
+                  disabled={finalAmount < 10_000}
                   activeOpacity={0.85}
-                  accessibilityLabel="Tiếp tục nạp tiền"
-                  accessibilityRole="button"
                 >
-                  {confirming ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <>
-                      <Text style={s.confirmBtnText}>Tiếp tục</Text>
-                      <Ionicons name="arrow-forward" size={16} color="#fff" />
-                    </>
-                  )}
+                  <Text style={s.confirmBtnText}>Tiếp tục</Text>
+                  <Ionicons name="arrow-forward" size={16} color="#fff" />
                 </TouchableOpacity>
               </>
             ) : (
@@ -379,8 +349,6 @@ export default function WalletScreen() {
                   style={s.backRow}
                   onPress={() => setTopUpStep('pick')}
                   activeOpacity={0.7}
-                  accessibilityLabel="Thay đổi số tiền nạp"
-                  accessibilityRole="button"
                 >
                   <Ionicons name="arrow-back" size={16} color={C.primary} />
                   <Text style={s.backRowText}>Thay đổi số tiền</Text>
@@ -429,8 +397,6 @@ export default function WalletScreen() {
                   onPress={handleConfirmTransfer}
                   disabled={confirming}
                   activeOpacity={0.85}
-                  accessibilityLabel="Xác nhận đã chuyển khoản"
-                  accessibilityRole="button"
                 >
                   {confirming ? (
                     <ActivityIndicator color="#fff" size="small" />

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   View,
   Text,
@@ -26,12 +25,17 @@ import { categoriesService } from '@/services/categories.service';
 import { flashSaleService } from '@/services/flashsale.service';
 import { cartService } from '@/services/cart.service';
 import { ordersService } from '@/services/orders.service';
-import { articlesService, getCategoryMeta, getArticleImage } from '@/services/articles.service';
+import {
+  articlesService,
+  getCategoryMeta,
+  getArticleImage,
+  type Article,
+} from '@/services/articles.service';
 import ProductCard from '@/components/ProductCard';
 import { ProductCardSkeleton } from '@/components/Skeleton';
 import { formatCurrency, formatCountdown } from '@/lib/utils';
 import EmptyState from '@/components/EmptyState';
-import type { Product } from '@/types';
+import type { Category, Product, FlashSaleSession, Order } from '@/types';
 import { C } from '@/constants/Colors';
 
 // ── Category icon mapping ────────────────────────────────────────────────────
@@ -129,7 +133,7 @@ const SUB_BANNERS = [
 
 export default function HomeScreen() {
   const { top } = useSafeAreaInsets();
-  useLayout();
+  const { cardGap } = useLayout();
   const { user } = useAuth();
   const { show } = useToast();
   const { itemCount, refreshCount } = useCartCount();
@@ -137,57 +141,50 @@ export default function HomeScreen() {
   const heroRef = useRef<any>(null);
   const [heroBannerIdx, setHeroBannerIdx] = useState(0);
 
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [discountProducts, setDiscountProducts] = useState<Product[]>([]);
+  const [flashSale, setFlashSale] = useState<FlashSaleSession | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [countdown, setCountdown] = useState('');
-  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
 
-  const queryClient = useQueryClient();
   const firstName = user?.fullName?.split(' ').pop() ?? 'bạn';
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['home-categories'],
-    queryFn: () => categoriesService.getAll().then(r => r ?? []),
-  });
+  const load = useCallback(async () => {
+    try {
+      const [cats, prods, sale, disc, arts, orders] = await Promise.all([
+        categoriesService.getAll(),
+        productsService.getAll({ pageSize: 8, sortBy: 'newest' }),
+        flashSaleService.getCurrent(),
+        productsService.getAll({ pageSize: 6, isDiscount: true }),
+        articlesService.getAll(),
+        ordersService.getMyOrders({ pageSize: 10 }),
+      ]);
+      setCategories(cats ?? []);
+      setProducts(prods.items ?? []);
+      setFlashSale(sale);
+      setDiscountProducts(disc.items ?? []);
+      setArticles((arts ?? []).slice(0, 3));
+      setActiveOrder(
+        (orders.items ?? []).find(o => ACTIVE_ORDER_STATUSES.includes(o.status)) ?? null
+      );
+      refreshCount();
+    } catch {
+      console.warn('Failed to load home data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [refreshCount]);
 
-  const {
-    data: productsData,
-    isLoading: loading,
-    refetch: refetchProducts,
-  } = useQuery({
-    queryKey: ['home-products', selectedCat],
-    queryFn: () =>
-      productsService.getAll({
-        categoryId: selectedCat ?? undefined,
-        pageSize: 8,
-        sortBy: 'newest',
-      }),
-  });
-  const products = productsData?.items ?? [];
-
-  const { data: discountData, refetch: refetchDiscount } = useQuery({
-    queryKey: ['home-discount'],
-    queryFn: () => productsService.getAll({ pageSize: 6, isDiscount: true }),
-  });
-  const discountProducts = discountData?.items ?? [];
-
-  const { data: flashSale, refetch: refetchFlashSale } = useQuery({
-    queryKey: ['flash-sale-current'],
-    queryFn: () => flashSaleService.getCurrent(),
-  });
-
-  const { data: articlesRaw = [], refetch: refetchArticles } = useQuery({
-    queryKey: ['home-articles'],
-    queryFn: () => articlesService.getAll().then(r => r ?? []),
-  });
-  const articles = articlesRaw.slice(0, 3);
-
-  const { data: ordersData, refetch: refetchOrders } = useQuery({
-    queryKey: ['home-orders'],
-    queryFn: () => ordersService.getMyOrders({ pageSize: 10 }),
-  });
-  const activeOrder =
-    (ordersData?.items ?? []).find(o => ACTIVE_ORDER_STATUSES.includes(o.status)) ?? null;
+  useEffect(() => {
+    load();
+  }, [load]);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -207,22 +204,15 @@ export default function HomeScreen() {
     return () => clearInterval(timer);
   }, [flashSale]);
 
-  const addToCartMutation = useMutation({
-    mutationFn: (productId: string) => cartService.add(productId, 1),
-    onSuccess: () => {
+  const handleAddToCart = async (product: Product) => {
+    try {
+      await cartService.add(product.id, 1);
       haptics.success();
-      refreshCount();
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-    },
-    onError: () => {
+      show(`Đã thêm "${product.name}" vào giỏ`);
+    } catch {
       haptics.error();
       show('Không thể thêm vào giỏ hàng', 'error');
-    },
-  });
-
-  const handleAddToCart = (product: Product) => {
-    show(`Đã thêm "${product.name}" vào giỏ`);
-    addToCartMutation.mutate(product.id);
+    }
   };
 
   const handleSearch = () => {
@@ -231,27 +221,16 @@ export default function HomeScreen() {
 
   const handleCatFilter = (catId: string | null) => {
     setSelectedCat(catId);
+    productsService
+      .getAll({ categoryId: catId ?? undefined, pageSize: 8 })
+      .then(r => setProducts(r.items))
+      .catch(() => console.warn('Failed to filter by category'));
   };
 
-  const onRefresh = useCallback(async () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    await Promise.all([
-      refetchProducts(),
-      refetchDiscount(),
-      refetchFlashSale(),
-      refetchArticles(),
-      refetchOrders(),
-    ]);
-    refreshCount();
-    setRefreshing(false);
-  }, [
-    refreshCount,
-    refetchProducts,
-    refetchDiscount,
-    refetchFlashSale,
-    refetchArticles,
-    refetchOrders,
-  ]);
+    load();
+  }, [load]);
 
   return (
     <View style={s.root}>
@@ -269,21 +248,15 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={s.headerIconBtn}
               onPress={() => router.push('/(tabs)/cart' as any)}
-              accessibilityRole="button"
-              accessibilityLabel={itemCount > 0 ? `Giỏ hàng, ${itemCount} sản phẩm` : 'Giỏ hàng'}
             >
               <Ionicons name="cart-outline" size={22} color="#fff" />
               {itemCount > 0 && (
-                <View style={s.cartBadge} accessibilityElementsHidden>
+                <View style={s.cartBadge}>
                   <Text style={s.cartBadgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push('/(tabs)/profile' as any)}
-              accessibilityRole="button"
-              accessibilityLabel={`Tài khoản của ${user?.fullName ?? 'bạn'}`}
-            >
+            <TouchableOpacity onPress={() => router.push('/(tabs)/profile' as any)}>
               <View style={s.avatarBtn}>
                 <Text style={s.avatarLetter}>{user?.fullName?.charAt(0)?.toUpperCase()}</Text>
               </View>
@@ -291,14 +264,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={s.searchBar}
-          onPress={handleSearch}
-          activeOpacity={0.85}
-          accessibilityRole="search"
-          accessibilityLabel="Tìm kiếm sản phẩm"
-        >
-          <Ionicons name="search-outline" size={18} color={C.muted} accessibilityElementsHidden />
+        <TouchableOpacity style={s.searchBar} onPress={handleSearch} activeOpacity={0.85}>
+          <Ionicons name="search-outline" size={18} color={C.muted} />
           <TextInput
             style={s.searchInput}
             placeholder="Tìm thực phẩm tươi ngon..."
@@ -307,7 +274,6 @@ export default function HomeScreen() {
             onChangeText={setSearch}
             onSubmitEditing={handleSearch}
             returnKeyType="search"
-            accessibilityLabel="Nhập từ khóa tìm kiếm"
           />
         </TouchableOpacity>
       </View>
@@ -467,7 +433,7 @@ export default function HomeScreen() {
         )}
 
         {/* ── FLASH SALE ── */}
-        {flashSale?.products?.length ? (
+        {flashSale && (
           <View style={s.section}>
             <View style={[s.flashHeaderRow, s.sectionHeaderFlash]}>
               <View style={s.flashTitleRow}>
@@ -475,13 +441,7 @@ export default function HomeScreen() {
                   <Ionicons name="flash" size={16} color="#fff" />
                 </View>
                 <Text style={s.flashTitle}>Flash Sale</Text>
-                {new Date(flashSale.endTime) > new Date() ? (
-                  <Text style={s.flashCountdown}>{countdown}</Text>
-                ) : (
-                  <View style={s.endedBadge}>
-                    <Text style={s.endedBadgeText}>Đã kết thúc</Text>
-                  </View>
-                )}
+                <Text style={s.flashCountdown}>{countdown}</Text>
               </View>
               <TouchableOpacity onPress={() => router.push('/flash-sale' as any)}>
                 <Text style={s.seeAll}>Xem tất cả →</Text>
@@ -493,41 +453,53 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={s.flashScroll}
             >
-              {(flashSale.products ?? []).slice(0, 8).map(item => {
-                const pct = Math.round(
-                  ((item.originalPrice - item.flashSalePrice) / item.originalPrice) * 100
-                );
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={s.flashCard}
-                    onPress={() => router.push(`/product/${item.id}` as any)}
-                    activeOpacity={0.88}
-                  >
-                    <View style={s.flashImgWrap}>
-                      <ProductImage
-                        uri={item.thumbnailUrl}
-                        style={StyleSheet.absoluteFill}
-                        name={item.name}
+              {(flashSale.products ?? []).slice(0, 8).map(item => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={s.flashCard}
+                  onPress={() => router.push(`/product/${item.id}` as any)}
+                  activeOpacity={0.88}
+                >
+                  <View style={s.flashImgWrap}>
+                    <ProductImage
+                      uri={item.thumbnailUrl}
+                      style={StyleSheet.absoluteFill}
+                      name={item.name}
+                    />
+                    <View style={s.flashBadge}>
+                      <Text style={s.flashBadgeText}>
+                        -
+                        {Math.round(
+                          ((item.originalPrice - item.flashSalePrice) / item.originalPrice) * 100
+                        )}
+                        %
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={s.flashInfo}>
+                    <Text style={s.flashName} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                    <Text style={s.flashPrice}>{formatCurrency(item.flashSalePrice)}</Text>
+                    <Text style={s.flashOriginal}>{formatCurrency(item.originalPrice)}</Text>
+                    <View style={s.stockBarWrap}>
+                      <View
+                        style={[
+                          s.stockBar,
+                          {
+                            width:
+                              `${Math.min(100, (item.soldCount / item.flashSaleStock) * 100)}%` as any,
+                          },
+                        ]}
                       />
-                      <View style={s.flashBadge}>
-                        <Text style={s.flashBadgeText}>-{pct}%</Text>
-                      </View>
                     </View>
-                    <View style={s.flashInfo}>
-                      <Text style={s.flashName} numberOfLines={1}>
-                        {item.name}
-                      </Text>
-                      <Text style={s.flashPrice} numberOfLines={1}>
-                        {formatCurrency(item.flashSalePrice)}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+                    <Text style={s.stockText}>Còn {item.stockRemaining}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
           </View>
-        ) : null}
+        )}
 
         {/* ── NEW PRODUCTS ── */}
         <View style={s.section}>
@@ -542,31 +514,19 @@ export default function HomeScreen() {
           </View>
 
           {loading ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={s.newProductScroll}
-            >
+            <View style={[s.productGrid, { gap: cardGap }]}>
               {[1, 2, 3, 4].map(i => (
-                <View key={i} style={s.newProductCard}>
-                  <ProductCardSkeleton />
-                </View>
+                <ProductCardSkeleton key={i} />
               ))}
-            </ScrollView>
+            </View>
           ) : products.length === 0 ? (
             <EmptyState icon="leaf-outline" title="Chưa có sản phẩm" />
           ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={s.newProductScroll}
-            >
+            <View style={[s.productGrid, { gap: cardGap }]}>
               {products.map(p => (
-                <View key={p.id} style={s.newProductCard}>
-                  <ProductCard product={p} onAddToCart={handleAddToCart} />
-                </View>
+                <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
               ))}
-            </ScrollView>
+            </View>
           )}
         </View>
 
@@ -609,17 +569,11 @@ export default function HomeScreen() {
                 <Text style={s.seeAll}>Xem tất cả →</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={s.discountScroll}
-            >
+            <View style={[s.productGrid, { gap: cardGap }]}>
               {discountProducts.map(p => (
-                <View key={p.id} style={s.newProductCard}>
-                  <ProductCard product={p} onAddToCart={handleAddToCart} />
-                </View>
+                <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
               ))}
-            </ScrollView>
+            </View>
           </View>
         )}
 
@@ -878,24 +832,21 @@ const s = StyleSheet.create({
   },
   flashTitle: { fontSize: 18, fontWeight: '800', color: C.text },
   flashCountdown: { fontSize: 14, fontWeight: '700', color: '#D97706', letterSpacing: 0.5 },
-  endedBadge: {
-    backgroundColor: '#F3F4F6',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  endedBadgeText: { fontSize: 11, fontWeight: '600', color: '#9CA3AF' },
   flashScroll: { gap: 12, paddingBottom: 4 },
   flashCard: {
-    width: 140,
-    flexShrink: 0,
+    width: 150,
     backgroundColor: C.card,
-    borderRadius: 14,
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: C.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  flashImgWrap: { width: '100%', height: 140, backgroundColor: '#FEF3C7' },
+  flashImgWrap: { width: '100%', height: 130, backgroundColor: '#FEF3C7' },
   flashBadge: {
     position: 'absolute',
     top: 8,
@@ -905,10 +856,20 @@ const s = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  flashBadgeText: { fontSize: 11, fontWeight: '800', color: '#fff' },
-  flashInfo: { padding: 8 },
-  flashName: { fontSize: 12, fontWeight: '600', color: C.text, marginBottom: 4 },
-  flashPrice: { fontSize: 15, fontWeight: '800', color: '#EF4444' },
+  flashBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
+  flashInfo: { padding: 10 },
+  flashName: { fontSize: 12, fontWeight: '600', color: C.text, marginBottom: 4, lineHeight: 16 },
+  flashPrice: { fontSize: 13, fontWeight: '800', color: '#EF4444' },
+  flashOriginal: { fontSize: 11, color: C.muted, textDecorationLine: 'line-through' },
+  stockBarWrap: {
+    height: 4,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 2,
+    marginTop: 6,
+    overflow: 'hidden',
+  },
+  stockBar: { height: '100%', backgroundColor: '#F59E0B', borderRadius: 2 },
+  stockText: { fontSize: 10, color: C.muted, marginTop: 3 },
 
   // Products
   productGrid: { flexDirection: 'row', flexWrap: 'wrap' },
@@ -1142,9 +1103,4 @@ const s = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 15,
   },
-
-  // New Products horizontal scroll
-  newProductScroll: { gap: 12, paddingBottom: 4 },
-  newProductCard: { width: 150, flexShrink: 0 },
-  discountScroll: { gap: 12, paddingBottom: 4 },
 });

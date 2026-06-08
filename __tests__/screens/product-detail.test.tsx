@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import ProductDetailScreen from '@/app/product/[id]/index';
+import ProductDetailScreen from '@/app/product/[id]';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
 
@@ -45,17 +45,6 @@ jest.mock('@/components/ProductCard', () => {
     </View>
   );
   Mock.displayName = 'ProductCard';
-  return Mock;
-});
-
-jest.mock('@/components/QuantitySelector', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  const Mock = ({ value }: any) => (
-    <View>
-      <Text>Số lượng: {value}</Text>
-    </View>
-  );
-  Mock.displayName = 'QuantitySelector';
   return Mock;
 });
 
@@ -178,13 +167,6 @@ describe('ProductDetailScreen', () => {
     const { getByText } = render(<ProductDetailScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Gạo Nàng Thơm')).toBeTruthy();
-    });
-  });
-
-  it('renders quantity selector', async () => {
-    const { getByText } = render(<ProductDetailScreen />, { wrapper });
-    await waitFor(() => {
-      expect(getByText('Số lượng: 1')).toBeTruthy();
     });
   });
 

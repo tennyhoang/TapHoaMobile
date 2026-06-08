@@ -10,7 +10,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '@/components/ScreenHeader';
 import EmptyState from '@/components/EmptyState';
@@ -46,7 +46,7 @@ export default function AdminOrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [hasError, setHasError] = useState<'network' | 'error' | false>(false);
+  const [hasError, setHasError] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -66,8 +66,8 @@ export default function AdminOrdersScreen() {
         setOrders(prev => (reset ? (res.items ?? []) : [...prev, ...(res.items ?? [])]));
         setHasMore(nextPage < res.totalPages);
         setPage(nextPage);
-      } catch (e) {
-        if (reset) setHasError(e instanceof TypeError ? 'network' : 'error');
+      } catch {
+        if (reset) setHasError(true);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -133,11 +133,7 @@ export default function AdminOrdersScreen() {
     const isUpdating = updatingId === item.id;
 
     return (
-      <TouchableOpacity
-        style={s.orderCard}
-        onPress={() => router.push(`/admin/orders/${item.id}` as any)}
-        activeOpacity={0.7}
-      >
+      <View style={s.orderCard}>
         <View style={s.orderTop}>
           <View>
             <Text style={s.orderId}>#{item.id.slice(-8).toUpperCase()}</Text>
@@ -191,7 +187,7 @@ export default function AdminOrdersScreen() {
             ))}
           </View>
         )}
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -226,7 +222,7 @@ export default function AdminOrdersScreen() {
         </View>
       ) : hasError ? (
         <ErrorScreen
-          type={hasError || 'error'}
+          type="network"
           onRetry={() => {
             setLoading(true);
             load(1, true);

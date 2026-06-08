@@ -6,9 +6,7 @@ import {
 } from '@/services/articles.service';
 import { api } from '@/lib/api';
 
-jest.mock('@/lib/api', () => ({
-  api: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() },
-}));
+jest.mock('@/lib/api', () => ({ api: { get: jest.fn() } }));
 
 const mockApi = api as jest.Mocked<typeof api>;
 
@@ -41,46 +39,6 @@ describe('articlesService', () => {
     it('propagates error', async () => {
       mockApi.get.mockRejectedValueOnce(new Error('Lỗi mạng'));
       await expect(articlesService.getAll()).rejects.toThrow('Lỗi mạng');
-    });
-  });
-
-  describe('create', () => {
-    it('calls POST /articles', async () => {
-      mockApi.post.mockResolvedValueOnce(mockArticle);
-      const payload = {
-        title: 'Bài mới',
-        excerpt: 'Mô tả',
-        content: 'Nội dung',
-        category: 'dinh-duong',
-        readTimeMinutes: 3,
-      };
-      const result = await articlesService.create(payload);
-      expect(result).toEqual(mockArticle);
-      expect(mockApi.post).toHaveBeenCalledWith('/articles', payload);
-    });
-  });
-
-  describe('update', () => {
-    it('calls PUT /articles/:id', async () => {
-      mockApi.put.mockResolvedValueOnce(mockArticle);
-      const payload = {
-        title: 'Bài sửa',
-        excerpt: 'Mô tả',
-        content: 'Nội dung',
-        category: 'dinh-duong',
-        readTimeMinutes: 5,
-      };
-      const result = await articlesService.update('a1', payload);
-      expect(result).toEqual(mockArticle);
-      expect(mockApi.put).toHaveBeenCalledWith('/articles/a1', payload);
-    });
-  });
-
-  describe('delete', () => {
-    it('calls DELETE /articles/:id', async () => {
-      mockApi.delete.mockResolvedValueOnce(undefined);
-      await articlesService.delete('a1');
-      expect(mockApi.delete).toHaveBeenCalledWith('/articles/a1');
     });
   });
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import HelpScreen from '@/app/help/index';
+import HelpScreen from '@/app/help';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('@/components/ScreenHeader', () => {
@@ -18,6 +18,7 @@ describe('HelpScreen', () => {
     const { getByText } = render(<HelpScreen />);
     expect(getByText('Email hỗ trợ')).toBeTruthy();
     expect(getByText('Hotline')).toBeTruthy();
+    expect(getByText('Facebook')).toBeTruthy();
   });
 
   it('renders FAQ questions', () => {
