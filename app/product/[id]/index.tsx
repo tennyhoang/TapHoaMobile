@@ -23,7 +23,6 @@ import { useCartCount } from '@/lib/cart-context';
 import { useWishlist } from '@/lib/wishlist-context';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 import { useToast } from '@/components/Toast';
-import QuantitySelector from '@/components/QuantitySelector';
 import type { Product } from '@/types';
 import { C } from '@/constants/Colors';
 
@@ -56,9 +55,7 @@ export default function ProductDetailScreen() {
         productsService
           .getAll({ categoryId: p.categoryId, pageSize: 8 })
           .then(r => setRelated((r.items ?? []).filter(x => x.id !== p.id)))
-          .catch(() => {
-            if (__DEV__) console.warn('Failed to load related products');
-          });
+          .catch(() => console.warn('Failed to load related products'));
         Animated.parallel([
           Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
           Animated.spring(slideAnim, {
@@ -282,7 +279,21 @@ export default function ProductDetailScreen() {
       {/* Bottom Bar */}
       <View style={[s.bottomBar, { paddingBottom: (bottom || 16) + 8 }]}>
         {/* Quantity */}
-        <QuantitySelector value={qty} min={1} max={product.stock} onChange={setQty} />
+        <View style={s.qtyWrap}>
+          <TouchableOpacity
+            style={[s.qtyBtn, qty <= 1 && s.qtyBtnDim]}
+            onPress={() => setQty(q => Math.max(1, q - 1))}
+          >
+            <Ionicons name="remove" size={18} color={qty <= 1 ? C.muted : C.text} />
+          </TouchableOpacity>
+          <Text style={s.qtyText}>{qty}</Text>
+          <TouchableOpacity
+            style={[s.qtyBtn, qty >= product.stock && s.qtyBtnDim]}
+            onPress={() => setQty(q => Math.min(product.stock, q + 1))}
+          >
+            <Ionicons name="add" size={18} color={qty >= product.stock ? C.muted : C.text} />
+          </TouchableOpacity>
+        </View>
 
         {/* Add to cart */}
         <TouchableOpacity
@@ -424,7 +435,7 @@ const s = StyleSheet.create({
   relatedTitle: { fontSize: 17, fontWeight: '800', color: C.text },
   seeAll: { fontSize: 13, color: C.primary, fontWeight: '600' },
   relatedScroll: { gap: 12, paddingBottom: 4 },
-  relatedCard: { width: 150, flexShrink: 0 },
+  relatedCard: { width: 150 },
 
   bottomBar: {
     position: 'absolute',

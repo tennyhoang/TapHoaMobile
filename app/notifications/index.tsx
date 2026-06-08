@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { notificationsService } from '@/services/notifications.service';
 import ErrorScreen from '@/components/ErrorScreen';
 import EmptyState from '@/components/EmptyState';
-import type { Notification as AppNotification, NotificationType } from '@/types';
+import type { Notification, NotificationType } from '@/types';
 import { C } from '@/constants/Colors';
 
 const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string }> = {
@@ -28,14 +28,14 @@ const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string }> = {
 
 export default function NotificationsScreen() {
   const { top } = useSafeAreaInsets();
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
-  const [hasError, setHasError] = useState<'network' | 'error' | false>(false);
+  const [hasError, setHasError] = useState(false);
 
   const load = useCallback(async (nextPage: number, reset = false) => {
     if (reset) setHasError(false);
@@ -44,16 +44,8 @@ export default function NotificationsScreen() {
       setNotifications(prev => (reset ? (res.items ?? []) : [...prev, ...(res.items ?? [])]));
       setHasMore(nextPage < res.totalPages);
       setPage(nextPage);
-    } catch (e) {
-      if (reset) {
-        if (e instanceof TypeError) {
-          setHasError('network');
-        } else {
-          // 404 = endpoint chưa triển khai — hiện empty state thay vì error
-          setNotifications([]);
-          setHasError(false);
-        }
-      }
+    } catch {
+      if (reset) setHasError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -79,11 +71,11 @@ export default function NotificationsScreen() {
     load(page + 1);
   };
 
-  const handleTap = async (item: AppNotification) => {
+  const handleTap = async (item: Notification) => {
     if (!item.isRead) {
-      await notificationsService.markRead(item.id).catch(() => {
-        if (__DEV__) console.warn('Failed to mark notification as read');
-      });
+      await notificationsService
+        .markRead(item.id)
+        .catch(() => console.warn('Failed to mark notification as read'));
       setNotifications(prev => prev.map(n => (n.id === item.id ? { ...n, isRead: true } : n)));
     }
     if (item.type === 'OrderStatus' && item.data?.orderId) {
@@ -97,7 +89,7 @@ export default function NotificationsScreen() {
       await notificationsService.markAllRead();
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch {
-      if (__DEV__) console.warn('Failed to mark all notifications as read');
+      console.warn('Failed to mark all notifications as read');
     } finally {
       setMarkingAll(false);
     }
@@ -105,7 +97,7 @@ export default function NotificationsScreen() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const renderItem = ({ item }: { item: AppNotification }) => {
+  const renderItem = ({ item }: { item: Notification }) => {
     const cfg = TYPE_CONFIG[item.type];
     return (
       <TouchableOpacity
@@ -170,7 +162,7 @@ export default function NotificationsScreen() {
         </View>
       ) : hasError ? (
         <ErrorScreen
-          type={hasError || 'error'}
+          type="network"
           onRetry={() => {
             setLoading(true);
             load(1, true);

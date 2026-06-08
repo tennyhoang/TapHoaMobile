@@ -20,6 +20,7 @@ import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { DriverHubBatch, Order, OptimizeRouteResponse, AssignedWarehouseDto } from '@/types';
 
+// Driver screen uses its own brand palette (purple), intentionally separate from C
 const C = {
   primary: '#7C3AED',
   primaryLight: '#EDE9FE',

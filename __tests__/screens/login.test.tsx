@@ -79,6 +79,7 @@ describe('LoginScreen', () => {
   it('renders social login buttons', () => {
     const { getByText } = render(<LoginScreen />);
     expect(getByText('Tiếp tục với Google')).toBeTruthy();
+    expect(getByText('Tiếp tục với Facebook')).toBeTruthy();
   });
 
   it('renders link to register screen', () => {

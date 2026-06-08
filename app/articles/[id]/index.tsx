@@ -98,9 +98,7 @@ export default function ArticleDetailScreen() {
       .then(articles => {
         setArticle(articles.find(a => a.id === id) ?? null);
       })
-      .catch(() => {
-        if (__DEV__) console.warn('Failed to load article');
-      })
+      .catch(() => console.warn('Failed to load article'))
       .finally(() => setLoading(false));
   }, [id]);
 

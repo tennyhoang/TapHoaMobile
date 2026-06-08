@@ -82,16 +82,45 @@ describe('ProfileScreen', () => {
     );
   });
 
-  it('renders Agent portal button for Agent role', () => {
-    mockUseAuth.mockReturnValue({ user: { ...customerUser, role: 'Agent' }, logout: jest.fn() });
+  it('executes delete account when confirmed', async () => {
+    const { Alert } = require('react-native');
+    const mockDeleteAccount = jest.fn().mockResolvedValue(undefined);
+    const mockLogout = jest.fn().mockResolvedValue(undefined);
+    const { profileService } = jest.requireMock('@/services/profile.service');
+    profileService.deleteAccount = mockDeleteAccount;
+    mockUseAuth.mockReturnValue({ user: customerUser, logout: mockLogout });
+    Alert.alert = jest.fn((_title: any, _msg: any, buttons: any) => {
+      const confirmBtn = buttons?.find((b: any) => b.style === 'destructive');
+      confirmBtn?.onPress?.();
+    });
     const { getByText } = render(<ProfileScreen />, { wrapper });
-    expect(getByText('Cổng Agent')).toBeTruthy();
+    fireEvent.press(getByText('Xoá tài khoản'));
+    await new Promise(r => setTimeout(r, 0));
+    expect(mockDeleteAccount).toHaveBeenCalled();
   });
 
-  it('renders Driver portal button for Driver role', () => {
+  it('navigates to agent portal on button press', () => {
+    mockUseAuth.mockReturnValue({ user: { ...customerUser, role: 'Agent' }, logout: jest.fn() });
+    const { getByText } = render(<ProfileScreen />, { wrapper });
+    const { router } = jest.requireMock('expo-router');
+    fireEvent.press(getByText('Cổng Agent'));
+    expect(router.push).toHaveBeenCalledWith('/agent');
+  });
+
+  it('navigates to driver portal on button press', () => {
     mockUseAuth.mockReturnValue({ user: { ...customerUser, role: 'Driver' }, logout: jest.fn() });
     const { getByText } = render(<ProfileScreen />, { wrapper });
-    expect(getByText('Cổng Tài xế')).toBeTruthy();
+    const { router } = jest.requireMock('expo-router');
+    fireEvent.press(getByText('Cổng Tài xế'));
+    expect(router.push).toHaveBeenCalledWith('/driver');
+  });
+
+  it('navigates to admin portal on button press', () => {
+    mockUseAuth.mockReturnValue({ user: { ...customerUser, role: 'Admin' }, logout: jest.fn() });
+    const { getByText } = render(<ProfileScreen />, { wrapper });
+    const { router } = jest.requireMock('expo-router');
+    fireEvent.press(getByText('Admin Dashboard'));
+    expect(router.push).toHaveBeenCalledWith('/admin');
   });
 
   it('renders legal links', () => {

@@ -39,7 +39,7 @@ export default function FlashSaleScreen() {
       const data = await flashSaleService.getCurrent();
       setSession(data);
     } catch {
-      if (__DEV__) console.warn('Failed to load flash sale');
+      console.warn('Failed to load flash sale');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -146,17 +146,12 @@ export default function FlashSaleScreen() {
           </View>
           {session && <Text style={s.sessionName}>{session.name}</Text>}
         </View>
-        {session && new Date(session.endTime) > new Date() ? (
+        {session && (
           <View style={s.countdownBox}>
             <Text style={s.countdownLabel}>Kết thúc sau</Text>
             <Text style={s.countdown}>{countdown}</Text>
           </View>
-        ) : session ? (
-          <View style={s.countdownBox}>
-            <Text style={s.countdownLabel}>Trạng thái</Text>
-            <Text style={s.endedLabel}>Đã kết thúc</Text>
-          </View>
-        ) : null}
+        )}
       </View>
 
       {loading ? (
@@ -235,7 +230,6 @@ const s = StyleSheet.create({
   countdownBox: { alignItems: 'flex-end' },
   countdownLabel: { fontSize: 10, color: 'rgba(255,255,255,0.7)' },
   countdown: { fontSize: 18, fontWeight: '800', color: '#FCD34D', letterSpacing: 1 },
-  endedLabel: { fontSize: 14, fontWeight: '700', color: '#9CA3AF' },
 
   banner: {
     flexDirection: 'row',

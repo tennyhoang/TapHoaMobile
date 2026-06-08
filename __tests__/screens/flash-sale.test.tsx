@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import FlashSaleScreen from '@/app/flash-sale/index';
+import FlashSaleScreen from '@/app/flash-sale';
 import { flashSaleService } from '@/services/flashsale.service';
 
 jest.mock('@/services/flashsale.service', () => ({
@@ -101,13 +101,11 @@ const mockProduct3 = {
   stockRemaining: 0,
 };
 
-const future = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-const past = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 const mockSession = {
   sessionId: 's1',
   name: 'Flash Sale Cuối Tuần',
-  startTime: past,
-  endTime: future,
+  startTime: '2025-01-01T10:00:00Z',
+  endTime: '2025-01-01T22:00:00Z',
   products: [mockProduct1, mockProduct2, mockProduct3],
 };
 

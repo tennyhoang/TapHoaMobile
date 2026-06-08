@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import NotificationsScreen from '@/app/notifications/index';
+import NotificationsScreen from '@/app/notifications';
 import { notificationsService } from '@/services/notifications.service';
 
 let triggerFocusEffect: (() => void) | null = null;
@@ -100,7 +100,7 @@ describe('NotificationsScreen', () => {
   });
 
   it('renders error state when load fails', async () => {
-    mockService.getAll.mockRejectedValueOnce(new TypeError('Network request failed'));
+    mockService.getAll.mockRejectedValueOnce(new Error('Network error'));
     const { getByText } = render(<NotificationsScreen />, { wrapper });
     loadScreen();
     await waitFor(() => {
@@ -109,7 +109,7 @@ describe('NotificationsScreen', () => {
   });
 
   it('retries loading when Thử lại pressed', async () => {
-    mockService.getAll.mockRejectedValueOnce(new TypeError('Network request failed'));
+    mockService.getAll.mockRejectedValueOnce(new Error('Network error'));
     mockService.getAll.mockResolvedValueOnce({ items: [], totalPages: 1 });
     const { getByText } = render(<NotificationsScreen />, { wrapper });
     loadScreen();
