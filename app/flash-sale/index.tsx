@@ -70,8 +70,12 @@ export default function FlashSaleScreen() {
   };
 
   const renderItem = ({ item }: { item: FlashSaleProduct }) => {
-    const pct = Math.round(((item.originalPrice - item.flashSalePrice) / item.originalPrice) * 100);
-    const soldPct = Math.min(100, (item.soldCount / item.flashSaleStock) * 100);
+    const pct =
+      item.originalPrice > 0
+        ? Math.round(((item.originalPrice - item.flashSalePrice) / item.originalPrice) * 100)
+        : 0;
+    const soldPct =
+      item.flashSaleStock > 0 ? Math.min(100, (item.soldCount / item.flashSaleStock) * 100) : 0;
     const isAdding = addingToCart === item.id;
 
     return (

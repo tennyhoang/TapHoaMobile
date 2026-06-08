@@ -187,9 +187,9 @@ export default function SearchScreen() {
     }
   };
 
-  const clearHistory = async () => {
-    await storage.setItem(HISTORY_KEY, JSON.stringify([]));
+  const clearHistory = () => {
     setHistory([]);
+    storage.setItem(HISTORY_KEY, JSON.stringify([])).catch(console.warn);
   };
 
   return (

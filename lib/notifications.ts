@@ -34,7 +34,7 @@ export async function registerPushNotifications(): Promise<string | null> {
     const token = (await Notifications.getExpoPushTokenAsync()).data;
     await storage.setItem(PUSH_TOKEN_KEY, token);
     // Gửi push token lên backend để server có thể gửi notification
-    api.post('/push-tokens', { token, platform: Platform.OS }).catch(() => {});
+    api.post('/notifications/push-token', { token, platform: Platform.OS }).catch(() => {});
     return token;
   } catch {
     return null;
