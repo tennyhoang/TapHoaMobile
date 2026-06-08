@@ -24,4 +24,7 @@ export const driverService = {
 
   optimizeRoute: (orderAddresses: string[]): Promise<OptimizeRouteResponse> =>
     api.post<OptimizeRouteResponse>('/driver/optimize-route', { orderAddresses }),
+
+  deliverOrder: (orderId: string, deliveryPhotoUrl: string): Promise<Order> =>
+    api.post<Order>(`/driver/orders/${orderId}/deliver`, { deliveryPhotoUrl }),
 };

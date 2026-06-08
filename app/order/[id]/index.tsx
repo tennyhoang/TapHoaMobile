@@ -20,6 +20,8 @@ import * as StoreReview from 'expo-store-review';
 import { useToast } from '@/components/Toast';
 import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
+import { useOrderTracking } from '@/lib/hooks/useOrderTracking';
 import type { Order } from '@/types';
 
 const BANK_CODE = process.env.EXPO_PUBLIC_BANK_CODE ?? 'MB';
@@ -94,6 +96,7 @@ export default function OrderDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const { show } = useToast();
+  const { token } = useAuth();
 
   const fetchOrder = useCallback(async () => {
     if (!id) return;
@@ -125,6 +128,9 @@ export default function OrderDetailScreen() {
     const timer = setInterval(fetchOrder, 15000);
     return () => clearInterval(timer);
   }, [order?.status, fetchOrder]);
+
+  // Real-time order status updates via SignalR
+  useOrderTracking(token, id ?? '', fetchOrder);
 
   const handleCancel = () => {
     Alert.alert('Huỷ đơn hàng', 'Bạn có chắc muốn huỷ đơn hàng này?', [
@@ -468,6 +474,20 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
+        {/* Delivery photo */}
+        {order.status === 'Completed' && order.deliveryPhotoUrl && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Ảnh xác nhận giao hàng</Text>
+            <View style={[s.card, { overflow: 'hidden' }]}>
+              <Image
+                source={{ uri: order.deliveryPhotoUrl }}
+                style={s.deliveryPhoto}
+                contentFit="cover"
+              />
+            </View>
+          </View>
+        )}
+
         {/* Refund request */}
         {canRefund && (
           <TouchableOpacity
@@ -689,6 +709,11 @@ const s = StyleSheet.create({
     borderColor: '#FDE68A',
   },
   rateBtnText: { fontSize: 14, fontWeight: '600', color: '#D97706' },
+  deliveryPhoto: {
+    width: '100%',
+    height: 220,
+    borderRadius: 14,
+  },
   reviewChip: {
     flexDirection: 'row',
     alignItems: 'center',
