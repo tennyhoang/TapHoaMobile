@@ -14,11 +14,28 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { driverService } from '@/services/driver.service';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { useToast } from '@/components/Toast';
 import { formatCurrency } from '@/lib/utils';
 import type { DriverHubBatch, Order, OptimizeRouteResponse, AssignedWarehouseDto } from '@/types';
+
+const CLOUDINARY_CLOUD = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD ?? 'doy14nwx0';
+const CLOUDINARY_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_PRESET ?? 'taphoa_unsigned';
+
+async function uploadDeliveryPhoto(uri: string): Promise<string> {
+  const form = new FormData();
+  form.append('file', { uri, type: 'image/jpeg', name: 'delivery.jpg' } as any);
+  form.append('upload_preset', CLOUDINARY_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+    method: 'POST',
+    body: form,
+  });
+  const data = await res.json();
+  if (!res.ok || !data.secure_url) throw new Error(data.error?.message ?? 'Upload thất bại');
+  return data.secure_url as string;
+}
 
 // Driver screen uses its own brand palette (purple), intentionally separate from C
 const C = {
@@ -78,6 +95,7 @@ export default function DriverScreen() {
   const [selectedHubIds, setSelectedHubIds] = useState<Set<string> | null>(null);
   const [routeResult, setRouteResult] = useState<OptimizeRouteResponse | null>(null);
   const [optimizing, setOptimizing] = useState(false);
+  const [deliveringId, setDeliveringId] = useState<string | null>(null);
 
   const allPickupOrders = batches.flatMap(b => b.orders);
 
@@ -163,6 +181,33 @@ export default function DriverScreen() {
       show('Xác nhận lấy hàng thất bại', 'error');
     } finally {
       setPickingUp(false);
+    }
+  };
+
+  const handleDeliver = async (orderId: string) => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      show('Cần quyền truy cập camera để chụp ảnh xác nhận', 'error');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsEditing: false,
+    });
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+    const uri = result.assets[0].uri;
+
+    setDeliveringId(orderId);
+    try {
+      const photoUrl = await uploadDeliveryPhoto(uri);
+      await driverService.deliverOrder(orderId, photoUrl);
+      show('Xác nhận giao hàng thành công!');
+      await load();
+    } catch {
+      show('Xác nhận giao hàng thất bại', 'error');
+    } finally {
+      setDeliveringId(null);
     }
   };
 
@@ -470,21 +515,40 @@ export default function DriverScreen() {
                     </Text>
                   </View>
                 </View>
-                <TouchableOpacity
-                  style={s.navBtn}
-                  onPress={() =>
-                    openMaps(
-                      buildSingleUrl(
-                        [order.hub?.address, order.hub?.ward, order.hub?.district, order.hub?.city]
-                          .filter(Boolean)
-                          .join(', ')
+                <View style={s.transitActions}>
+                  <TouchableOpacity
+                    style={s.navBtn}
+                    onPress={() =>
+                      openMaps(
+                        buildSingleUrl(
+                          [
+                            order.hub?.address,
+                            order.hub?.ward,
+                            order.hub?.district,
+                            order.hub?.city,
+                          ]
+                            .filter(Boolean)
+                            .join(', ')
+                        )
                       )
-                    )
-                  }
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="navigate-outline" size={18} color={C.blue} />
-                </TouchableOpacity>
+                    }
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="navigate-outline" size={18} color={C.blue} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[s.deliverBtn, deliveringId === order.id && { opacity: 0.6 }]}
+                    onPress={() => handleDeliver(order.id)}
+                    disabled={deliveringId !== null}
+                    activeOpacity={0.8}
+                  >
+                    {deliveringId === order.id ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <Ionicons name="camera-outline" size={16} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
             ))
           ))}
@@ -855,11 +919,24 @@ const s = StyleSheet.create({
     paddingVertical: 7,
   },
   singlePickupText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+  transitActions: {
+    flexDirection: 'column',
+    gap: 6,
+    alignItems: 'center',
+  },
   navBtn: {
     width: 38,
     height: 38,
     borderRadius: 10,
     backgroundColor: C.blue + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deliverBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: C.green,
     alignItems: 'center',
     justifyContent: 'center',
   },

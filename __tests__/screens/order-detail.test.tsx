@@ -50,6 +50,14 @@ jest.mock('@/components/Toast', () => ({
   useToast: () => ({ show: jest.fn() }),
 }));
 
+jest.mock('@/lib/auth-context', () => ({
+  useAuth: () => ({ token: 'mock-token', user: null }),
+}));
+
+jest.mock('@/lib/hooks/useOrderTracking', () => ({
+  useOrderTracking: jest.fn(),
+}));
+
 const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
 
 const mockHub = {

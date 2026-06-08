@@ -117,6 +117,7 @@ export type Order = {
   completedAt?: string;
   cancelledAt?: string;
   refundedAt?: string;
+  deliveryPhotoUrl?: string;
 };
 
 export type Address = {
