@@ -63,11 +63,18 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Run tests with coverage
+      - name: Run tests (fast, no coverage)
+        if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
+        run: npm test
+        timeout-minutes: 8
+
+      - name: Run tests with coverage (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: npm run test:coverage
         timeout-minutes: 15
 
       - name: Upload coverage to Codecov
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -75,6 +82,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-artifact@v7
         with:
           name: coverage-report
