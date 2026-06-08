@@ -3,6 +3,7 @@ module.exports = {
   preset: 'jest-expo',
   setupFiles: ['./jest.setup.js'],
   clearMocks: true,
+  cacheDirectory: '/tmp/jest-cache',
   testTimeout: 30000,
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}'],
   testPathIgnorePatterns: ['/node_modules/', '/.claude/'],

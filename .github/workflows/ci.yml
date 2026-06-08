@@ -63,6 +63,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Cache Jest transform
+        uses: actions/cache@v5
+        with:
+          path: /tmp/jest-cache
+          key: jest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: jest-${{ runner.os }}-
+
       - name: Run tests (fast, no coverage)
         if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
         run: npm test
