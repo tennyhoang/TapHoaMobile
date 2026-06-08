@@ -24,6 +24,7 @@ module.exports = function withGradleWrapper(config) {
           `distributionUrl=https\\://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip`
         );
         fs.writeFileSync(wrapperPath, content, 'utf8');
+        // eslint-disable-next-line no-console
         console.log(`[withGradleWrapper] Pinned Gradle to ${GRADLE_VERSION}`);
       }
 
