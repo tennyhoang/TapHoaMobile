@@ -133,19 +133,21 @@ export default function WalletScreen() {
     }
     const confirmed = await biometrics.authenticate('Xác nhận nạp tiền vào ví');
     if (!confirmed) return;
-    const ref = `NT${Date.now()}`;
-    setPaymentRef(ref);
-    setTopUpStep('qr');
+    try {
+      const res = await walletService.initiateTopup(finalAmount);
+      setPaymentRef(res.paymentRef);
+      setTopUpStep('qr');
+    } catch {
+      show('Không thể tạo yêu cầu nạp tiền', 'error');
+    }
   };
 
   const handleConfirmTransfer = async () => {
     setConfirming(true);
     try {
-      const res = await walletService.topUp(finalAmount, paymentRef);
-      setBalance(res.balance);
+      await load();
       setTopUpVisible(false);
-      show('Nạp tiền thành công!');
-      load();
+      show('Đã ghi nhận — số dư sẽ cập nhật sau khi chuyển khoản xác nhận');
     } catch {
       show('Chưa xác nhận được — vui lòng thử lại sau', 'error');
     } finally {
