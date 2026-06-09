@@ -57,4 +57,8 @@ export const queryKeys = {
   vouchers: {
     validate: (code: string) => ['vouchers', 'validate', code] as const,
   },
+  claims: {
+    all: ['claims'] as const,
+    my: (params?: Record<string, unknown>) => ['claims', 'my', params] as const,
+  },
 };
