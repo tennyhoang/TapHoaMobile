@@ -502,6 +502,20 @@ export default function OrderDetailScreen() {
           </TouchableOpacity>
         )}
 
+        {/* Submit claim */}
+        {canRefund && (
+          <TouchableOpacity
+            style={s.claimBtn}
+            onPress={() => router.push(`/claims/create/${id}` as any)}
+            activeOpacity={0.8}
+            accessibilityLabel="Gửi khiếu nại về đơn hàng"
+            accessibilityRole="button"
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={17} color="#EF4444" />
+            <Text style={s.claimBtnText}>Gửi khiếu nại</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Cancel */}
         {canCancel && (
           <TouchableOpacity
@@ -696,6 +710,19 @@ const s = StyleSheet.create({
     borderColor: '#DDD6FE',
   },
   refundBtnText: { fontSize: 14, fontWeight: '600', color: '#8B5CF6' },
+  claimBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    borderRadius: 14,
+    marginBottom: 10,
+    backgroundColor: '#FFF1F2',
+    borderWidth: 1,
+    borderColor: '#FECDD3',
+  },
+  claimBtnText: { fontSize: 14, fontWeight: '600', color: '#EF4444' },
   rateBtn: {
     flexDirection: 'row',
     alignItems: 'center',

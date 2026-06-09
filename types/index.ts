@@ -317,3 +317,23 @@ export type WarehouseDashboard = {
   activeDrivers: number;
   lowStockProducts: number;
 };
+
+export type ClaimType =
+  | 'DamagedProduct'
+  | 'WrongProduct'
+  | 'MissingProduct'
+  | 'LateDelivery'
+  | 'Other';
+
+export type ClaimStatus = 'Pending' | 'UnderReview' | 'Resolved' | 'Rejected';
+
+export type Claim = {
+  id: string;
+  orderId: string;
+  type: ClaimType;
+  description: string;
+  status: ClaimStatus;
+  createdAt: string;
+  resolvedAt?: string;
+  resolution?: string;
+};
