@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,13 +13,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { productsService } from '@/services/products.service';
-import { categoriesService } from '@/services/categories.service';
-import { cartService } from '@/services/cart.service';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
+import { useProducts, useAddToCart } from '@/lib/hooks';
+import { useCategories } from '@/lib/hooks';
 import ProductCard from '@/components/ProductCard';
+import { ProductCardSkeleton } from '@/components/Skeleton';
 import { useToast } from '@/components/Toast';
 import { useLayout } from '@/lib/layout';
-import type { Product, Category } from '@/types';
+import type { Product } from '@/types';
 import { C } from '@/constants/Colors';
 import EmptyState from '@/components/EmptyState';
 
@@ -30,97 +31,73 @@ const SORT_OPTIONS = [
   { value: 'rating', label: 'Đánh giá' },
 ];
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 export default function ProductsScreen() {
   const { top } = useSafeAreaInsets();
   const { productColumns, cardGap } = useLayout();
   const { show } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('newest');
   const [isNew, setIsNew] = useState(false);
   const [isDiscount, setIsDiscount] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    categoriesService
-      .getAll()
-      .then(setCategories)
-      .catch(() => console.warn('Failed to load categories'));
-  }, []);
+  const debouncedSearch = useDebounce(search, 400);
 
-  const fetchProducts = useCallback(
-    async (p: number, reset = false) => {
-      try {
-        const res = await productsService.getAll({
-          search: search || undefined,
-          categoryId: selectedCat ?? undefined,
-          sortBy,
-          page: p,
-          pageSize: 20,
-          isNew: isNew || undefined,
-          isDiscount: isDiscount || undefined,
-        });
-        setProducts(prev => (reset ? res.items : [...prev, ...res.items]));
-        setTotalPages(res.totalPages);
-        setPage(p);
-      } catch {
-        console.warn('Failed to load products');
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-        setRefreshing(false);
-      }
-    },
-    [search, selectedCat, sortBy, isNew, isDiscount]
-  );
+  const { data: categories } = useCategories();
+  const {
+    data: productsData,
+    isLoading,
+    isFetching,
+    refetch,
+    isRefetching,
+  } = useProducts({
+    search: debouncedSearch || undefined,
+    categoryId: selectedCat ?? undefined,
+    sortBy,
+    pageSize: 20,
+    isNew: isNew || undefined,
+    isDiscount: isDiscount || undefined,
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    setPage(1);
-    fetchProducts(1, true);
-  }, [selectedCat, sortBy, isNew, isDiscount]);
+  const products = productsData?.items ?? [];
 
-  // Debounce search
-  useEffect(() => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => {
-      setLoading(true);
-      fetchProducts(1, true);
-    }, 400);
-    return () => {
-      if (searchTimer.current) clearTimeout(searchTimer.current);
-    };
-  }, [search]);
+  const { mutateAsync: addToCart } = useAddToCart();
 
   const handleLoadMore = () => {
-    if (loadingMore || page >= totalPages) return;
+    if (loadingMore || isFetching) return;
     setLoadingMore(true);
-    fetchProducts(page + 1);
+    refetch().finally(() => setLoadingMore(false));
   };
 
-  const handleAddToCart = async (product: Product) => {
-    try {
-      await cartService.add(product.id, 1);
-      show(`Đã thêm "${product.name}" vào giỏ`);
-    } catch {
-      show('Không thể thêm vào giỏ hàng', 'error');
-    }
-  };
+  const handleAddToCart = useCallback(
+    async (product: Product) => {
+      try {
+        await addToCart({ productId: product.id, quantity: 1 });
+        show(`Đã thêm "${product.name}" vào giỏ`);
+      } catch {
+        show('Không thể thêm vào giỏ hàng', 'error');
+      }
+    },
+    [addToCart, show]
+  );
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchProducts(1, true);
-  };
+  const renderItem = useCallback(
+    ({ item }: { item: Product }) => <ProductCard product={item} onAddToCart={handleAddToCart} />,
+    [handleAddToCart]
+  );
 
   return (
-    <View style={s.root}>
+    <KeyboardAwareScreen style={s.root} noDismiss>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       {/* Header */}
@@ -136,9 +113,15 @@ export default function ProductsScreen() {
             value={search}
             onChangeText={setSearch}
             returnKeyType="search"
+            accessibilityRole="search"
+            accessibilityLabel="Tìm kiếm sản phẩm"
           />
           {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')}>
+            <TouchableOpacity
+              onPress={() => setSearch('')}
+              accessibilityRole="button"
+              accessibilityLabel="Xóa tìm kiếm"
+            >
               <Ionicons name="close-circle" size={18} color={C.muted} />
             </TouchableOpacity>
           )}
@@ -155,14 +138,18 @@ export default function ProductsScreen() {
           <TouchableOpacity
             style={[s.chip, !selectedCat && s.chipActive]}
             onPress={() => setSelectedCat(null)}
+            accessibilityRole="button"
+            accessibilityLabel="Tất cả danh mục"
           >
             <Text style={[s.chipText, !selectedCat && s.chipTextActive]}>Tất cả</Text>
           </TouchableOpacity>
-          {categories.map(c => (
+          {(categories ?? []).map(c => (
             <TouchableOpacity
               key={c.id}
               style={[s.chip, selectedCat === c.id && s.chipActive]}
               onPress={() => setSelectedCat(c.id)}
+              accessibilityRole="button"
+              accessibilityLabel={c.name}
             >
               <Text style={[s.chipText, selectedCat === c.id && s.chipTextActive]}>{c.name}</Text>
             </TouchableOpacity>
@@ -179,6 +166,8 @@ export default function ProductsScreen() {
               key={opt.value}
               style={[s.sortChip, sortBy === opt.value && s.sortChipActive]}
               onPress={() => setSortBy(opt.value)}
+              accessibilityRole="button"
+              accessibilityLabel={opt.label}
             >
               <Text style={[s.sortText, sortBy === opt.value && s.sortTextActive]}>
                 {opt.label}
@@ -192,6 +181,8 @@ export default function ProductsScreen() {
               setIsNew(v => !v);
               setIsDiscount(false);
             }}
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sản phẩm mới"
           >
             <Ionicons name="sparkles-outline" size={12} color={isNew ? '#fff' : '#8B5CF6'} />
             <Text style={[s.tagText, isNew && s.tagTextActive]}>Mới</Text>
@@ -202,6 +193,8 @@ export default function ProductsScreen() {
               setIsDiscount(v => !v);
               setIsNew(false);
             }}
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sản phẩm giảm giá"
           >
             <Ionicons name="pricetag-outline" size={12} color={isDiscount ? '#fff' : '#EF4444'} />
             <Text style={[s.tagText, isDiscount && s.tagTextActive]}>Giảm giá</Text>
@@ -210,9 +203,13 @@ export default function ProductsScreen() {
       </View>
 
       {/* Products Grid */}
-      {loading ? (
-        <View style={s.loadingWrap}>
-          <ActivityIndicator color={C.primary} size="large" />
+      {isLoading ? (
+        <View style={[s.grid, { gap: cardGap }]}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <View key={i} style={{ flex: 1, maxWidth: productColumns > 1 ? '50%' : '100%' }}>
+              <ProductCardSkeleton />
+            </View>
+          ))}
         </View>
       ) : products.length === 0 ? (
         <EmptyState
@@ -230,11 +227,11 @@ export default function ProductsScreen() {
           columnWrapperStyle={{ gap: cardGap }}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={C.primary} />
           }
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
-          renderItem={({ item }) => <ProductCard product={item} onAddToCart={handleAddToCart} />}
+          renderItem={renderItem}
           ListFooterComponent={
             loadingMore ? (
               <View style={s.loadMoreWrap}>
@@ -242,9 +239,11 @@ export default function ProductsScreen() {
               </View>
             ) : null
           }
+          windowSize={5}
+          maxToRenderPerBatch={10}
         />
       )}
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

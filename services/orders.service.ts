@@ -3,6 +3,7 @@ import type { Order, OrderStatus, PagedResult } from '@/types';
 
 type CreateOrderPayload = {
   hubId: string;
+  addressId?: string;
   note?: string;
   paymentMethod?: 'COD' | 'BankTransfer' | 'Wallet';
   useWallet?: boolean;

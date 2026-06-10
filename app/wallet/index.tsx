@@ -10,14 +10,13 @@ import {
   RefreshControl,
   Modal,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { walletService } from '@/services/wallet.service';
 import { useToast } from '@/components/Toast';
 import { biometrics } from '@/lib/biometrics';
@@ -189,7 +188,7 @@ export default function WalletScreen() {
   };
 
   return (
-    <View style={s.root}>
+    <KeyboardAwareScreen style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       <View style={[s.header, { paddingTop: top + 16 }]}>
@@ -276,10 +275,7 @@ export default function WalletScreen() {
         transparent
         onRequestClose={() => setTopUpVisible(false)}
       >
-        <KeyboardAvoidingView
-          style={s.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
+        <KeyboardAwareScreen style={s.modalOverlay}>
           <TouchableOpacity style={{ flex: 1 }} onPress={() => setTopUpVisible(false)} />
           <View style={[s.sheet, { paddingBottom: bottom + 24 }]}>
             {/* Handle */}
@@ -412,9 +408,9 @@ export default function WalletScreen() {
               </ScrollView>
             )}
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScreen>
       </Modal>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

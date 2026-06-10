@@ -10,13 +10,12 @@ import {
   RefreshControl,
   StatusBar,
   Modal,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { useToast } from '@/components/Toast';
 import { warehouseManagerService } from '@/services/warehouse-manager.service';
@@ -58,10 +57,7 @@ function AdjustModal({
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose} transparent>
-      <KeyboardAvoidingView
-        style={a.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <KeyboardAwareScreen style={a.overlay}>
         <View style={a.sheet}>
           <View style={a.sheetHeader}>
             <Text style={a.sheetTitle}>Điều chỉnh tồn kho</Text>
@@ -138,7 +134,7 @@ function AdjustModal({
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScreen>
     </Modal>
   );
 }

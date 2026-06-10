@@ -16,6 +16,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '@/components/ScreenHeader';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { adminService, type WarehousePayload } from '@/services/admin.service';
@@ -55,7 +56,7 @@ function WarehouseForm({
     form.province.trim();
 
   return (
-    <View style={f.container}>
+    <KeyboardAwareScreen style={f.container}>
       <View style={f.header}>
         <Text style={f.title}>{isEdit ? 'Sửa kho/hub' : 'Thêm kho/hub'}</Text>
         <TouchableOpacity onPress={onClose} style={f.closeBtn}>
@@ -100,7 +101,7 @@ function WarehouseForm({
           )}
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

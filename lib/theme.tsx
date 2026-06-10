@@ -1,29 +1,34 @@
 import React, { createContext, useContext } from 'react';
 import { useColorScheme } from 'react-native';
+import Colors from '@/constants/Colors';
+
+const LIGHT_COLORS = Colors.light;
 
 export const LIGHT = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  textSecondary: '#374151',
-  muted: '#6B7280',
-  bg: '#F8F9FA',
-  card: '#FFFFFF',
-  border: '#F3F4F6',
-  inputBg: '#F9FAFB',
+  primary: '#0EA5AE' as string,
+  primaryDark: '#067478' as string,
+  text: LIGHT_COLORS.text,
+  textSecondary: '#374151' as string,
+  muted: LIGHT_COLORS.muted,
+  bg: LIGHT_COLORS.background,
+  card: LIGHT_COLORS.card,
+  border: LIGHT_COLORS.border,
+  inputBg: LIGHT_COLORS.inputBg,
+  background: LIGHT_COLORS.background,
   isDark: false,
 };
 
-export const DARK = {
+export const DARK: typeof LIGHT = {
   primary: '#14B8C4',
   primaryDark: '#0A8F98',
   text: '#F9FAFB',
   textSecondary: '#E5E7EB',
   muted: '#9CA3AF',
-  bg: '#111827',
+  bg: '#0D1117',
   card: '#1F2937',
   border: '#374151',
   inputBg: '#1F2937',
+  background: '#0D1117',
   isDark: true,
 };
 

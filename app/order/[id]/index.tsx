@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Clipboard,
+  Share,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
@@ -40,7 +40,7 @@ function PaymentQR({ amount, paymentRef }: { amount: number; paymentRef: string 
   const qrUrl = buildQrUrl(amount, paymentRef);
 
   const copy = (text: string, label: string) => {
-    Clipboard.setString(text);
+    Share.share({ message: text });
     show(`Đã sao chép ${label}`);
   };
 

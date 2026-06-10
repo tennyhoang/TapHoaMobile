@@ -12,6 +12,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '@/components/ScreenHeader';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import OrderSummary from '@/components/checkout/OrderSummary';
 import RecipientSelector from '@/components/checkout/RecipientSelector';
 import HubSelector from '@/components/checkout/HubSelector';
@@ -109,6 +110,10 @@ export default function CheckoutScreen() {
   };
 
   const handlePlaceOrder = async () => {
+    if (!selectedAddress) {
+      setError('Vui lòng chọn địa chỉ người nhận');
+      return;
+    }
     if (!selectedHub) {
       setError('Vui lòng chọn điểm nhận hàng');
       return;
@@ -120,6 +125,7 @@ export default function CheckoutScreen() {
     try {
       const order = await ordersService.create({
         hubId: selectedHub.id,
+        addressId: selectedAddress.id,
         note: note.trim() || undefined,
         paymentMethod,
         voucherCode: voucherOk && voucherCode.trim() ? voucherCode.trim() : undefined,
@@ -141,7 +147,7 @@ export default function CheckoutScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <KeyboardAwareScreen style={s.root}>
       <ScreenHeader title="Xác nhận đơn hàng" />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.body}>
@@ -232,7 +238,7 @@ export default function CheckoutScreen() {
         onAddNew={() => router.push('/addresses' as any)}
         bottom={bottom}
       />
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

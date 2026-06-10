@@ -12,55 +12,50 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
-import { cartService } from '@/services/cart.service';
+import { useCart, useUpdateCartItem, useRemoveFromCart, useClearCart } from '@/lib/hooks';
 import { useCartCount } from '@/lib/cart-context';
 import { formatCurrency } from '@/lib/utils';
-import type { Cart, CartItem } from '@/types';
+import type { CartItem } from '@/types';
 import { C } from '@/constants/Colors';
 import { useToast } from '@/components/Toast';
 
 export default function CartScreen() {
   const { top } = useSafeAreaInsets();
   const { show } = useToast();
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [updating, setUpdating] = useState<string | null>(null);
   const { refreshCount } = useCartCount();
+  const queryClient = useQueryClient();
 
-  const fetchCart = useCallback(async () => {
-    try {
-      const data = await cartService.get();
-      setCart(data);
-      refreshCount();
-    } catch {
-      setCart({ items: [], totalAmount: 0, totalItems: 0 });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [refreshCount]);
+  const { data: cart, isLoading, isRefetching, refetch } = useCart();
+  const updateCartItem = useUpdateCartItem();
+  const removeFromCart = useRemoveFromCart();
+  const clearCart = useClearCart();
+
+  const [updating, setUpdating] = useState<string | null>(null);
+
+  const invalidateCart = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['cart'] });
+    refreshCount();
+  }, [queryClient, refreshCount]);
 
   // Reload cart every time screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      fetchCart();
-    }, [fetchCart])
+      refetch();
+    }, [refetch])
   );
 
   const handleUpdate = async (productId: string, qty: number) => {
     setUpdating(productId);
     try {
       if (qty <= 0) {
-        const updated = await cartService.remove(productId);
-        setCart(updated);
+        await removeFromCart.mutateAsync(productId);
       } else {
-        const updated = await cartService.update(productId, qty);
-        setCart(updated);
+        await updateCartItem.mutateAsync({ productId, quantity: qty });
       }
-      refreshCount();
+      invalidateCart();
     } catch {
       show('Có lỗi xảy ra', 'error');
     } finally {
@@ -69,71 +64,74 @@ export default function CartScreen() {
   };
 
   const handleClear = async () => {
-    setLoading(true);
     try {
-      await cartService.clear();
-      setCart({ items: [], totalAmount: 0, totalItems: 0 });
-      refreshCount();
+      await clearCart.mutateAsync();
+      invalidateCart();
     } catch {
       show('Có lỗi xảy ra', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const renderItem = ({ item }: { item: CartItem }) => {
-    const isUpdating = updating === item.productId;
-    return (
-      <View style={s.item}>
-        {/* Image */}
-        <View style={s.itemImg}>
-          <ProductImage uri={item.thumbnailUrl} style={s.img} name={item.productName} />
-        </View>
+  const renderItem = useCallback(
+    ({ item }: { item: CartItem }) => {
+      const isUpdating = updating === item.productId;
+      return (
+        <View style={s.item}>
+          {/* Image */}
+          <View style={s.itemImg}>
+            <ProductImage uri={item.thumbnailUrl} style={s.img} name={item.productName} />
+          </View>
 
-        {/* Info */}
-        <View style={s.itemInfo}>
-          <Text style={s.itemName} numberOfLines={2}>
-            {item.productName}
-          </Text>
-          <Text style={s.itemPrice}>{formatCurrency(item.unitPrice)}</Text>
-          <Text style={s.itemSubtotal}>= {formatCurrency(item.subtotal)}</Text>
-        </View>
+          {/* Info */}
+          <View style={s.itemInfo}>
+            <Text style={s.itemName} numberOfLines={2}>
+              {item.productName}
+            </Text>
+            <Text style={s.itemPrice}>{formatCurrency(item.unitPrice)}</Text>
+            <Text style={s.itemSubtotal}>= {formatCurrency(item.subtotal)}</Text>
+          </View>
 
-        {/* Quantity controls */}
-        <View style={s.qtyWrap}>
-          <TouchableOpacity
-            style={s.qtyBtn}
-            onPress={() => handleUpdate(item.productId, item.quantity - 1)}
-            disabled={isUpdating}
-            accessibilityRole="button"
-            accessibilityLabel={item.quantity - 1 <= 0 ? 'Xoá' : 'Giảm số lượng'}
-          >
-            {isUpdating && item.quantity - 1 <= 0 ? (
-              <Ionicons name="trash-outline" size={15} color={C.error} />
+          {/* Quantity controls */}
+          <View style={s.qtyWrap}>
+            <TouchableOpacity
+              style={s.qtyBtn}
+              onPress={() => handleUpdate(item.productId, item.quantity - 1)}
+              disabled={isUpdating}
+              accessibilityRole="button"
+              accessibilityLabel={item.quantity - 1 <= 0 ? 'Xoá' : 'Giảm số lượng'}
+            >
+              {isUpdating && item.quantity - 1 <= 0 ? (
+                <Ionicons name="trash-outline" size={15} color={C.error} />
+              ) : (
+                <Ionicons name="remove" size={16} color={C.text} />
+              )}
+            </TouchableOpacity>
+
+            {isUpdating ? (
+              <ActivityIndicator size="small" color={C.primary} style={{ width: 28 }} />
             ) : (
-              <Ionicons name="remove" size={16} color={C.text} />
+              <Text style={s.qtyText}>{item.quantity}</Text>
             )}
-          </TouchableOpacity>
 
-          {isUpdating ? (
-            <ActivityIndicator size="small" color={C.primary} style={{ width: 28 }} />
-          ) : (
-            <Text style={s.qtyText}>{item.quantity}</Text>
-          )}
-
-          <TouchableOpacity
-            style={s.qtyBtn}
-            onPress={() => handleUpdate(item.productId, item.quantity + 1)}
-            disabled={isUpdating || item.quantity >= item.stock}
-            accessibilityRole="button"
-            accessibilityLabel="Tăng số lượng"
-          >
-            <Ionicons name="add" size={16} color={item.quantity >= item.stock ? C.muted : C.text} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={s.qtyBtn}
+              onPress={() => handleUpdate(item.productId, item.quantity + 1)}
+              disabled={isUpdating || item.quantity >= item.stock}
+              accessibilityRole="button"
+              accessibilityLabel="Tăng số lượng"
+            >
+              <Ionicons
+                name="add"
+                size={16}
+                color={item.quantity >= item.stock ? C.muted : C.text}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    );
-  };
+      );
+    },
+    [updating, handleUpdate]
+  );
 
   const isEmpty = !cart || cart.items.length === 0;
 
@@ -158,7 +156,7 @@ export default function CartScreen() {
         </View>
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View style={s.loadingWrap}>
           <ActivityIndicator color={C.primary} size="large" />
         </View>
@@ -172,7 +170,7 @@ export default function CartScreen() {
           <Text style={s.emptyText}>Hãy thêm sản phẩm vào giỏ để đặt hàng</Text>
           <TouchableOpacity
             style={s.shopBtn}
-            onPress={() => router.push('/(tabs)/products' as any)}
+            onPress={() => router.push('/(tabs)/products')}
             activeOpacity={0.85}
           >
             <Text style={s.shopBtnText}>Mua sắm ngay</Text>
@@ -185,13 +183,12 @@ export default function CartScreen() {
             keyExtractor={item => item.productId}
             contentContainerStyle={s.list}
             showsVerticalScrollIndicator={false}
+            windowSize={5}
+            maxToRenderPerBatch={10}
             refreshControl={
               <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => {
-                  setRefreshing(true);
-                  fetchCart();
-                }}
+                refreshing={isRefetching}
+                onRefresh={() => refetch()}
                 tintColor={C.primary}
               />
             }
@@ -217,7 +214,7 @@ export default function CartScreen() {
             <TouchableOpacity
               style={s.checkoutBtn}
               activeOpacity={0.85}
-              onPress={() => router.push('/checkout' as any)}
+              onPress={() => router.push('/checkout')}
               testID="cart-checkout-btn"
             >
               <Text style={s.checkoutText}>Đặt hàng</Text>

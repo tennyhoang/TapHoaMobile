@@ -1,21 +1,27 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ProductDetailScreen from '@/app/product/[id]';
-import { productsService } from '@/services/products.service';
-import { cartService } from '@/services/cart.service';
+
+const mockUseProduct = jest.fn();
+const mockUseProducts = jest.fn();
+const mockAddToCartMutateAsync = jest.fn();
+
+jest.mock('@/lib/hooks', () => ({
+  useProduct: (...args: any[]) => mockUseProduct(...args),
+  useProducts: (...args: any[]) => mockUseProducts(...args),
+  useAddToCart: jest.fn(() => ({ mutateAsync: mockAddToCartMutateAsync })),
+}));
+
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({ invalidateQueries: jest.fn() }),
+}));
 
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'p1' }),
   router: { back: jest.fn(), push: jest.fn(), replace: jest.fn() },
-}));
-
-jest.mock('@/services/products.service', () => ({
-  productsService: { getById: jest.fn(), getAll: jest.fn() },
-}));
-
-jest.mock('@/services/cart.service', () => ({
-  cartService: { add: jest.fn() },
 }));
 
 jest.mock('@/lib/cart-context', () => ({
@@ -48,7 +54,15 @@ jest.mock('@/components/ProductCard', () => {
   return Mock;
 });
 
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+const wrapper = ({ children }: any) => (
+  <SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  </SafeAreaProvider>
+);
 
 const mockProduct = {
   id: 'p1',
@@ -83,23 +97,15 @@ const mockRelated = [
   },
 ];
 
-const mockServices = jest.mocked(productsService);
-const mockCart = jest.mocked(cartService);
-
 describe('ProductDetailScreen', () => {
   beforeEach(() => {
-    mockServices.getById.mockResolvedValue(mockProduct as any);
-    mockServices.getAll.mockResolvedValue({
-      items: mockRelated,
-      totalCount: 1,
-      page: 1,
-      pageSize: 8,
-      totalPages: 1,
-    } as any);
+    mockUseProduct.mockReturnValue({ data: mockProduct, isLoading: false, isError: false });
+    mockUseProducts.mockReturnValue({ data: { items: mockRelated } });
+    mockAddToCartMutateAsync.mockReset();
   });
 
   it('shows loading indicator initially', () => {
-    mockServices.getById.mockReturnValue(new Promise(() => {}));
+    mockUseProduct.mockReturnValue({ data: null, isLoading: true, isError: false });
     const { toJSON } = render(<ProductDetailScreen />, { wrapper });
     expect(toJSON()).not.toBeNull();
   });
@@ -121,7 +127,6 @@ describe('ProductDetailScreen', () => {
   it('renders original price with strikethrough when discounted', async () => {
     const { getByText } = render(<ProductDetailScreen />, { wrapper });
     await waitFor(() => {
-      // original price should be visible as it has discountPrice
       const originalPrices = getByText(/60.000/);
       expect(originalPrices).toBeTruthy();
     });
@@ -171,7 +176,11 @@ describe('ProductDetailScreen', () => {
   });
 
   it('shows out of stock when stock is 0', async () => {
-    mockServices.getById.mockResolvedValueOnce({ ...mockProduct, stock: 0 } as any);
+    mockUseProduct.mockReturnValue({
+      data: { ...mockProduct, stock: 0 },
+      isLoading: false,
+      isError: false,
+    });
     const { getAllByText } = render(<ProductDetailScreen />, { wrapper });
     await waitFor(() => {
       expect(getAllByText('Hết hàng').length).toBeGreaterThan(0);
@@ -179,17 +188,17 @@ describe('ProductDetailScreen', () => {
   });
 
   it('calls cartService.add on add to cart', async () => {
-    mockCart.add.mockResolvedValueOnce(undefined);
+    mockAddToCartMutateAsync.mockResolvedValueOnce(undefined);
     const { getByText } = render(<ProductDetailScreen />, { wrapper });
     await waitFor(() => getByText('Thêm vào giỏ'));
     await act(async () => {
       fireEvent.press(getByText('Thêm vào giỏ'));
     });
-    expect(mockCart.add).toHaveBeenCalledWith('p1', 1);
+    expect(mockAddToCartMutateAsync).toHaveBeenCalledWith({ productId: 'p1', quantity: 1 });
   });
 
   it('shows success state after adding to cart', async () => {
-    mockCart.add.mockResolvedValueOnce(undefined);
+    mockAddToCartMutateAsync.mockResolvedValueOnce(undefined);
     const { getByText } = render(<ProductDetailScreen />, { wrapper });
     await waitFor(() => getByText('Thêm vào giỏ'));
     await act(async () => {
@@ -201,7 +210,7 @@ describe('ProductDetailScreen', () => {
   });
 
   it('navigates back when product fetch fails', async () => {
-    mockServices.getById.mockRejectedValueOnce(new Error('Not found'));
+    mockUseProduct.mockReturnValue({ data: null, isLoading: false, isError: true });
     const { router } = jest.requireMock('expo-router');
     render(<ProductDetailScreen />, { wrapper });
     await waitFor(() => {
@@ -218,11 +227,11 @@ describe('ProductDetailScreen', () => {
   });
 
   it('shows no review message when review count is 0', async () => {
-    mockServices.getById.mockResolvedValueOnce({
-      ...mockProduct,
-      averageRating: 0,
-      reviewCount: 0,
-    } as any);
+    mockUseProduct.mockReturnValue({
+      data: { ...mockProduct, averageRating: 0, reviewCount: 0 },
+      isLoading: false,
+      isError: false,
+    });
     const { getByText } = render(<ProductDetailScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Chưa có đánh giá · Viết đánh giá')).toBeTruthy();
@@ -233,7 +242,6 @@ describe('ProductDetailScreen', () => {
     const { getByText } = render(<ProductDetailScreen />, { wrapper });
     await waitFor(() => getByText('Gạo ST25'));
     const shareBtns = getByText('Gạo ST25');
-    // Should not crash
     expect(shareBtns).toBeTruthy();
   });
 });

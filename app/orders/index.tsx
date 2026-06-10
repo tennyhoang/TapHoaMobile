@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { ordersService } from '@/services/orders.service';
+import { useMyOrders } from '@/lib/hooks';
 import { formatCurrency } from '@/lib/utils';
 import ErrorScreen from '@/components/ErrorScreen';
 import type { Order, OrderStatus } from '@/types';
@@ -28,43 +28,30 @@ const FILTERS: { label: string; value: OrderStatus | undefined }[] = [
 ];
 
 export default function OrdersScreen() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [hasError, setHasError] = useState<'network' | 'error' | false>(false);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | undefined>(undefined);
 
-  const load = useCallback(async (status?: OrderStatus) => {
-    setHasError(false);
-    try {
-      const res = await ordersService.getMyOrders({ pageSize: 50, status });
-      setOrders(res.items ?? []);
-    } catch (e) {
-      setHasError(e instanceof TypeError ? 'network' : 'error');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const { data, isLoading, isFetching, isError, refetch } = useMyOrders({
+    pageSize: 50,
+    status: filterStatus,
+  });
+
+  const orders = data?.items ?? [];
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      load(filterStatus);
-    }, [load, filterStatus])
+      refetch();
+    }, [refetch])
   );
 
   const handleFilter = (status: OrderStatus | undefined) => {
     setFilterStatus(status);
-    setLoading(true);
-    load(status);
   };
 
-  const renderOrder = ({ item }: { item: Order }) => {
+  const renderOrder = useCallback(({ item }: { item: Order }) => {
     return (
       <TouchableOpacity
         style={s.card}
-        onPress={() => router.push(`/order/${item.id}` as any)}
+        onPress={() => router.push(`/order/${item.id}`)}
         activeOpacity={0.85}
       >
         <View style={s.cardHeader}>
@@ -94,7 +81,7 @@ export default function OrdersScreen() {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, []);
 
   return (
     <View style={s.root}>
@@ -115,25 +102,19 @@ export default function OrdersScreen() {
         ))}
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View style={s.center}>
           <ActivityIndicator color={C.primary} size="large" />
         </View>
-      ) : hasError ? (
-        <ErrorScreen
-          type={hasError || 'error'}
-          onRetry={() => {
-            setLoading(true);
-            load(filterStatus);
-          }}
-        />
+      ) : isError ? (
+        <ErrorScreen type="error" onRetry={() => refetch()} />
       ) : orders.length === 0 ? (
         <EmptyState
           icon="receipt-outline"
           title="Chưa có đơn hàng nào"
           action={{
             label: 'Mua sắm ngay',
-            onPress: () => router.replace('/(tabs)' as any),
+            onPress: () => router.replace('/(tabs)'),
             icon: 'cart-outline',
           }}
         />
@@ -144,13 +125,12 @@ export default function OrdersScreen() {
           renderItem={renderOrder}
           contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false}
+          windowSize={5}
+          maxToRenderPerBatch={10}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                load(filterStatus);
-              }}
+              refreshing={isFetching}
+              onRefresh={() => refetch()}
               tintColor={C.primary}
             />
           }

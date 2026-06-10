@@ -32,7 +32,8 @@ describe('LoginScreen', () => {
     const buttons = getAllByText('Đăng nhập');
     fireEvent.press(buttons[buttons.length - 1]);
     await waitFor(() => {
-      expect(getByText('Vui lòng nhập đầy đủ thông tin')).toBeTruthy();
+      expect(getByText('Vui lòng nhập email')).toBeTruthy();
+      expect(getByText('Vui lòng nhập mật khẩu')).toBeTruthy();
     });
   });
 

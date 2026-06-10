@@ -1,14 +1,22 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import OrdersScreen from '@/app/orders';
-import { ordersService } from '@/services/orders.service';
 
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
+const mockRefetch = jest.fn();
+const mockUseMyOrders = jest.fn();
+const mockInvalidateQueries = jest.fn();
 
-jest.mock('@/services/orders.service', () => ({
-  ordersService: { getMyOrders: jest.fn() },
+jest.mock('@/lib/hooks', () => ({
+  useMyOrders: (...args: any[]) => mockUseMyOrders(...args),
 }));
+
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+}));
+
 jest.mock('@/components/ErrorScreen', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   const ErrorScreenMock = ({ onRetry }: any) => (
@@ -25,7 +33,15 @@ jest.mock('@/components/ErrorScreen', () => {
   return ErrorScreenMock;
 });
 
-const mockOrders = jest.mocked(ordersService);
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+const wrapper = ({ children }: any) => (
+  <SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  </SafeAreaProvider>
+);
 
 const mockOrder = {
   id: 'o1',
@@ -49,20 +65,29 @@ const mockOrder = {
 };
 
 describe('OrdersScreen', () => {
+  beforeEach(() => {
+    mockUseMyOrders.mockReturnValue({
+      data: { items: [mockOrder], totalCount: 1, page: 1, pageSize: 50, totalPages: 1 },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      refetch: mockRefetch,
+    });
+  });
+
   it('renders loading state initially', () => {
-    mockOrders.getMyOrders.mockReturnValue(new Promise(() => {}));
+    mockUseMyOrders.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isFetching: false,
+      isError: false,
+      refetch: mockRefetch,
+    });
     render(<OrdersScreen />, { wrapper });
-    expect(mockOrders.getMyOrders).toHaveBeenCalled();
+    expect(mockUseMyOrders).toHaveBeenCalled();
   });
 
   it('renders order list on success', async () => {
-    mockOrders.getMyOrders.mockResolvedValueOnce({
-      items: [mockOrder],
-      totalCount: 1,
-      page: 1,
-      pageSize: 50,
-      totalPages: 1,
-    });
     const { getByText } = render(<OrdersScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText(/150[\.,]000/)).toBeTruthy();
@@ -70,12 +95,12 @@ describe('OrdersScreen', () => {
   });
 
   it('renders empty state when no orders', async () => {
-    mockOrders.getMyOrders.mockResolvedValueOnce({
-      items: [],
-      totalCount: 0,
-      page: 1,
-      pageSize: 50,
-      totalPages: 1,
+    mockUseMyOrders.mockReturnValue({
+      data: { items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 1 },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      refetch: mockRefetch,
     });
     const { getByText } = render(<OrdersScreen />, { wrapper });
     await waitFor(() => {
@@ -84,7 +109,13 @@ describe('OrdersScreen', () => {
   });
 
   it('renders error screen when service fails', async () => {
-    mockOrders.getMyOrders.mockRejectedValueOnce(new Error('Network error'));
+    mockUseMyOrders.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isFetching: false,
+      isError: true,
+      refetch: mockRefetch,
+    });
     const { getByText } = render(<OrdersScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Lỗi tải dữ liệu')).toBeTruthy();
@@ -92,12 +123,12 @@ describe('OrdersScreen', () => {
   });
 
   it('renders filter tabs', async () => {
-    mockOrders.getMyOrders.mockResolvedValueOnce({
-      items: [],
-      totalCount: 0,
-      page: 1,
-      pageSize: 50,
-      totalPages: 1,
+    mockUseMyOrders.mockReturnValue({
+      data: { items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 1 },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      refetch: mockRefetch,
     });
     const { getByText } = render(<OrdersScreen />, { wrapper });
     await waitFor(() => {
@@ -107,18 +138,18 @@ describe('OrdersScreen', () => {
   });
 
   it('filters by status when tab pressed', async () => {
-    mockOrders.getMyOrders.mockResolvedValue({
-      items: [],
-      totalCount: 0,
-      page: 1,
-      pageSize: 50,
-      totalPages: 1,
+    mockUseMyOrders.mockReturnValue({
+      data: { items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 1 },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      refetch: mockRefetch,
     });
     const { getByText } = render(<OrdersScreen />, { wrapper });
     await waitFor(() => getByText('Hoàn thành'));
     fireEvent.press(getByText('Hoàn thành'));
     await waitFor(() => {
-      expect(mockOrders.getMyOrders).toHaveBeenCalledWith(
+      expect(mockUseMyOrders).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'Completed' })
       );
     });
