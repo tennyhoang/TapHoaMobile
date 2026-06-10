@@ -11,6 +11,8 @@ import {
   Modal,
   TextInput,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
@@ -60,6 +62,14 @@ export default function WalletScreen() {
   const [customAmount, setCustomAmount] = useState('');
   const [paymentRef, setPaymentRef] = useState('');
   const [confirming, setConfirming] = useState(false);
+
+  // Withdraw modal state
+  const [withdrawVisible, setWithdrawVisible] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawBank, setWithdrawBank] = useState('');
+  const [withdrawAccount, setWithdrawAccount] = useState('');
+  const [withdrawHolder, setWithdrawHolder] = useState('');
+  const [withdrawing, setWithdrawing] = useState(false);
 
   const loadBalance = async () => {
     try {
@@ -117,6 +127,48 @@ export default function WalletScreen() {
     setCustomAmount('');
     setPaymentRef('');
     setTopUpVisible(true);
+  };
+
+  const openWithdraw = () => {
+    setWithdrawAmount('');
+    setWithdrawBank('');
+    setWithdrawAccount('');
+    setWithdrawHolder('');
+    setWithdrawVisible(true);
+  };
+
+  const handleWithdraw = async () => {
+    const amount = parseInt(withdrawAmount.replace(/\D/g, ''), 10);
+    if (isNaN(amount) || amount < 50_000) {
+      show('Số tiền rút tối thiểu là 50.000đ', 'error');
+      return;
+    }
+    if (amount > balance) {
+      show('Số tiền rút vượt quá số dư khả dụng', 'error');
+      return;
+    }
+    if (!withdrawBank.trim() || !withdrawAccount.trim() || !withdrawHolder.trim()) {
+      show('Vui lòng điền đầy đủ thông tin ngân hàng', 'error');
+      return;
+    }
+    const confirmed = await biometrics.authenticate('Xác nhận yêu cầu rút tiền');
+    if (!confirmed) return;
+    setWithdrawing(true);
+    try {
+      await walletService.createWithdrawRequest({
+        amount,
+        bankName: withdrawBank.trim(),
+        accountNumber: withdrawAccount.trim(),
+        holderName: withdrawHolder.trim(),
+      });
+      setWithdrawVisible(false);
+      show('Yêu cầu rút tiền đã được ghi nhận — xử lý trong 1–2 ngày làm việc');
+      await load();
+    } catch {
+      show('Không thể gửi yêu cầu rút tiền, thử lại sau', 'error');
+    } finally {
+      setWithdrawing(false);
+    }
   };
 
   const finalAmount = (() => {
@@ -233,11 +285,11 @@ export default function WalletScreen() {
           <Text style={s.actionLabel}>Lịch sử dùng</Text>
         </TouchableOpacity>
         <View style={s.actionDivider} />
-        <TouchableOpacity style={s.actionBtn} activeOpacity={0.8}>
+        <TouchableOpacity style={s.actionBtn} onPress={openWithdraw} activeOpacity={0.8}>
           <View style={s.actionIcon}>
-            <Ionicons name="help-circle-outline" size={22} color="#F59E0B" />
+            <Ionicons name="arrow-up-circle-outline" size={22} color="#F59E0B" />
           </View>
-          <Text style={s.actionLabel}>Hỗ trợ</Text>
+          <Text style={s.actionLabel}>Rút tiền</Text>
         </TouchableOpacity>
       </View>
 
@@ -409,6 +461,120 @@ export default function WalletScreen() {
             )}
           </View>
         </KeyboardAwareScreen>
+      </Modal>
+
+      {/* ── WITHDRAW MODAL ── */}
+      <Modal
+        visible={withdrawVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setWithdrawVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={s.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => setWithdrawVisible(false)} />
+          <View style={[s.sheet, { paddingBottom: bottom + 24 }]}>
+            <View style={s.sheetHandle} />
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={s.sheetTitle}>Rút tiền từ ví</Text>
+              <Text style={s.sheetSub}>
+                Số dư khả dụng:{' '}
+                <Text style={{ fontWeight: '800', color: C.primary }}>
+                  {formatCurrency(balance)}
+                </Text>
+              </Text>
+
+              {/* Amount */}
+              <Text style={s.customLabel}>Số tiền muốn rút</Text>
+              <View style={[s.customInputRow, { marginBottom: 14 }]}>
+                <TextInput
+                  style={s.customInput}
+                  placeholder="Tối thiểu 50.000"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  value={withdrawAmount}
+                  onChangeText={setWithdrawAmount}
+                />
+                <Text style={s.customUnit}>đ</Text>
+              </View>
+
+              {/* Bank info */}
+              <Text style={[s.customLabel, { marginBottom: 10 }]}>Thông tin ngân hàng</Text>
+              {[
+                {
+                  label: 'Tên ngân hàng',
+                  value: withdrawBank,
+                  setter: setWithdrawBank,
+                  placeholder: 'VD: MB Bank, Vietcombank...',
+                },
+                {
+                  label: 'Số tài khoản',
+                  value: withdrawAccount,
+                  setter: setWithdrawAccount,
+                  placeholder: 'Số tài khoản thụ hưởng',
+                  keyboard: 'numeric' as const,
+                },
+                {
+                  label: 'Chủ tài khoản',
+                  value: withdrawHolder,
+                  setter: setWithdrawHolder,
+                  placeholder: 'Tên chủ tài khoản (in hoa)',
+                },
+              ].map(field => (
+                <View key={field.label} style={{ marginBottom: 12 }}>
+                  <Text style={[s.customLabel, { fontSize: 12, marginBottom: 6 }]}>
+                    {field.label}
+                  </Text>
+                  <View style={s.customInputRow}>
+                    <TextInput
+                      style={s.customInput}
+                      placeholder={field.placeholder}
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType={field.keyboard ?? 'default'}
+                      value={field.value}
+                      onChangeText={field.setter}
+                      autoCapitalize={field.label === 'Chủ tài khoản' ? 'characters' : 'none'}
+                    />
+                  </View>
+                </View>
+              ))}
+
+              <View
+                style={[
+                  s.qrHint,
+                  { marginBottom: 16, padding: 12, borderRadius: 10, backgroundColor: '#FEF3C7' },
+                ]}
+              >
+                <Text style={{ fontSize: 12, color: '#92400E', lineHeight: 18 }}>
+                  Yêu cầu rút tiền sẽ được xử lý trong 1–2 ngày làm việc. Kiểm tra kỹ thông tin
+                  trước khi xác nhận.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  s.confirmBtn,
+                  { backgroundColor: '#F59E0B' },
+                  withdrawing && s.confirmBtnDim,
+                ]}
+                onPress={handleWithdraw}
+                disabled={withdrawing}
+                activeOpacity={0.85}
+              >
+                {withdrawing ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="arrow-up-circle-outline" size={18} color="#fff" />
+                    <Text style={s.confirmBtnText}>Xác nhận rút tiền</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </KeyboardAwareScreen>
   );
