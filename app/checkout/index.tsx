@@ -50,6 +50,7 @@ export default function CheckoutScreen() {
   const [voucherCode, setVoucherCode] = useState('');
   const [voucherDiscount, setVoucherDiscount] = useState(0);
   const [voucherMsg, setVoucherMsg] = useState('');
+  const [voucherNote, setVoucherNote] = useState('');
   const [voucherOk, setVoucherOk] = useState(false);
   const [applyingVoucher, setApplyingVoucher] = useState(false);
 
@@ -62,9 +63,26 @@ export default function CheckoutScreen() {
   );
 
   useEffect(() => {
+    const fetchHubsWithLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+          return hubsService.getActive({
+            lat: loc.coords.latitude,
+            lng: loc.coords.longitude,
+          });
+        }
+      } catch {}
+      return hubsService.getActive();
+    };
+
     Promise.all([
       cartService.get(),
-      hubsService.getActive(),
+      fetchHubsWithLocation(),
       walletService.getBalance(),
       addressesService.getAll(),
     ])
@@ -88,17 +106,32 @@ export default function CheckoutScreen() {
       const result = await vouchersService.validate(voucherCode.trim(), cart?.totalAmount ?? 0);
       setVoucherOk(true);
       setVoucherMsg(result.label);
+      setVoucherNote(result.note ?? '');
       setVoucherDiscount(result.discount);
     } catch {
       setVoucherOk(false);
       setVoucherMsg('Mã voucher không hợp lệ hoặc đã hết hạn');
+      setVoucherNote('');
       setVoucherDiscount(0);
     } finally {
       setApplyingVoucher(false);
     }
   };
 
-  const finalAmount = Math.max(0, (cart?.totalAmount ?? 0) - voucherDiscount);
+  const subtotal = cart?.totalAmount ?? 0;
+  const shippingFee = selectedHub
+    ? subtotal >= selectedHub.freeShippingThreshold
+      ? 0
+      : selectedHub.shippingFee
+    : 0;
+  const freeShipRemaining = selectedHub
+    ? Math.max(0, selectedHub.freeShippingThreshold - subtotal)
+    : 0;
+  const minOrderMet = !selectedHub || subtotal >= selectedHub.minimumOrderAmount;
+  const minOrderRemaining = selectedHub
+    ? Math.max(0, selectedHub.minimumOrderAmount - subtotal)
+    : 0;
+  const finalAmount = Math.max(0, subtotal + shippingFee - voucherDiscount);
 
   const openMap = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -174,11 +207,37 @@ export default function CheckoutScreen() {
 
         <NoteInput note={note} onChange={setNote} />
 
+        {/* BR-013: minimum order warning */}
+        {!minOrderMet && (
+          <View style={s.warnBox}>
+            <Ionicons name="alert-circle" size={16} color="#B45309" />
+            <Text style={s.warnText}>
+              Đơn tối thiểu {formatCurrency(selectedHub!.minimumOrderAmount)} — cần thêm{' '}
+              <Text style={{ fontWeight: '700' }}>{formatCurrency(minOrderRemaining)}</Text>
+            </Text>
+          </View>
+        )}
+
+        {/* BR-013: free shipping progress */}
+        {minOrderMet && freeShipRemaining > 0 && (
+          <View style={s.shippingBox}>
+            <Ionicons name="bicycle-outline" size={16} color={C.primary} />
+            <Text style={s.shippingText}>
+              Mua thêm{' '}
+              <Text style={{ fontWeight: '700', color: C.primary }}>
+                {formatCurrency(freeShipRemaining)}
+              </Text>{' '}
+              để miễn phí ship
+            </Text>
+          </View>
+        )}
+
         <VoucherInput
           voucherCode={voucherCode}
           onChange={v => {
             setVoucherCode(v);
             setVoucherMsg('');
+            setVoucherNote('');
             setVoucherDiscount(0);
             setVoucherOk(false);
           }}
@@ -186,10 +245,12 @@ export default function CheckoutScreen() {
           applying={applyingVoucher}
           voucherMsg={voucherMsg}
           voucherOk={voucherOk}
+          voucherNote={voucherNote}
         />
 
         <OrderTotal
-          totalAmount={cart?.totalAmount ?? 0}
+          totalAmount={subtotal}
+          shippingFee={shippingFee}
           voucherDiscount={voucherDiscount}
           finalAmount={finalAmount}
         />
@@ -204,9 +265,9 @@ export default function CheckoutScreen() {
 
       <View style={[s.footer, { paddingBottom: Platform.OS === 'ios' ? bottom + 8 : 16 }]}>
         <TouchableOpacity
-          style={[s.placeBtn, placing && s.placeBtnDim]}
+          style={[s.placeBtn, (placing || !minOrderMet) && s.placeBtnDim]}
           onPress={handlePlaceOrder}
-          disabled={placing}
+          disabled={placing || !minOrderMet}
           activeOpacity={0.85}
         >
           {placing ? (
@@ -255,6 +316,30 @@ const s = StyleSheet.create({
     padding: 12,
   },
   errText: { fontSize: 13, color: C.error, flex: 1 },
+  warnBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    padding: 12,
+    marginBottom: 8,
+  },
+  warnText: { fontSize: 13, color: '#92400E', flex: 1 },
+  shippingBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F0FDF4',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    padding: 12,
+    marginBottom: 8,
+  },
+  shippingText: { fontSize: 13, color: '#166534', flex: 1 },
   footer: {
     position: 'absolute',
     bottom: 0,

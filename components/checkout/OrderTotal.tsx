@@ -5,16 +5,30 @@ import { formatCurrency } from '@/lib/utils';
 
 interface Props {
   totalAmount: number;
+  shippingFee: number;
   voucherDiscount: number;
   finalAmount: number;
 }
 
-export default function OrderTotal({ totalAmount, voucherDiscount, finalAmount }: Props) {
+export default function OrderTotal({
+  totalAmount,
+  shippingFee,
+  voucherDiscount,
+  finalAmount,
+}: Props) {
   return (
     <View style={s.totalCard}>
       <View style={s.totalRow}>
         <Text style={s.totalLabel}>Tạm tính</Text>
         <Text style={s.totalValue}>{formatCurrency(totalAmount)}</Text>
+      </View>
+      <View style={s.totalRow}>
+        <Text style={s.totalLabel}>Phí giao hàng</Text>
+        {shippingFee === 0 ? (
+          <Text style={[s.totalValue, { color: '#22C55E' }]}>Miễn phí</Text>
+        ) : (
+          <Text style={s.totalValue}>{formatCurrency(shippingFee)}</Text>
+        )}
       </View>
       {voucherDiscount > 0 && (
         <View style={s.totalRow}>
@@ -24,10 +38,6 @@ export default function OrderTotal({ totalAmount, voucherDiscount, finalAmount }
           </Text>
         </View>
       )}
-      <View style={s.totalRow}>
-        <Text style={s.totalLabel}>Phí giao hàng</Text>
-        <Text style={[s.totalValue, { color: '#22C55E' }]}>Miễn phí</Text>
-      </View>
       <View style={[s.totalRow, s.totalFinal]}>
         <Text style={s.totalFinalLabel}>Tổng cộng</Text>
         <Text style={s.totalFinalValue}>{formatCurrency(finalAmount)}</Text>
