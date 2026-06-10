@@ -22,6 +22,9 @@ import type { CartItem } from '@/types';
 import { C } from '@/constants/Colors';
 import { useToast } from '@/components/Toast';
 
+const FREE_SHIPPING_THRESHOLD = 300_000;
+const SHIPPING_FEE = 25_000;
+
 export default function CartScreen() {
   const { top } = useSafeAreaInsets();
   const { show } = useToast();
@@ -75,57 +78,81 @@ export default function CartScreen() {
   const renderItem = useCallback(
     ({ item }: { item: CartItem }) => {
       const isUpdating = updating === item.productId;
+      const hasDiscount = item.discountPrice != null && item.discountPrice < item.price;
+      const displayPrice = hasDiscount ? item.discountPrice! : item.unitPrice;
+      const originalPrice = hasDiscount ? item.price : undefined;
+
       return (
         <View style={s.item}>
-          {/* Image */}
+          {/* Delete button */}
+          <TouchableOpacity
+            style={s.deleteBtn}
+            onPress={() => handleUpdate(item.productId, 0)}
+            disabled={isUpdating}
+            accessibilityRole="button"
+            accessibilityLabel="Xoá sản phẩm"
+          >
+            {isUpdating && updating === item.productId ? (
+              <ActivityIndicator size="small" color={C.error} />
+            ) : (
+              <Ionicons name="trash-outline" size={16} color={C.error} />
+            )}
+          </TouchableOpacity>
+
+          {/* Product image */}
           <View style={s.itemImg}>
             <ProductImage uri={item.thumbnailUrl} style={s.img} name={item.productName} />
           </View>
 
-          {/* Info */}
-          <View style={s.itemInfo}>
-            <Text style={s.itemName} numberOfLines={2}>
+          {/* Info + stepper */}
+          <View style={s.itemBody}>
+            <Text style={s.itemName} numberOfLines={1}>
               {item.productName}
             </Text>
-            <Text style={s.itemPrice}>{formatCurrency(item.unitPrice)}</Text>
-            <Text style={s.itemSubtotal}>= {formatCurrency(item.subtotal)}</Text>
-          </View>
+            <Text style={s.itemUnit}>1 đơn vị</Text>
 
-          {/* Quantity controls */}
-          <View style={s.qtyWrap}>
-            <TouchableOpacity
-              style={s.qtyBtn}
-              onPress={() => handleUpdate(item.productId, item.quantity - 1)}
-              disabled={isUpdating}
-              accessibilityRole="button"
-              accessibilityLabel={item.quantity - 1 <= 0 ? 'Xoá' : 'Giảm số lượng'}
-            >
-              {isUpdating && item.quantity - 1 <= 0 ? (
-                <Ionicons name="trash-outline" size={15} color={C.error} />
-              ) : (
-                <Ionicons name="remove" size={16} color={C.text} />
-              )}
-            </TouchableOpacity>
+            <View style={s.itemFooter}>
+              {/* Price */}
+              <View style={s.priceGroup}>
+                <Text style={s.salePrice}>{formatCurrency(displayPrice)}</Text>
+                {originalPrice != null && (
+                  <Text style={s.origPrice}>{formatCurrency(originalPrice)}</Text>
+                )}
+              </View>
 
-            {isUpdating ? (
-              <ActivityIndicator size="small" color={C.primary} style={{ width: 28 }} />
-            ) : (
-              <Text style={s.qtyText}>{item.quantity}</Text>
-            )}
+              {/* Qty stepper */}
+              <View style={s.qtyWrap}>
+                <TouchableOpacity
+                  style={s.qtyBtn}
+                  onPress={() => handleUpdate(item.productId, item.quantity - 1)}
+                  disabled={isUpdating}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.quantity - 1 <= 0 ? 'Xoá' : 'Giảm số lượng'}
+                >
+                  <Ionicons name="remove" size={16} color={C.text} />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={s.qtyBtn}
-              onPress={() => handleUpdate(item.productId, item.quantity + 1)}
-              disabled={isUpdating || item.quantity >= item.stock}
-              accessibilityRole="button"
-              accessibilityLabel="Tăng số lượng"
-            >
-              <Ionicons
-                name="add"
-                size={16}
-                color={item.quantity >= item.stock ? C.muted : C.text}
-              />
-            </TouchableOpacity>
+                {isUpdating ? (
+                  <ActivityIndicator size="small" color={C.primary} style={s.qtyLoader} />
+                ) : (
+                  <Text style={s.qtyText}>{item.quantity}</Text>
+                )}
+
+                <TouchableOpacity
+                  style={s.qtyBtn}
+                  onPress={() => handleUpdate(item.productId, item.quantity + 1)}
+                  disabled={isUpdating || item.quantity >= item.stock}
+                  accessibilityRole="button"
+                  accessibilityLabel="Tăng số lượng"
+                >
+                  <Ionicons
+                    name="add"
+                    size={16}
+                    color={item.quantity >= item.stock ? C.muted : C.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
       );
@@ -134,6 +161,64 @@ export default function CartScreen() {
   );
 
   const isEmpty = !cart || cart.items.length === 0;
+  const subtotal = cart?.totalAmount ?? 0;
+  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
+  const shippingFee = isFreeShipping ? 0 : SHIPPING_FEE;
+  const total = subtotal + shippingFee;
+  const amountToFreeShipping = FREE_SHIPPING_THRESHOLD - subtotal;
+
+  const ListHeader = !isEmpty ? (
+    <>
+      {/* Free shipping banner */}
+      {!isFreeShipping && (
+        <View style={s.shippingBanner}>
+          <Ionicons name="bicycle-outline" size={22} color={C.primary} />
+          <Text style={s.shippingBannerText}>
+            Mua thêm{' '}
+            <Text style={s.shippingBannerBold}>{formatCurrency(amountToFreeShipping)}</Text> để được
+            miễn phí vận chuyển
+          </Text>
+        </View>
+      )}
+    </>
+  ) : null;
+
+  const SummaryCard = !isEmpty ? (
+    <View style={s.summaryCard}>
+      <Text style={s.summaryHeading}>Tóm tắt đơn hàng</Text>
+
+      <View style={s.summaryRow}>
+        <Text style={s.summaryLabel}>Tạm tính</Text>
+        <Text style={s.summaryAmount}>{formatCurrency(subtotal)}</Text>
+      </View>
+
+      <View style={s.summaryRow}>
+        <Text style={s.summaryLabel}>Phí vận chuyển</Text>
+        {isFreeShipping ? (
+          <Text style={[s.summaryAmount, { color: C.primary }]}>Miễn phí</Text>
+        ) : (
+          <Text style={s.summaryAmount}>{formatCurrency(shippingFee)}</Text>
+        )}
+      </View>
+
+      <View style={s.divider} />
+
+      <View style={s.summaryRow}>
+        <Text style={s.totalLabel}>Tổng cộng</Text>
+        <Text style={s.totalAmount}>{formatCurrency(total)}</Text>
+      </View>
+
+      <TouchableOpacity
+        style={s.checkoutBtn}
+        activeOpacity={0.85}
+        onPress={() => router.push('/checkout')}
+        testID="cart-checkout-btn"
+      >
+        <Text style={s.checkoutText}>Đặt hàng</Text>
+        <Ionicons name="arrow-forward" size={20} color="#fff" />
+      </TouchableOpacity>
+    </View>
+  ) : null;
 
   return (
     <View style={s.root}>
@@ -164,7 +249,7 @@ export default function CartScreen() {
         /* Empty state */
         <View style={s.emptyWrap}>
           <View style={s.emptyIcon}>
-            <Ionicons name="cart-outline" size={52} color={C.primary} />
+            <Ionicons name="bag-outline" size={52} color={C.primary} />
           </View>
           <Text style={s.emptyTitle}>Giỏ hàng trống</Text>
           <Text style={s.emptyText}>Hãy thêm sản phẩm vào giỏ để đặt hàng</Text>
@@ -173,55 +258,29 @@ export default function CartScreen() {
             onPress={() => router.push('/(tabs)/products')}
             activeOpacity={0.85}
           >
-            <Text style={s.shopBtnText}>Mua sắm ngay</Text>
+            <Text style={s.shopBtnText}>Khám phá sản phẩm</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <>
-          <FlatList
-            data={cart!.items}
-            keyExtractor={item => item.productId}
-            contentContainerStyle={s.list}
-            showsVerticalScrollIndicator={false}
-            windowSize={5}
-            maxToRenderPerBatch={10}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefetching}
-                onRefresh={() => refetch()}
-                tintColor={C.primary}
-              />
-            }
-            renderItem={renderItem}
-            ItemSeparatorComponent={() => <View style={s.separator} />}
-          />
-
-          {/* Summary + Checkout */}
-          <View style={s.summary}>
-            <View style={s.summaryRow}>
-              <Text style={s.summaryLabel}>Tạm tính ({cart!.totalItems} sp)</Text>
-              <Text style={s.summaryAmount}>{formatCurrency(cart!.totalAmount)}</Text>
-            </View>
-            <View style={s.summaryRow}>
-              <Text style={s.summaryLabel}>Phí giao hàng</Text>
-              <Text style={[s.summaryAmount, { color: '#22C55E' }]}>Miễn phí</Text>
-            </View>
-            <View style={[s.summaryRow, s.totalRow]}>
-              <Text style={s.totalLabel}>Tổng cộng</Text>
-              <Text style={s.totalAmount}>{formatCurrency(cart!.totalAmount)}</Text>
-            </View>
-
-            <TouchableOpacity
-              style={s.checkoutBtn}
-              activeOpacity={0.85}
-              onPress={() => router.push('/checkout')}
-              testID="cart-checkout-btn"
-            >
-              <Text style={s.checkoutText}>Đặt hàng</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </>
+        <FlatList
+          data={cart!.items}
+          keyExtractor={item => item.productId}
+          contentContainerStyle={s.list}
+          showsVerticalScrollIndicator={false}
+          windowSize={5}
+          maxToRenderPerBatch={10}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={() => refetch()}
+              tintColor={C.primary}
+            />
+          }
+          renderItem={renderItem}
+          ListHeaderComponent={ListHeader}
+          ListFooterComponent={SummaryCard}
+          ItemSeparatorComponent={() => <View style={s.separator} />}
+        />
       )}
     </View>
   );
@@ -253,6 +312,8 @@ const s = StyleSheet.create({
   clearText: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
 
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+
+  /* Empty state */
   emptyWrap: {
     flex: 1,
     alignItems: 'center',
@@ -274,7 +335,7 @@ const s = StyleSheet.create({
   shopBtn: {
     marginTop: 8,
     backgroundColor: C.primary,
-    borderRadius: 14,
+    borderRadius: 12,
     paddingHorizontal: 28,
     paddingVertical: 14,
     shadowColor: C.primary,
@@ -285,74 +346,147 @@ const s = StyleSheet.create({
   },
   shopBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
 
-  list: { padding: 16, paddingBottom: 8 },
-  separator: { height: 8 },
+  list: { padding: 16, paddingBottom: Platform.OS === 'ios' ? 32 : 20 },
+  separator: { height: 10 },
 
-  item: {
+  /* Free shipping banner */
+  shippingBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: C.card,
-    borderRadius: 16,
-    padding: 12,
+    gap: 10,
+    backgroundColor: '#E5F9FA',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: C.primary + '33',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  shippingBannerText: { flex: 1, fontSize: 13, color: C.text, lineHeight: 18 },
+  shippingBannerBold: { fontWeight: '700', color: C.primary },
+
+  /* Cart item */
+  item: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  deleteBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
   },
   itemImg: {
-    width: 72,
-    height: 72,
+    width: 80,
+    height: 80,
     borderRadius: 12,
-    backgroundColor: '#E5F9FA',
+    backgroundColor: '#F0FAFA',
     overflow: 'hidden',
+    flexShrink: 0,
   },
   img: { width: '100%', height: '100%' },
-  itemInfo: { flex: 1 },
-  itemName: { fontSize: 14, fontWeight: '600', color: C.text, lineHeight: 19, marginBottom: 4 },
-  itemPrice: { fontSize: 14, fontWeight: '700', color: C.primary },
-  itemSubtotal: { fontSize: 11, color: C.muted, marginTop: 2 },
+  itemBody: { flex: 1, paddingRight: 24 },
+  itemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.text,
+    lineHeight: 19,
+    marginBottom: 2,
+  },
+  itemUnit: { fontSize: 12, color: C.muted, marginBottom: 10 },
 
+  itemFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  priceGroup: { flexDirection: 'column', gap: 1 },
+  salePrice: { fontSize: 15, fontWeight: '700', color: C.primary },
+  origPrice: {
+    fontSize: 12,
+    color: C.muted,
+    textDecorationLine: 'line-through',
+  },
+
+  /* Qty stepper */
   qtyWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.bg,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: '#E5E7EB',
+    overflow: 'hidden',
   },
-  qtyBtn: { width: 34, height: 36, alignItems: 'center', justifyContent: 'center' },
-  qtyText: { fontSize: 15, fontWeight: '700', color: C.text, minWidth: 24, textAlign: 'center' },
+  qtyBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  qtyLoader: { width: 28 },
+  qtyText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: C.text,
+    minWidth: 24,
+    textAlign: 'center',
+  },
 
-  summary: {
-    backgroundColor: C.card,
-    borderTopWidth: 1,
-    borderTopColor: C.border,
+  /* Summary card */
+  summaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     padding: 20,
-    paddingBottom: Platform.OS === 'ios' ? 36 : 20,
+    marginTop: 12,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
-    shadowRadius: 12,
+    shadowRadius: 4,
   },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  summaryLabel: { fontSize: 14, color: C.muted },
-  summaryAmount: { fontSize: 14, fontWeight: '600', color: C.text },
-  totalRow: {
-    borderTopWidth: 1,
-    borderTopColor: C.border,
-    paddingTop: 12,
-    marginTop: 4,
+  summaryHeading: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: C.text,
     marginBottom: 16,
   },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  summaryLabel: { fontSize: 14, color: C.muted },
+  summaryAmount: { fontSize: 14, fontWeight: '600', color: C.text },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 12,
+  },
   totalLabel: { fontSize: 16, fontWeight: '700', color: C.text },
-  totalAmount: { fontSize: 20, fontWeight: '800', color: C.primary },
+  totalAmount: { fontSize: 18, fontWeight: '800', color: C.primary },
+
   checkoutBtn: {
     backgroundColor: C.primary,
-    borderRadius: 14,
+    borderRadius: 12,
     height: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    marginTop: 16,
     shadowColor: C.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
