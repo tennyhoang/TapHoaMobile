@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { haptics } from '@/lib/haptics';
 
 const PRIMARY = '#0EA5AE';
@@ -23,13 +24,6 @@ const ICONS: Record<string, { active: string; inactive: string }> = {
   profile: { active: 'person', inactive: 'person-outline' },
 };
 
-const LABELS: Record<string, string> = {
-  index: 'Trang chủ',
-  products: 'Sản phẩm',
-  cart: 'Giỏ hàng',
-  profile: 'Tài khoản',
-};
-
 function TabItem({
   route,
   isFocused,
@@ -41,6 +35,8 @@ function TabItem({
   onPress: () => void;
   badge?: number;
 }) {
+  const { t } = useTranslation();
+  const label = t(`tab.${route.name}`, route.name);
   const scale = useSharedValue(1);
   const iconScale = useSharedValue(1);
 
@@ -84,9 +80,9 @@ function TabItem({
       onPressOut={handlePressOut}
       style={s.tabItem}
       accessibilityRole="tab"
-      accessibilityLabel={LABELS[route.name] ?? route.name}
+      accessibilityLabel={label}
       accessibilityState={{ selected: isFocused }}
-      accessibilityHint={`Chuyển sang tab ${LABELS[route.name] ?? route.name}`}
+      accessibilityHint={`Switch to ${label} tab`}
     >
       <Animated.View style={[s.tabInner, animStyle]}>
         {isFocused && <Animated.View style={s.activePill} />}
@@ -106,7 +102,7 @@ function TabItem({
         )}
 
         <Animated.Text style={[s.label, { color: isFocused ? PRIMARY : INACTIVE }, labelStyle]}>
-          {LABELS[route.name] ?? route.name}
+          {label}
         </Animated.Text>
       </Animated.View>
     </Pressable>
