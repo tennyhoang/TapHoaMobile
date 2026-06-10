@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   StatusBar,
   TextInput,
   RefreshControl,
-  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
@@ -59,8 +58,6 @@ function getCatIcon(name: string) {
   return { icon: 'basket-outline', color: C.primary, bg: '#E5F9FA' };
 }
 
-const SCREEN_W = Dimensions.get('window').width;
-
 const ACTIVE_ORDER_STATUSES = [
   'PendingPayment',
   'Paid_WaitingForBatch',
@@ -75,78 +72,36 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
   InHub_ReadyForPickup: 'Tại Hub — sẵn sàng lấy hàng 🎉',
 };
 
-// ── Hero carousel ────────────────────────────────────────────────────────────
-const HERO_BANNERS = [
+// ── Trust badge data ─────────────────────────────────────────────────────────
+const TRUST_BADGES = [
   {
-    id: '1',
-    image:
-      'https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=80&auto=format&fit=crop',
-    eyebrow: 'SIÊU SALE HÔM NAY',
-    title: 'Giảm đến 50%\nRau củ quả tươi',
-    cta: 'Mua ngay',
-    route: '/flash-sale',
-    badge: '🔥 Flash Sale',
+    icon: 'car-outline' as const,
+    label: 'Giao trong ngày',
+    sub: 'Đặt trước 10h',
   },
   {
-    id: '2',
-    image:
-      'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=900&q=80&auto=format&fit=crop',
-    eyebrow: 'GIAO HÀNG NHANH',
-    title: 'Đặt trước 10h\nNhận trong ngày',
-    cta: 'Xem thực đơn',
-    route: '/(tabs)/products',
-    badge: '⚡ Siêu tốc',
+    icon: 'shield-checkmark-outline' as const,
+    label: 'Đảm bảo chất lượng',
+    sub: 'Kiểm định từng lô',
   },
   {
-    id: '3',
-    image:
-      'https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=900&q=80&auto=format&fit=crop',
-    eyebrow: 'ORGANIC CERTIFIED',
-    title: 'Thực phẩm sạch\nChứng nhận VietGAP',
-    cta: 'Khám phá',
-    route: '/(tabs)/products',
-    badge: '🌿 Organic',
-  },
-];
-
-// ── Promo banners data ───────────────────────────────────────────────────────
-const SUB_BANNERS = [
-  {
-    image:
-      'https://images.unsplash.com/photo-1557844352-761f2565b576?w=600&q=80&auto=format&fit=crop',
-    eyebrow: 'Hôm nay giảm 25%',
-    title: 'Rau củ VietGAP',
-    sub: 'Tươi sạch, giá tốt',
-    badge: '-25%',
-    route: '/(tabs)/products',
-  },
-  {
-    image:
-      'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=600&q=80&auto=format&fit=crop',
-    eyebrow: 'Mới về hôm nay',
-    title: 'Trái cây nhập khẩu',
-    sub: 'Nguồn gốc rõ ràng',
-    badge: 'New',
-    route: '/(tabs)/products',
+    icon: 'leaf-outline' as const,
+    label: '100% tươi sạch',
+    sub: 'Chứng nhận VietGAP',
   },
 ];
 
 export default function HomeScreen() {
   const { top } = useSafeAreaInsets();
-  const { cardGap, cardWidth, fontScale } = useLayout();
-  const { user } = useAuth();
+  const { cardGap, fontScale } = useLayout();
+  useAuth();
   const { show } = useToast();
   const { itemCount } = useCartCount();
-
-  const heroRef = useRef<any>(null);
-  const [heroBannerIdx, setHeroBannerIdx] = useState(0);
 
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [countdown, setCountdown] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-
-  const firstName = user?.fullName?.split(' ').pop() ?? 'bạn';
 
   const { data: categories } = useCategories();
   const { data: flashSale } = useCurrentFlashSale();
@@ -168,17 +123,6 @@ export default function HomeScreen() {
   const articles = (articlesRaw ?? []).slice(0, 3);
   const activeOrder =
     (ordersData?.items ?? []).find(o => ACTIVE_ORDER_STATUSES.includes(o.status)) ?? null;
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setHeroBannerIdx(i => {
-        const next = (i + 1) % HERO_BANNERS.length;
-        heroRef.current?.scrollTo({ x: next * SCREEN_W, animated: true });
-        return next;
-      });
-    }, 3500);
-    return () => clearInterval(t);
-  }, []);
 
   useEffect(() => {
     if (!flashSale) return;
@@ -216,33 +160,51 @@ export default function HomeScreen() {
 
   return (
     <KeyboardAwareScreen style={s.root} noDismiss>
-      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <StatusBar barStyle="dark-content" backgroundColor="#F0FAFA" />
 
       {/* ── HEADER ── */}
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <View style={s.blob} />
+      <View style={[s.header, { paddingTop: top + 12 }]}>
+        {/* Top row: logo + location + actions */}
         <View style={s.headerTop}>
-          <View>
-            <Text style={s.greeting}>Xin chào, {firstName} 👋</Text>
-            <Text style={s.subGreeting}>Hôm nay muốn ăn gì?</Text>
+          <View style={s.headerLeft}>
+            <View style={s.logoWrap}>
+              <Ionicons name="basket" size={18} color="#fff" />
+            </View>
+            <View>
+              <Text style={s.logoText}>Tạp Hóa</Text>
+              <View style={s.locationRow}>
+                <Ionicons name="location-outline" size={11} color={C.primary} />
+                <Text style={s.locationText}>Giao hàng tận nơi</Text>
+              </View>
+            </View>
           </View>
+
           <View style={s.headerActions}>
-            <TouchableOpacity style={s.headerIconBtn} onPress={() => router.push('/(tabs)/cart')}>
-              <Ionicons name="cart-outline" size={22} color="#fff" />
+            <TouchableOpacity
+              style={s.headerIconBtn}
+              onPress={() => router.push('/(tabs)/cart')}
+              accessibilityRole="button"
+              accessibilityLabel="Giỏ hàng"
+            >
+              <Ionicons name="cart-outline" size={21} color={C.text} />
               {itemCount > 0 && (
                 <View style={s.cartBadge}>
                   <Text style={s.cartBadgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
-              <View style={s.avatarBtn}>
-                <Text style={s.avatarLetter}>{user?.fullName?.charAt(0)?.toUpperCase()}</Text>
-              </View>
+            <TouchableOpacity
+              style={s.headerIconBtn}
+              onPress={() => router.push('/(tabs)/profile')}
+              accessibilityRole="button"
+              accessibilityLabel="Thông báo"
+            >
+              <Ionicons name="notifications-outline" size={21} color={C.text} />
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* Search bar */}
         <TouchableOpacity style={s.searchBar} onPress={handleSearch} activeOpacity={0.85}>
           <Ionicons name="search-outline" size={18} color={C.muted} />
           <TextInput
@@ -256,6 +218,15 @@ export default function HomeScreen() {
             accessibilityRole="search"
             accessibilityLabel="Tìm kiếm sản phẩm"
           />
+          {search.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearch('')}
+              accessibilityRole="button"
+              accessibilityLabel="Xóa tìm kiếm"
+            >
+              <Ionicons name="close-circle" size={16} color={C.muted} />
+            </TouchableOpacity>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -267,49 +238,45 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
         }
       >
-        {/* ── HERO CAROUSEL ── */}
-        <View style={s.heroWrap}>
-          <ScrollView
-            ref={heroRef}
-            horizontal
-            pagingEnabled
-            scrollEventThrottle={16}
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={e =>
-              setHeroBannerIdx(Math.round(e.nativeEvent.contentOffset.x / SCREEN_W))
-            }
-          >
-            {HERO_BANNERS.map(b => (
+        {/* ── HERO BANNER ── */}
+        <View style={s.heroCard}>
+          <View style={s.heroBg} />
+          <View style={s.heroInner}>
+            <View style={s.heroTextCol}>
+              <View style={s.heroEyebrowRow}>
+                <View style={s.heroEyebrowDot} />
+                <Text style={s.heroEyebrow}>TapHoa Fresh</Text>
+              </View>
+              <Text style={s.heroTitle}>Thực phẩm{'\n'}tươi sạch</Text>
+              <Text style={s.heroSub}>
+                Thu hoạch sáng, giao trong ngày — đảm bảo chất lượng từ nông trại
+              </Text>
               <TouchableOpacity
-                key={b.id}
-                style={[s.heroCard, { width: SCREEN_W }]}
-                onPress={() => router.push(b.route as any)}
-                activeOpacity={0.92}
+                style={s.heroCta}
+                onPress={() => router.push('/(tabs)/products')}
+                activeOpacity={0.85}
               >
-                <Image
-                  source={{ uri: b.image }}
-                  style={StyleSheet.absoluteFill}
-                  contentFit="cover"
-                  transition={400}
-                />
-                <View style={s.heroOverlay} />
-                <View style={s.heroContent}>
-                  <View style={s.heroBadge}>
-                    <Text style={s.heroBadgeText}>{b.badge}</Text>
-                  </View>
-                  <Text style={s.heroEyebrow}>{b.eyebrow}</Text>
-                  <Text style={s.heroTitle}>{b.title}</Text>
-                  <View style={s.heroCta}>
-                    <Text style={s.heroCtaText}>{b.cta}</Text>
-                    <Ionicons name="arrow-forward" size={13} color="#fff" />
-                  </View>
-                </View>
+                <Text style={s.heroCtaText}>Mua ngay</Text>
+                <Ionicons name="arrow-forward" size={14} color="#fff" />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <View style={s.heroDots}>
-            {HERO_BANNERS.map((_, i) => (
-              <View key={i} style={[s.heroDot, i === heroBannerIdx && s.heroDotActive]} />
+            </View>
+            <View style={s.heroIllustration}>
+              <Ionicons name="basket" size={72} color={C.primary} style={{ opacity: 0.12 }} />
+            </View>
+          </View>
+
+          {/* Trust badges row */}
+          <View style={s.trustRow}>
+            {TRUST_BADGES.map(badge => (
+              <View key={badge.label} style={s.trustBadge}>
+                <View style={s.trustIconCircle}>
+                  <Ionicons name={badge.icon} size={16} color={C.primary} />
+                </View>
+                <View style={s.trustTextCol}>
+                  <Text style={s.trustLabel}>{badge.label}</Text>
+                  <Text style={s.trustSub}>{badge.sub}</Text>
+                </View>
+              </View>
             ))}
           </View>
         </View>
@@ -334,40 +301,17 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        {/* ── SUB BANNERS ── */}
-        <View style={s.bannersRow}>
-          {SUB_BANNERS.map(b => (
-            <TouchableOpacity
-              key={b.title}
-              style={s.bannerCard}
-              onPress={() => router.push(b.route as any)}
-              activeOpacity={0.88}
-            >
-              <Image
-                source={{ uri: b.image }}
-                style={StyleSheet.absoluteFill}
-                contentFit="cover"
-                transition={300}
-              />
-              <View style={s.bannerOverlay} />
-              <View style={s.bannerContent}>
-                <Text style={s.bannerEyebrow}>{b.eyebrow}</Text>
-                <Text style={s.bannerTitle}>{b.title}</Text>
-                <Text style={s.bannerSub}>{b.sub}</Text>
-              </View>
-              <View style={s.bannerBadge}>
-                <Text style={s.bannerBadgeText}>{b.badge}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
         {/* ── CATEGORIES (circles) ── */}
         {(categories ?? []).length > 0 && (
           <View style={s.section}>
-            <View style={s.sectionHeader}>
-              <Text style={s.sectionLabel}>DANH MỤC</Text>
-              <Text style={s.sectionTitle}>Mua sắm theo danh mục</Text>
+            <View style={s.sectionHeaderRow}>
+              <View>
+                <Text style={s.sectionLabel}>DANH MỤC</Text>
+                <Text style={s.sectionTitle}>Mua sắm theo danh mục</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/products')}>
+                <Text style={s.seeAll}>Xem tất cả</Text>
+              </TouchableOpacity>
             </View>
             <ScrollView
               horizontal
@@ -383,6 +327,9 @@ export default function HomeScreen() {
                     style={s.catCircleWrap}
                     onPress={() => handleCatFilter(isActive ? null : cat.id)}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={cat.name}
+                    accessibilityState={{ selected: isActive }}
                   >
                     <View
                       style={[
@@ -397,13 +344,7 @@ export default function HomeScreen() {
                         color={isActive ? '#fff' : ic.color}
                       />
                     </View>
-                    <Text
-                      style={[
-                        s.catCircleLabel,
-                        isActive && { color: C.primary, fontWeight: '700' },
-                      ]}
-                      numberOfLines={2}
-                    >
+                    <Text style={[s.catLabel, isActive && s.catLabelActive]} numberOfLines={2}>
                       {cat.name}
                     </Text>
                   </TouchableOpacity>
@@ -416,17 +357,30 @@ export default function HomeScreen() {
         {/* ── FLASH SALE ── */}
         {flashSale && (
           <View style={s.section}>
-            <View style={[s.flashHeaderRow, s.sectionHeaderFlash]}>
-              <View style={s.flashTitleRow}>
+            {/* Orange gradient header card */}
+            <View style={s.flashHeaderCard}>
+              <View style={s.flashHeaderLeft}>
                 <View style={s.flashIconWrap}>
                   <Ionicons name="flash" size={16} color="#fff" />
                 </View>
-                <Text style={s.flashTitle}>Flash Sale</Text>
-                <Text style={s.flashCountdown}>{countdown}</Text>
+                <View>
+                  <Text style={s.flashTitle}>Flash Sale</Text>
+                  <Text style={s.flashSubtitle}>Ưu đãi có giới hạn</Text>
+                </View>
               </View>
-              <TouchableOpacity onPress={() => router.push('/flash-sale')}>
-                <Text style={s.seeAll}>Xem tất cả →</Text>
-              </TouchableOpacity>
+              <View style={s.flashRightCol}>
+                <Text style={s.flashCountdownLabel}>Kết thúc sau</Text>
+                <View style={s.flashCountdownRow}>
+                  {countdown.split(':').map((seg, idx) => (
+                    <React.Fragment key={idx}>
+                      {idx > 0 && <Text style={s.flashColon}>:</Text>}
+                      <View style={s.flashTimeSeg}>
+                        <Text style={s.flashTimeNum}>{seg}</Text>
+                      </View>
+                    </React.Fragment>
+                  ))}
+                </View>
+              </View>
             </View>
 
             <ScrollView
@@ -487,11 +441,23 @@ export default function HomeScreen() {
                   </View>
                 </TouchableOpacity>
               ))}
+
+              {/* See-all card */}
+              <TouchableOpacity
+                style={s.flashSeeAllCard}
+                onPress={() => router.push('/flash-sale')}
+                activeOpacity={0.85}
+              >
+                <View style={s.flashSeeAllIcon}>
+                  <Ionicons name="arrow-forward" size={22} color="#F97316" />
+                </View>
+                <Text style={s.flashSeeAllText}>Xem{'\n'}tất cả</Text>
+              </TouchableOpacity>
             </ScrollView>
           </View>
         )}
 
-        {/* ── NEW PRODUCTS ── */}
+        {/* ── FEATURED / NEW PRODUCTS ── */}
         <View style={s.section}>
           <View style={s.sectionHeaderRow}>
             <View>
@@ -499,65 +465,30 @@ export default function HomeScreen() {
               <Text style={s.sectionTitle}>Thu hoạch sáng — giao trong ngày</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/(tabs)/products')}>
-              <Text style={s.seeAll}>Xem tất cả →</Text>
+              <Text style={s.seeAll}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
 
           {loading ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: cardGap, paddingHorizontal: 16 }}
-            >
+            <View style={[s.productGrid, { gap: cardGap }]}>
               {[1, 2, 3, 4].map(i => (
-                <View key={i} style={{ width: cardWidth }}>
+                <View key={i} style={{ flex: 1, maxWidth: '50%' }}>
                   <ProductCardSkeleton />
                 </View>
               ))}
-            </ScrollView>
+            </View>
           ) : products.length === 0 ? (
             <EmptyState icon="leaf-outline" title="Chưa có sản phẩm" />
           ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: cardGap, paddingHorizontal: 16 }}
-            >
+            <View style={[s.productGrid, { gap: cardGap }]}>
               {products.map(p => (
-                <View key={p.id} style={{ width: cardWidth }}>
+                <View key={p.id} style={{ flex: 1, maxWidth: '50%' }}>
                   <ProductCard product={p} onAddToCart={handleAddToCart} />
                 </View>
               ))}
-            </ScrollView>
+            </View>
           )}
         </View>
-
-        {/* ── INTER BANNER ── */}
-        <TouchableOpacity
-          style={s.interBanner}
-          onPress={() => router.push('/(tabs)/products')}
-          activeOpacity={0.88}
-        >
-          <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&q=80&auto=format&fit=crop',
-            }}
-            style={StyleSheet.absoluteFill}
-            contentFit="cover"
-          />
-          <View style={s.interOverlay} />
-          <View style={s.interContent}>
-            <View style={s.interBadge}>
-              <Text style={s.interBadgeText}>Chứng nhận VietGAP</Text>
-            </View>
-            <Text style={s.interTitle}>Rau củ quả tươi sạch từ nông trại</Text>
-            <Text style={s.interSub}>Kiểm định chất lượng từng lô hàng — minh bạch nguồn gốc</Text>
-            <View style={s.interCta}>
-              <Text style={s.interCtaText}>Đặt mua ngay</Text>
-              <Ionicons name="arrow-forward" size={14} color="#fff" />
-            </View>
-          </View>
-        </TouchableOpacity>
 
         {/* ── DISCOUNT PRODUCTS ── */}
         {discountProducts.length > 0 && (
@@ -568,20 +499,16 @@ export default function HomeScreen() {
                 <Text style={s.sectionTitle}>Ưu đãi cập nhật liên tục</Text>
               </View>
               <TouchableOpacity onPress={() => router.push('/(tabs)/products')}>
-                <Text style={s.seeAll}>Xem tất cả →</Text>
+                <Text style={s.seeAll}>Xem tất cả</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: cardGap, paddingHorizontal: 16 }}
-            >
+            <View style={[s.productGrid, { gap: cardGap }]}>
               {discountProducts.map(p => (
-                <View key={p.id} style={{ width: cardWidth }}>
+                <View key={p.id} style={{ flex: 1, maxWidth: '50%' }}>
                   <ProductCard product={p} onAddToCart={handleAddToCart} />
                 </View>
               ))}
-            </ScrollView>
+            </View>
           </View>
         )}
 
@@ -593,7 +520,7 @@ export default function HomeScreen() {
               <Text style={s.sectionTitle}>Bếp & Ẩm thực</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/articles/index/index' as any)}>
-              <Text style={s.seeAll}>Xem tất cả →</Text>
+              <Text style={s.seeAll}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
 
@@ -680,75 +607,240 @@ export default function HomeScreen() {
             </TouchableOpacity>
           )}
         </View>
-
-        {/* ── TRUST BADGES ── */}
-        <View style={s.trustWrap}>
-          {[
-            { icon: 'checkmark-circle-outline', label: 'Kiểm định chất lượng', color: '#22C55E' },
-            { icon: 'location-outline', label: 'Giao tận Hub gần nhà', color: C.primary },
-            { icon: 'shield-checkmark-outline', label: 'Nguồn gốc minh bạch', color: '#8B5CF6' },
-          ].map(t => (
-            <View key={t.label} style={s.trustItem}>
-              <Ionicons name={t.icon as any} size={22} color={t.color} />
-              <Text style={s.trustLabel}>{t.label}</Text>
-            </View>
-          ))}
-        </View>
       </ScrollView>
     </KeyboardAwareScreen>
   );
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
+  root: { flex: 1, backgroundColor: '#F0FAFA' },
 
+  // ── Header ────────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: C.primaryDark,
-    overflow: 'hidden',
-    paddingTop: 0,
+    backgroundColor: '#F0FAFA',
     paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  blob: {
-    position: 'absolute',
-    top: -60,
-    right: -60,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    alignItems: 'center',
+    marginBottom: 14,
   },
-  greeting: { fontSize: 21, fontWeight: '700', color: '#FFFFFF', marginBottom: 3 },
-  subGreeting: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
-  avatarBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logoWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: C.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  avatarLetter: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  logoText: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: C.text,
+    letterSpacing: -0.3,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 1,
+  },
+  locationText: {
+    fontSize: 11,
+    color: C.primary,
+    fontWeight: '500',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  headerIconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -3,
+    right: -3,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 17,
+    height: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  cartBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
+
+  // ── Search bar ────────────────────────────────────────────────────────────
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#fff',
     borderRadius: 14,
     paddingHorizontal: 14,
     height: 46,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   searchInput: { flex: 1, fontSize: 14, color: C.text },
 
   body: { flex: 1 },
+
+  // ── Hero banner ───────────────────────────────────────────────────────────
+  heroCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  heroBg: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: '#F0FAFA',
+  },
+  heroInner: {
+    flexDirection: 'row',
+    padding: 20,
+    paddingBottom: 16,
+  },
+  heroTextCol: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  heroEyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  heroEyebrowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: C.primary,
+  },
+  heroEyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: C.text,
+    lineHeight: 30,
+    marginBottom: 8,
+  },
+  heroSub: {
+    fontSize: 12,
+    color: C.muted,
+    lineHeight: 17,
+    marginBottom: 14,
+  },
+  heroCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: C.primary,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  heroCtaText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  heroIllustration: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Trust badges inside hero
+  trustRow: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  trustBadge: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: 4,
+  },
+  trustIconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#E5F9FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  trustTextCol: {
+    flex: 1,
+  },
+  trustLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: C.text,
+    lineHeight: 13,
+  },
+  trustSub: {
+    fontSize: 9,
+    color: C.muted,
+    lineHeight: 12,
+  },
+
+  // ── Shared section ────────────────────────────────────────────────────────
   section: { marginTop: 24, paddingHorizontal: 16 },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -756,7 +848,6 @@ const s = StyleSheet.create({
     alignItems: 'flex-end',
     marginBottom: 14,
   },
-  sectionHeader: { marginBottom: 14 },
   sectionLabel: {
     fontSize: 10,
     fontWeight: '700',
@@ -765,96 +856,116 @@ const s = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 3,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: C.text },
+  sectionTitle: { fontSize: 17, fontWeight: '800', color: C.text },
   seeAll: { fontSize: 13, color: C.primary, fontWeight: '600' },
 
-  // Sub Banners
-  bannersRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, marginTop: 14 },
-  bannerCard: {
-    flex: 1,
-    height: 120,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#E5F9FA',
-  },
-  bannerOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(4,50,56,0.55)',
-  },
-  bannerContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 12 },
-  bannerEyebrow: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.65)',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
-  bannerTitle: { fontSize: 14, fontWeight: '800', color: '#fff', lineHeight: 18 },
-  bannerSub: { fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  bannerBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  // ── Active order strip ────────────────────────────────────────────────────
+  orderStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 14,
+    borderRadius: 14,
+    padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    borderColor: '#BAF3F5',
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  bannerBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
+  orderStripIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#E5F9FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  orderStripLabel: { fontSize: 13, fontWeight: '700', color: C.text },
+  orderStripSub: { fontSize: 11, color: C.primary, fontWeight: '600', marginTop: 1 },
 
-  // Category Circles
+  // ── Category circles ──────────────────────────────────────────────────────
   catScroll: { gap: 14, paddingBottom: 4 },
   catCircleWrap: { alignItems: 'center', gap: 7, width: 72 },
   catCircle: {
     width: 60,
     height: 60,
-    borderRadius: 18,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: 'transparent',
   },
   catCircleActive: { borderColor: C.primary },
-  catCircleLabel: {
+  catLabel: {
     fontSize: 11,
     fontWeight: '500',
     color: C.muted,
     textAlign: 'center',
     lineHeight: 14,
   },
+  catLabelActive: { color: C.primary, fontWeight: '700' },
 
-  // Flash Sale
-  sectionHeaderFlash: { marginBottom: 14 },
-  flashHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  flashTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // ── Flash sale ────────────────────────────────────────────────────────────
+  flashHeaderCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFF7F0',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+    padding: 14,
+    marginBottom: 12,
+  },
+  flashHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   flashIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: '#F59E0B',
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    backgroundColor: '#F97316',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  flashTitle: { fontSize: 18, fontWeight: '800', color: C.text },
-  flashCountdown: { fontSize: 14, fontWeight: '700', color: '#D97706', letterSpacing: 0.5 },
+  flashTitle: { fontSize: 16, fontWeight: '800', color: '#C2410C' },
+  flashSubtitle: { fontSize: 11, color: '#EA580C', fontWeight: '500', marginTop: 1 },
+  flashRightCol: { alignItems: 'flex-end' },
+  flashCountdownLabel: { fontSize: 10, color: '#EA580C', fontWeight: '500', marginBottom: 4 },
+  flashCountdownRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  flashTimeSeg: {
+    backgroundColor: '#F97316',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    minWidth: 28,
+    alignItems: 'center',
+  },
+  flashTimeNum: { fontSize: 13, fontWeight: '800', color: '#fff' },
+  flashColon: { fontSize: 13, fontWeight: '800', color: '#F97316', marginBottom: 1 },
+
   flashScroll: { gap: 12, paddingBottom: 4 },
   flashCard: {
-    width: 150,
-    backgroundColor: C.card,
+    width: 148,
+    backgroundColor: '#fff',
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 2,
   },
-  flashImgWrap: { width: '100%', height: 130, backgroundColor: '#FEF3C7' },
+  flashImgWrap: { width: '100%', height: 126, backgroundColor: '#FFF7F0' },
   flashBadge: {
     position: 'absolute',
     top: 8,
@@ -867,7 +978,7 @@ const s = StyleSheet.create({
   flashBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
   flashInfo: { padding: 10 },
   flashName: { fontSize: 12, fontWeight: '600', color: C.text, marginBottom: 4, lineHeight: 16 },
-  flashPrice: { fontSize: 13, fontWeight: '800', color: '#EF4444' },
+  flashPrice: { fontSize: 13, fontWeight: '800', color: '#F97316' },
   flashOriginal: { fontSize: 11, color: C.muted, textDecorationLine: 'line-through' },
   stockBarWrap: {
     height: 4,
@@ -876,62 +987,41 @@ const s = StyleSheet.create({
     marginTop: 6,
     overflow: 'hidden',
   },
-  stockBar: { height: '100%', backgroundColor: '#F59E0B', borderRadius: 2 },
+  stockBar: { height: '100%', backgroundColor: '#F97316', borderRadius: 2 },
   stockText: { fontSize: 10, color: C.muted, marginTop: 3 },
-
-  // Products
-  productGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  loadingWrap: { height: 200, alignItems: 'center', justifyContent: 'center' },
-  emptyWrap: { height: 160, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  emptyText: { fontSize: 14, color: C.muted },
-
-  // Inter Banner
-  interBanner: {
-    height: 160,
-    marginHorizontal: 16,
-    marginTop: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: C.primaryDark,
-  },
-  interOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(4,50,56,0.6)',
-  },
-  interContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    gap: 6,
-  },
-  interBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-  },
-  interBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff', letterSpacing: 0.5 },
-  interTitle: { fontSize: 18, fontWeight: '800', color: '#fff', lineHeight: 22 },
-  interSub: { fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 16 },
-  interCta: {
-    flexDirection: 'row',
+  flashSeeAllCard: {
+    width: 80,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: C.primary,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    marginTop: 4,
+    gap: 8,
+    backgroundColor: '#FFF7F0',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
   },
-  interCtaText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+  flashSeeAllIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFEDD5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flashSeeAllText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#F97316',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
 
-  // Articles
+  // ── Product grid ──────────────────────────────────────────────────────────
+  productGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+
+  // ── Articles ──────────────────────────────────────────────────────────────
   articlesWrap: { gap: 10 },
   articleFeatured: {
     height: 200,
@@ -952,16 +1042,16 @@ const s = StyleSheet.create({
   articleFeaturedTitle: { fontSize: 16, fontWeight: '800', color: '#fff', lineHeight: 21 },
   articleCard: {
     flexDirection: 'row',
-    backgroundColor: C.card,
+    backgroundColor: '#fff',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: '#E5E7EB',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   articleCardImg: { width: 100, height: 88 },
   articleCardInfo: { flex: 1, padding: 12, justifyContent: 'center', gap: 5 },
@@ -986,129 +1076,17 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: C.card,
+    backgroundColor: '#fff',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: '#E5E7EB',
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   articleBannerTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 3 },
   articleBannerSub: { fontSize: 12, color: C.muted, lineHeight: 16 },
-
-  // Header actions
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  headerIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: '#EF4444',
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  cartBadgeText: { fontSize: 10, fontWeight: '800', color: '#fff' },
-
-  // Hero carousel
-  heroWrap: { marginTop: 12 },
-  heroCard: { height: 200, backgroundColor: C.primaryDark, overflow: 'hidden' },
-  heroOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.38)' },
-  heroContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, gap: 4 },
-  heroBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    marginBottom: 4,
-  },
-  heroBadgeText: { fontSize: 11, fontWeight: '700', color: '#fff' },
-  heroEyebrow: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.65)',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  heroTitle: { fontSize: 22, fontWeight: '900', color: '#fff', lineHeight: 28 },
-  heroCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: C.primary,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    marginTop: 6,
-  },
-  heroCtaText: { fontSize: 12, fontWeight: '700', color: '#fff' },
-  heroDots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    paddingTop: 10,
-    paddingBottom: 2,
-  },
-  heroDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D1D5DB' },
-  heroDotActive: { width: 20, backgroundColor: C.primary },
-
-  // Active order strip
-  orderStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#E5F9FA',
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#BAF3F5',
-  },
-  orderStripIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  orderStripLabel: { fontSize: 13, fontWeight: '700', color: C.text },
-  orderStripSub: { fontSize: 11, color: C.primary, fontWeight: '600', marginTop: 1 },
-
-  // Trust badges
-  trustWrap: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginHorizontal: 16,
-    marginTop: 24,
-    backgroundColor: C.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: C.border,
-    paddingVertical: 18,
-    paddingHorizontal: 8,
-  },
-  trustItem: { alignItems: 'center', gap: 6, flex: 1 },
-  trustLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: C.muted,
-    textAlign: 'center',
-    lineHeight: 15,
-  },
 });

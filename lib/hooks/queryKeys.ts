@@ -67,7 +67,8 @@ export const queryKeys = {
     byProduct: (productId: string, page?: number) => ['reviews', productId, page] as const,
   },
   hubs: {
-    active: (city?: string, district?: string) => ['hubs', 'active', city, district] as const,
+    active: (city?: string, district?: string) =>
+      ['hubs', 'active', city ?? '', district ?? ''] as const,
   },
   vouchers: {
     validate: (code: string) => ['vouchers', 'validate', code] as const,

@@ -11,7 +11,7 @@ export function useActiveHubs(
 ) {
   return useQuery({
     queryKey: queryKeys.hubs.active(city, district),
-    queryFn: () => hubsService.getActive(city, district),
+    queryFn: () => hubsService.getActive({ city, district }),
     staleTime: 120_000,
     ...options,
   });
