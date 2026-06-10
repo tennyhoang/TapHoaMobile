@@ -38,6 +38,21 @@ export const queryKeys = {
   admin: {
     stats: ['admin', 'stats'] as const,
     orders: (params?: Record<string, unknown>) => ['admin', 'orders', params] as const,
+    products: (params?: Record<string, unknown>) => ['admin', 'products', params] as const,
+    categories: ['admin', 'categories'] as const,
+    flashSale: {
+      sessions: ['admin', 'flashSale', 'sessions'] as const,
+      items: (sessionId: string) => ['admin', 'flashSale', 'items', sessionId] as const,
+    },
+    users: (params?: Record<string, unknown>) => ['admin', 'users', params] as const,
+    warehouses: ['admin', 'warehouses'] as const,
+    wallet: (status: string) => ['admin', 'wallet', status] as const,
+  },
+  warehouse: {
+    dashboard: ['warehouse', 'dashboard'] as const,
+    orders: (params?: Record<string, unknown>) => ['warehouse', 'orders', params] as const,
+    inventory: (params?: Record<string, unknown>) => ['warehouse', 'inventory', params] as const,
+    drivers: ['warehouse', 'drivers'] as const,
   },
   driver: {
     warehouse: ['driver', 'warehouse'] as const,
