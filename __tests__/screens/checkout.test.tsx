@@ -67,6 +67,9 @@ const mockHub = {
   city: 'TP.HCM',
   latitude: 10.77,
   longitude: 106.69,
+  minimumOrderAmount: 0,
+  freeShippingThreshold: 200000,
+  shippingFee: 15000,
 };
 
 const mockCartData = {
