@@ -1,16 +1,24 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import CartScreen from '@/app/(tabs)/cart';
-import { cartService } from '@/services/cart.service';
 
-jest.mock('@/services/cart.service', () => ({
-  cartService: {
-    get: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
-    clear: jest.fn(),
-  },
+const mockRefetch = jest.fn();
+const mockUseCart = jest.fn();
+const mockMutateAsync = jest.fn();
+const mockInvalidateQueries = jest.fn();
+
+jest.mock('@/lib/hooks', () => ({
+  useCart: (...args: any[]) => mockUseCart(...args),
+  useUpdateCartItem: jest.fn(() => ({ mutateAsync: mockMutateAsync })),
+  useRemoveFromCart: jest.fn(() => ({ mutateAsync: mockMutateAsync })),
+  useClearCart: jest.fn(() => ({ mutateAsync: mockMutateAsync })),
+}));
+
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
 }));
 
 jest.mock('@/lib/cart-context', () => ({
@@ -28,8 +36,15 @@ jest.mock('@/components/ProductImage', () => {
   return Mock;
 });
 
-const mockCart = jest.mocked(cartService);
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+const wrapper = ({ children }: any) => (
+  <SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  </SafeAreaProvider>
+);
 
 const mockCartData = {
   items: [
@@ -48,15 +63,28 @@ const mockCartData = {
 };
 
 describe('CartScreen', () => {
+  beforeEach(() => {
+    mockUseCart.mockReturnValue({
+      data: null,
+      isLoading: true,
+      isRefetching: false,
+      refetch: mockRefetch,
+    });
+  });
+
   it('shows loading indicator initially', () => {
-    mockCart.get.mockReturnValue(new Promise(() => {}));
     const { toJSON } = render(<CartScreen />, { wrapper });
     expect(toJSON()).not.toBeNull();
-    expect(mockCart.get).toHaveBeenCalled();
+    expect(mockUseCart).toHaveBeenCalled();
   });
 
   it('renders empty state when cart is empty', async () => {
-    mockCart.get.mockResolvedValueOnce({ items: [], totalAmount: 0, totalItems: 0 });
+    mockUseCart.mockReturnValue({
+      data: { items: [], totalAmount: 0, totalItems: 0 },
+      isLoading: false,
+      isRefetching: false,
+      refetch: mockRefetch,
+    });
     const { getByText } = render(<CartScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Giỏ hàng trống')).toBeTruthy();
@@ -64,7 +92,12 @@ describe('CartScreen', () => {
   });
 
   it('renders cart items when cart has products', async () => {
-    mockCart.get.mockResolvedValueOnce(mockCartData);
+    mockUseCart.mockReturnValue({
+      data: mockCartData,
+      isLoading: false,
+      isRefetching: false,
+      refetch: mockRefetch,
+    });
     const { getByText } = render(<CartScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Gạo ST25')).toBeTruthy();
@@ -72,7 +105,12 @@ describe('CartScreen', () => {
   });
 
   it('renders item count in header when cart has items', async () => {
-    mockCart.get.mockResolvedValueOnce(mockCartData);
+    mockUseCart.mockReturnValue({
+      data: mockCartData,
+      isLoading: false,
+      isRefetching: false,
+      refetch: mockRefetch,
+    });
     const { getByText } = render(<CartScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('2 sản phẩm')).toBeTruthy();
@@ -80,7 +118,12 @@ describe('CartScreen', () => {
   });
 
   it('renders clear cart button when cart has items', async () => {
-    mockCart.get.mockResolvedValueOnce(mockCartData);
+    mockUseCart.mockReturnValue({
+      data: mockCartData,
+      isLoading: false,
+      isRefetching: false,
+      refetch: mockRefetch,
+    });
     const { getByText } = render(<CartScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Xóa tất cả')).toBeTruthy();
@@ -88,18 +131,28 @@ describe('CartScreen', () => {
   });
 
   it('calls cartService.clear when clear button is pressed', async () => {
-    mockCart.get.mockResolvedValueOnce(mockCartData);
-    mockCart.clear.mockResolvedValueOnce(undefined);
+    mockUseCart.mockReturnValue({
+      data: mockCartData,
+      isLoading: false,
+      isRefetching: false,
+      refetch: mockRefetch,
+    });
+    mockMutateAsync.mockResolvedValueOnce(undefined);
     const { getByText } = render(<CartScreen />, { wrapper });
     await waitFor(() => getByText('Xóa tất cả'));
     await act(async () => {
       fireEvent.press(getByText('Xóa tất cả'));
     });
-    expect(mockCart.clear).toHaveBeenCalled();
+    expect(mockMutateAsync).toHaveBeenCalled();
   });
 
   it('navigates to products on "Mua sắm ngay" press', async () => {
-    mockCart.get.mockResolvedValueOnce({ items: [], totalAmount: 0, totalItems: 0 });
+    mockUseCart.mockReturnValue({
+      data: { items: [], totalAmount: 0, totalItems: 0 },
+      isLoading: false,
+      isRefetching: false,
+      refetch: mockRefetch,
+    });
     const { getByText } = render(<CartScreen />, { wrapper });
     await waitFor(() => getByText('Mua sắm ngay'));
     const { router } = jest.requireMock('expo-router');
@@ -108,14 +161,19 @@ describe('CartScreen', () => {
   });
 
   it('calls cartService.update when quantity is increased', async () => {
-    mockCart.get.mockResolvedValueOnce(mockCartData);
-    mockCart.update.mockResolvedValueOnce(mockCartData);
+    mockUseCart.mockReturnValue({
+      data: mockCartData,
+      isLoading: false,
+      isRefetching: false,
+      refetch: mockRefetch,
+    });
+    mockMutateAsync.mockResolvedValueOnce(mockCartData);
     const { getByText, getAllByLabelText } = render(<CartScreen />, { wrapper });
     await waitFor(() => getByText('Gạo ST25'));
     const increaseBtn = getAllByLabelText('Tăng số lượng')[0];
     await act(async () => {
       fireEvent.press(increaseBtn);
     });
-    expect(mockCart.update).toHaveBeenCalledWith('p1', 3);
+    expect(mockMutateAsync).toHaveBeenCalledWith({ productId: 'p1', quantity: 3 });
   });
 });

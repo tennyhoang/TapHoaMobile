@@ -1,41 +1,25 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import HomeScreen from '@/app/(tabs)';
-import { productsService } from '@/services/products.service';
-import { categoriesService } from '@/services/categories.service';
-import { flashSaleService } from '@/services/flashsale.service';
-import { ordersService } from '@/services/orders.service';
-import { articlesService } from '@/services/articles.service';
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
 }));
 
-jest.mock('@/services/products.service', () => ({
-  productsService: { getAll: jest.fn() },
+jest.mock('@/lib/hooks', () => ({
+  useCategories: jest.fn(),
+  useCurrentFlashSale: jest.fn(),
+  useArticles: jest.fn(),
+  useMyOrders: jest.fn(),
+  useAddToCart: jest.fn(),
+  useProducts: jest.fn(),
 }));
 
-jest.mock('@/services/categories.service', () => ({
-  categoriesService: { getAll: jest.fn() },
-}));
-
-jest.mock('@/services/flashsale.service', () => ({
-  flashSaleService: { getCurrent: jest.fn() },
-}));
-
-jest.mock('@/services/cart.service', () => ({
-  cartService: { add: jest.fn() },
-}));
-
-jest.mock('@/services/orders.service', () => ({
-  ordersService: { getMyOrders: jest.fn() },
-}));
-
-jest.mock('@/services/articles.service', () => ({
-  articlesService: { getAll: jest.fn() },
-  getCategoryMeta: () => ({ label: 'Mẹo vặt', color: '#0EA5AE' }),
-  getArticleImage: () => 'https://example.com/img.jpg',
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: jest.fn(() => ({ invalidateQueries: jest.fn() })),
 }));
 
 jest.mock('@/lib/auth-context', () => ({
@@ -101,7 +85,22 @@ jest.mock('expo-image', () => {
   return { Image: Mock };
 });
 
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
+jest.mock('@/services/articles.service', () => ({
+  getCategoryMeta: () => ({ label: 'Mẹo vặt', color: '#0EA5AE' }),
+  getArticleImage: () => 'https://example.com/img.jpg',
+}));
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+function renderWithQuery(component: React.ReactElement) {
+  return render(
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>
+    </SafeAreaProvider>
+  );
+}
 
 const mockCategories = [
   { id: 'cat1', name: 'Rau củ', description: '', children: [] },
@@ -199,79 +198,103 @@ const mockActiveOrder = {
   createdAt: '2025-01-01T00:00:00Z',
 };
 
+const { useCategories, useCurrentFlashSale, useArticles, useMyOrders, useAddToCart, useProducts } =
+  jest.requireMock('@/lib/hooks');
+
 jest.setTimeout(60000);
 
 describe('HomeScreen', () => {
   beforeEach(() => {
-    jest.mocked(productsService.getAll).mockResolvedValue({
-      items: mockProducts,
-      totalCount: 2,
-      page: 1,
-      pageSize: 8,
-      totalPages: 1,
-    } as any);
-    jest.mocked(categoriesService.getAll).mockResolvedValue(mockCategories);
-    jest.mocked(flashSaleService.getCurrent).mockResolvedValue(mockFlashSale);
-    jest.mocked(ordersService.getMyOrders).mockResolvedValue({
-      items: [mockActiveOrder],
-      totalCount: 1,
-      page: 1,
-      pageSize: 10,
-      totalPages: 1,
-    } as any);
-    jest.mocked(articlesService.getAll).mockResolvedValue(mockArticles);
+    queryClient.clear();
+    useCategories.mockReturnValue({
+      data: mockCategories,
+      isLoading: false,
+      isRefetching: false,
+    });
+    useProducts.mockReturnValue({
+      data: { items: mockProducts, totalCount: 2, page: 1, pageSize: 8, totalPages: 1 },
+      isLoading: false,
+      isRefetching: false,
+    });
+    useCurrentFlashSale.mockReturnValue({
+      data: mockFlashSale,
+      isLoading: false,
+      isRefetching: false,
+    });
+    useArticles.mockReturnValue({
+      data: mockArticles,
+      isLoading: false,
+      isRefetching: false,
+    });
+    useMyOrders.mockReturnValue({
+      data: { items: [mockActiveOrder], totalCount: 1, page: 1, pageSize: 10, totalPages: 1 },
+      isLoading: false,
+      isRefetching: false,
+    });
+    useAddToCart.mockReturnValue({
+      mutateAsync: jest.fn(),
+      isPending: false,
+    });
   });
 
   it('renders without crashing', () => {
-    jest.mocked(productsService.getAll).mockReturnValue(new Promise(() => {}));
-    const { toJSON } = render(<HomeScreen />, { wrapper });
+    useProducts.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    useCategories.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    useCurrentFlashSale.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    useArticles.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    useMyOrders.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    const { toJSON } = renderWithQuery(<HomeScreen />);
     expect(toJSON()).not.toBeNull();
   });
 
   it('renders greeting text', async () => {
-    const { findByText } = render(<HomeScreen />, { wrapper });
+    const { findByText } = renderWithQuery(<HomeScreen />);
     expect(await findByText(/Xin chào/, {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('renders hero carousel badge', async () => {
-    const { findByText } = render(<HomeScreen />, { wrapper });
-    expect(await findByText(/Flash Sale/, {}, { timeout: 20000 })).toBeTruthy();
+    const { findByText } = renderWithQuery(<HomeScreen />);
+    expect(await findByText(/🔥 Flash Sale/, {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('renders active order strip', async () => {
-    const { findByText } = render(<HomeScreen />, { wrapper });
+    const { findByText } = renderWithQuery(<HomeScreen />);
     expect(await findByText('Đơn hàng đang xử lý', {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('renders category sections', async () => {
-    const { findByText } = render(<HomeScreen />, { wrapper });
+    const { findByText } = renderWithQuery(<HomeScreen />);
     expect(await findByText('Rau củ', {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('renders product list', async () => {
-    const { findAllByText } = render(<HomeScreen />, { wrapper });
+    const { findAllByText } = renderWithQuery(<HomeScreen />);
     const items = await findAllByText('Rau muống', {}, { timeout: 20000 });
     expect(items.length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders flash sale section', async () => {
-    const { findByText } = render(<HomeScreen />, { wrapper });
+    const { findByText } = renderWithQuery(<HomeScreen />);
     expect(await findByText('Dâu tây', {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('renders articles section', async () => {
-    const { findByText } = render(<HomeScreen />, { wrapper });
+    const { findByText } = renderWithQuery(<HomeScreen />);
     expect(await findByText('Cách nấu canh chua', {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('renders trust badges', async () => {
-    const { findByText } = render(<HomeScreen />, { wrapper });
+    const { findByText } = renderWithQuery(<HomeScreen />);
     expect(await findByText('Kiểm định chất lượng', {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('shows loading state with skeleton', () => {
-    jest.mocked(productsService.getAll).mockReturnValue(new Promise(() => {}));
-    const { getAllByTestId } = render(<HomeScreen />, { wrapper });
+    useProducts.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    useCategories.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    useCurrentFlashSale.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    useArticles.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    useMyOrders.mockReturnValue({ data: undefined, isLoading: true, isRefetching: false });
+    const { getAllByTestId } = renderWithQuery(<HomeScreen />);
     expect(getAllByTestId('skeleton').length).toBeGreaterThan(0);
   });
 });

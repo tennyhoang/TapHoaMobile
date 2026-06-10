@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/immutability */
-import React, { useCallback } from 'react';
+import React, { memo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -12,6 +12,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
 import { useWishlist } from '@/lib/wishlist-context';
+import { useLayout } from '@/lib/layout';
 import { haptics } from '@/lib/haptics';
 import type { Product } from '@/types';
 import { formatCurrency, discountPercent } from '@/lib/utils';
@@ -22,11 +23,14 @@ type Props = {
   onAddToCart?: (product: Product) => void;
 };
 
-export default function ProductCard({ product, onAddToCart }: Props) {
+const ProductCard = memo(function ProductCard({ product, onAddToCart }: Props) {
   const hasDiscount = !!product.discountPrice;
   const pct = hasDiscount ? discountPercent(product.price, product.discountPrice!) : 0;
   const { isWishlisted, toggle } = useWishlist();
   const wishlisted = isWishlisted(product.id);
+  const addingRef = useRef(false);
+  const { fontScale } = useLayout();
+  const f = (size: number) => Math.round(size * fontScale);
 
   // Card press scale
   const cardScale = useSharedValue(1);
@@ -52,7 +56,11 @@ export default function ProductCard({ product, onAddToCart }: Props) {
   };
 
   const handleAddToCart = useCallback(() => {
-    if (!onAddToCart) return;
+    if (!onAddToCart || addingRef.current) return;
+    addingRef.current = true;
+    setTimeout(() => {
+      addingRef.current = false;
+    }, 600);
     cartScale.value = withSequence(
       withSpring(1.35, { damping: 4, stiffness: 400 }),
       withSpring(1, { damping: 8, stiffness: 300 })
@@ -90,7 +98,7 @@ export default function ProductCard({ product, onAddToCart }: Props) {
           {/* Discount badge */}
           {hasDiscount && (
             <View style={s.discountBadge}>
-              <Text style={s.discountText}>-{pct}%</Text>
+              <Text style={[s.discountText, { fontSize: f(10) }]}>-{pct}%</Text>
             </View>
           )}
 
@@ -113,23 +121,31 @@ export default function ProductCard({ product, onAddToCart }: Props) {
 
         {/* Info */}
         <View style={s.info}>
-          <Text style={s.category} numberOfLines={1}>
+          <Text style={[s.category, { fontSize: f(10) }]} numberOfLines={1}>
             {product.categoryName}
           </Text>
-          <Text style={s.name} numberOfLines={2}>
+          <Text style={[s.name, { fontSize: f(13) }]} numberOfLines={2}>
             {product.name}
           </Text>
 
           <View style={s.priceRow}>
-            <Text style={s.price}>{formatCurrency(product.discountPrice ?? product.price)}</Text>
-            {hasDiscount && <Text style={s.originalPrice}>{formatCurrency(product.price)}</Text>}
+            <Text style={[s.price, { fontSize: f(15) }]}>
+              {formatCurrency(product.discountPrice ?? product.price)}
+            </Text>
+            {hasDiscount && (
+              <Text style={[s.originalPrice, { fontSize: f(11) }]}>
+                {formatCurrency(product.price)}
+              </Text>
+            )}
           </View>
 
           {product.reviewCount > 0 && (
             <View style={s.ratingRow}>
-              <Ionicons name="star" size={10} color="#F59E0B" />
-              <Text style={s.rating}>{product.averageRating.toFixed(1)}</Text>
-              <Text style={s.reviewCount}>({product.reviewCount})</Text>
+              <Ionicons name="star" size={f(10)} color="#F59E0B" />
+              <Text style={[s.rating, { fontSize: f(11) }]}>
+                {product.averageRating.toFixed(1)}
+              </Text>
+              <Text style={[s.reviewCount, { fontSize: f(11) }]}>({product.reviewCount})</Text>
             </View>
           )}
         </View>
@@ -150,7 +166,9 @@ export default function ProductCard({ product, onAddToCart }: Props) {
       )}
     </Animated.View>
   );
-}
+});
+
+export default ProductCard;
 
 const s = StyleSheet.create({
   card: {

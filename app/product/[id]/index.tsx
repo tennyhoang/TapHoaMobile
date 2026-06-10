@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,13 +17,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
 import ProductCard from '@/components/ProductCard';
-import { productsService } from '@/services/products.service';
-import { cartService } from '@/services/cart.service';
+import { useProduct, useProducts, useAddToCart } from '@/lib/hooks';
 import { useCartCount } from '@/lib/cart-context';
 import { useWishlist } from '@/lib/wishlist-context';
 import { formatCurrency, discountPercent } from '@/lib/utils';
 import { useToast } from '@/components/Toast';
-import type { Product } from '@/types';
 import { C } from '@/constants/Colors';
 
 const { width: W } = Dimensions.get('window');
@@ -32,45 +30,53 @@ const IMG_H = W * 0.85;
 export default function ProductDetailScreen() {
   const { bottom } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  const { data: product, isLoading, isError } = useProduct(id);
+  const { data: relatedData } = useProducts(
+    { categoryId: product?.categoryId, pageSize: 8 },
+    { enabled: !!product }
+  );
+
   const [qty, setQty] = useState(1);
   const [cartLoading, setCartLoading] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [related, setRelated] = useState<Product[]>([]);
   const { refreshCount } = useCartCount();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { show } = useToast();
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const slideAnim = useMemo(() => new Animated.Value(30), []);
 
-  useEffect(() => {
-    if (!id) return;
-    productsService
-      .getById(id)
-      .then(p => {
-        setProduct(p);
-        // Fetch related products by same category
-        productsService
-          .getAll({ categoryId: p.categoryId, pageSize: 8 })
-          .then(r => setRelated((r.items ?? []).filter(x => x.id !== p.id)))
-          .catch(() => console.warn('Failed to load related products'));
-        Animated.parallel([
-          Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-          Animated.spring(slideAnim, {
-            toValue: 0,
-            tension: 65,
-            friction: 12,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      })
-      .catch(() => router.back())
-      .finally(() => setLoading(false));
-  }, [id]);
+  const { mutateAsync: addToCart } = useAddToCart();
+  const navigatedBack = useRef(false);
 
-  const handleShare = async () => {
+  const related = useMemo(
+    () => (relatedData?.items ?? []).filter(x => x.id !== id),
+    [relatedData, id]
+  );
+
+  useEffect(() => {
+    if (product) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 65,
+          friction: 12,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [product]);
+
+  useEffect(() => {
+    if (isError && !navigatedBack.current) {
+      navigatedBack.current = true;
+      router.back();
+    }
+  }, [isError]);
+
+  const handleShare = useCallback(async () => {
     if (!product) return;
     try {
       await Share.share({
@@ -80,13 +86,13 @@ export default function ProductDetailScreen() {
     } catch {
       /* user cancelled */
     }
-  };
+  }, [product]);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = useCallback(async () => {
     if (!product) return;
     setCartLoading(true);
     try {
-      await cartService.add(product.id, qty);
+      await addToCart({ productId: product.id, quantity: qty });
       setCartSuccess(true);
       refreshCount();
       setTimeout(() => setCartSuccess(false), 2000);
@@ -95,9 +101,9 @@ export default function ProductDetailScreen() {
     } finally {
       setCartLoading(false);
     }
-  };
+  }, [product, qty, addToCart, refreshCount, show]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={s.loadingScreen}>
         <ActivityIndicator color={C.primary} size="large" />
@@ -135,7 +141,13 @@ export default function ProductDetailScreen() {
 
           {/* Header action buttons */}
           <View style={s.headerActions}>
-            <TouchableOpacity style={s.headerBtn} onPress={handleShare} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={s.headerBtn}
+              onPress={handleShare}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Chia sẻ sản phẩm"
+            >
               <Ionicons name="share-outline" size={20} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity
@@ -151,7 +163,7 @@ export default function ProductDetailScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={s.headerBtn}
-              onPress={() => router.push('/(tabs)/cart' as any)}
+              onPress={() => router.push('/(tabs)/cart')}
               activeOpacity={0.8}
             >
               <Ionicons name="cart-outline" size={20} color="#fff" />
@@ -193,7 +205,7 @@ export default function ProductDetailScreen() {
           <TouchableOpacity
             style={s.ratingRow}
             onPress={() =>
-              router.push(`/reviews/${product.id}?name=${encodeURIComponent(product.name)}` as any)
+              router.push(`/reviews/${product.id}?name=${encodeURIComponent(product.name)}`)
             }
             activeOpacity={0.7}
           >
@@ -244,7 +256,7 @@ export default function ProductDetailScreen() {
                   <Text style={s.relatedTitle}>Sản phẩm tương tự</Text>
                 </View>
                 <TouchableOpacity
-                  onPress={() => router.push('/(tabs)/products' as any)}
+                  onPress={() => router.push('/(tabs)/products')}
                   activeOpacity={0.7}
                 >
                   <Text style={s.seeAll}>Xem tất cả →</Text>
@@ -261,7 +273,7 @@ export default function ProductDetailScreen() {
                       product={p}
                       onAddToCart={async pr => {
                         try {
-                          await cartService.add(pr.id, 1);
+                          await addToCart({ productId: pr.id, quantity: 1 });
                           show(`Đã thêm "${pr.name}" vào giỏ`);
                         } catch {
                           show('Không thể thêm vào giỏ', 'error');
@@ -283,6 +295,8 @@ export default function ProductDetailScreen() {
           <TouchableOpacity
             style={[s.qtyBtn, qty <= 1 && s.qtyBtnDim]}
             onPress={() => setQty(q => Math.max(1, q - 1))}
+            accessibilityRole="button"
+            accessibilityLabel="Giảm số lượng"
           >
             <Ionicons name="remove" size={18} color={qty <= 1 ? C.muted : C.text} />
           </TouchableOpacity>
@@ -290,6 +304,8 @@ export default function ProductDetailScreen() {
           <TouchableOpacity
             style={[s.qtyBtn, qty >= product.stock && s.qtyBtnDim]}
             onPress={() => setQty(q => Math.min(product.stock, q + 1))}
+            accessibilityRole="button"
+            accessibilityLabel="Tăng số lượng"
           >
             <Ionicons name="add" size={18} color={qty >= product.stock ? C.muted : C.text} />
           </TouchableOpacity>
@@ -301,6 +317,8 @@ export default function ProductDetailScreen() {
           onPress={handleAddToCart}
           disabled={!inStock || cartLoading}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={inStock ? 'Thêm vào giỏ hàng' : 'Hết hàng'}
         >
           {cartLoading ? (
             <ActivityIndicator color="#fff" size="small" />

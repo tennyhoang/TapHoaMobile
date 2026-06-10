@@ -1,15 +1,23 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import FlashSaleScreen from '@/app/flash-sale';
-import { flashSaleService } from '@/services/flashsale.service';
 
-jest.mock('@/services/flashsale.service', () => ({
-  flashSaleService: { getCurrent: jest.fn() },
-}));
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
-jest.mock('@/services/cart.service', () => ({
-  cartService: { add: jest.fn() },
+const wrapper = ({ children }: any) => (
+  <SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  </SafeAreaProvider>
+);
+
+const mockUseCurrentFlashSale = jest.fn();
+const mockAddToCartMutateAsync = jest.fn();
+
+jest.mock('@/lib/hooks', () => ({
+  useCurrentFlashSale: (...args: any[]) => mockUseCurrentFlashSale(...args),
+  useAddToCart: () => ({ mutateAsync: mockAddToCartMutateAsync }),
 }));
 
 jest.mock('@/components/Toast', () => ({
@@ -63,8 +71,6 @@ jest.mock('expo-image', () => ({
 
 jest.setTimeout(30000);
 
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
-
 const mockProduct1 = {
   id: 'fp1',
   name: 'Gạo ST25 Flash',
@@ -111,14 +117,18 @@ const mockSession = {
 
 describe('FlashSaleScreen', () => {
   it('shows loading indicator initially', () => {
-    (flashSaleService.getCurrent as jest.Mock).mockReturnValue(new Promise(() => {}));
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      refetch: jest.fn(),
+    });
     const { toJSON } = render(<FlashSaleScreen />, { wrapper });
     expect(toJSON()).not.toBeNull();
-    expect(flashSaleService.getCurrent).toHaveBeenCalled();
+    expect(mockUseCurrentFlashSale).toHaveBeenCalled();
   });
 
   it('shows empty state when no flash sale is active', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(null);
+    mockUseCurrentFlashSale.mockReturnValue({ data: null, isLoading: false, refetch: jest.fn() });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Không có Flash Sale')).toBeTruthy();
@@ -126,7 +136,7 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows subtitle in empty state', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(null);
+    mockUseCurrentFlashSale.mockReturnValue({ data: null, isLoading: false, refetch: jest.fn() });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Hiện chưa có phiên Flash Sale nào đang diễn ra')).toBeTruthy();
@@ -134,7 +144,7 @@ describe('FlashSaleScreen', () => {
   });
 
   it('navigates to products when "Xem sản phẩm thường" is pressed', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(null);
+    mockUseCurrentFlashSale.mockReturnValue({ data: null, isLoading: false, refetch: jest.fn() });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Xem sản phẩm thường')).toBeTruthy();
@@ -145,7 +155,11 @@ describe('FlashSaleScreen', () => {
   });
 
   it('renders products when session is active', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Gạo ST25 Flash')).toBeTruthy();
@@ -155,7 +169,11 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows "Flash Sale" title', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Flash Sale')).toBeTruthy();
@@ -163,7 +181,11 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows session name in header', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Flash Sale Cuối Tuần')).toBeTruthy();
@@ -171,7 +193,11 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows countdown timer', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('12:30:00')).toBeTruthy();
@@ -179,7 +205,11 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows "Kết thúc sau" label', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Kết thúc sau')).toBeTruthy();
@@ -187,7 +217,11 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows banner with product count', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText(/3 sản phẩm giảm giá sốc/)).toBeTruthy();
@@ -195,25 +229,35 @@ describe('FlashSaleScreen', () => {
   });
 
   it('shows discount percentage badge', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
-    // (50000-35000)/50000 = 30%
     await waitFor(() => {
       expect(getByText('-30%')).toBeTruthy();
     });
   });
 
   it('shows low stock badge for products with <= 5 remaining', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
-    // product2 has stockRemaining=2
     await waitFor(() => {
       expect(getByText('Còn 2')).toBeTruthy();
     });
   });
 
   it('shows sold out state when stock remaining is 0', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Hết')).toBeTruthy();
@@ -221,7 +265,11 @@ describe('FlashSaleScreen', () => {
   });
 
   it('renders flash sale prices', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('35000₫')).toBeTruthy();
@@ -230,7 +278,11 @@ describe('FlashSaleScreen', () => {
   });
 
   it('renders category names for products', async () => {
-    (flashSaleService.getCurrent as jest.Mock).mockResolvedValue(mockSession);
+    mockUseCurrentFlashSale.mockReturnValue({
+      data: mockSession,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Gạo')).toBeTruthy();

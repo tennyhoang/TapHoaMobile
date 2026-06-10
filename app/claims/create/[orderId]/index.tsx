@@ -15,6 +15,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { claimsService } from '@/services/claims.service';
 import type { ClaimType } from '@/types';
 import { C } from '@/constants/Colors';
@@ -61,7 +62,7 @@ export default function CreateClaimScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAwareScreen style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       <View style={[s.header, { paddingTop: top + 16 }]}>
@@ -153,7 +154,7 @@ export default function CreateClaimScreen() {
           Chúng tôi sẽ xem xét khiếu nại và phản hồi trong vòng 1-3 ngày làm việc.
         </Text>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScreen>
   );
 }
 

@@ -14,28 +14,28 @@ import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/components/Toast';
 import { useLayout } from '@/lib/layout';
 import { useCartCount } from '@/lib/cart-context';
 import { haptics } from '@/lib/haptics';
 import ProductImage from '@/components/ProductImage';
-import { productsService } from '@/services/products.service';
-import { categoriesService } from '@/services/categories.service';
-import { flashSaleService } from '@/services/flashsale.service';
-import { cartService } from '@/services/cart.service';
-import { ordersService } from '@/services/orders.service';
 import {
-  articlesService,
-  getCategoryMeta,
-  getArticleImage,
-  type Article,
-} from '@/services/articles.service';
+  useCategories,
+  useCurrentFlashSale,
+  useArticles,
+  useMyOrders,
+  useAddToCart,
+  useProducts,
+} from '@/lib/hooks';
+import { getCategoryMeta, getArticleImage } from '@/services/articles.service';
 import ProductCard from '@/components/ProductCard';
 import { ProductCardSkeleton } from '@/components/Skeleton';
 import { formatCurrency, formatCountdown } from '@/lib/utils';
 import EmptyState from '@/components/EmptyState';
-import type { Category, Product, FlashSaleSession, Order } from '@/types';
+import type { Product } from '@/types';
 import { C } from '@/constants/Colors';
 
 // ── Category icon mapping ────────────────────────────────────────────────────
@@ -133,58 +133,41 @@ const SUB_BANNERS = [
 
 export default function HomeScreen() {
   const { top } = useSafeAreaInsets();
-  const { cardGap } = useLayout();
+  const { cardGap, cardWidth, fontScale } = useLayout();
   const { user } = useAuth();
   const { show } = useToast();
-  const { itemCount, refreshCount } = useCartCount();
+  const { itemCount } = useCartCount();
 
   const heroRef = useRef<any>(null);
   const [heroBannerIdx, setHeroBannerIdx] = useState(0);
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [discountProducts, setDiscountProducts] = useState<Product[]>([]);
-  const [flashSale, setFlashSale] = useState<FlashSaleSession | null>(null);
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [countdown, setCountdown] = useState('');
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
 
   const firstName = user?.fullName?.split(' ').pop() ?? 'bạn';
 
-  const load = useCallback(async () => {
-    try {
-      const [cats, prods, sale, disc, arts, orders] = await Promise.all([
-        categoriesService.getAll(),
-        productsService.getAll({ pageSize: 8, sortBy: 'newest' }),
-        flashSaleService.getCurrent(),
-        productsService.getAll({ pageSize: 6, isDiscount: true }),
-        articlesService.getAll(),
-        ordersService.getMyOrders({ pageSize: 10 }),
-      ]);
-      setCategories(cats ?? []);
-      setProducts(prods.items ?? []);
-      setFlashSale(sale);
-      setDiscountProducts(disc.items ?? []);
-      setArticles((arts ?? []).slice(0, 3));
-      setActiveOrder(
-        (orders.items ?? []).find(o => ACTIVE_ORDER_STATUSES.includes(o.status)) ?? null
-      );
-      refreshCount();
-    } catch {
-      console.warn('Failed to load home data');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [refreshCount]);
+  const { data: categories } = useCategories();
+  const { data: flashSale } = useCurrentFlashSale();
+  const { data: articlesRaw } = useArticles();
+  const { data: ordersData } = useMyOrders({ pageSize: 10 });
+  const {
+    data: productsData,
+    isLoading: productsLoading,
+    refetch,
+  } = useProducts({ pageSize: 8, isNew: true, sortBy: 'newest' });
+  const { data: discountData } = useProducts({ pageSize: 6, isDiscount: true });
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const addToCartMutation = useAddToCart();
+
+  const loading = productsLoading;
+  const products = productsData?.items ?? [];
+  const discountProducts = discountData?.items ?? [];
+  const articles = (articlesRaw ?? []).slice(0, 3);
+  const activeOrder =
+    (ordersData?.items ?? []).find(o => ACTIVE_ORDER_STATUSES.includes(o.status)) ?? null;
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -206,7 +189,7 @@ export default function HomeScreen() {
 
   const handleAddToCart = async (product: Product) => {
     try {
-      await cartService.add(product.id, 1);
+      await addToCartMutation.mutateAsync({ productId: product.id, quantity: 1 });
       haptics.success();
       show(`Đã thêm "${product.name}" vào giỏ`);
     } catch {
@@ -216,24 +199,23 @@ export default function HomeScreen() {
   };
 
   const handleSearch = () => {
-    if (search.trim()) router.push(`/product/search?q=${encodeURIComponent(search)}` as any);
+    if (search.trim()) router.push(`/product/search?q=${encodeURIComponent(search)}`);
   };
 
   const handleCatFilter = (catId: string | null) => {
     setSelectedCat(catId);
-    productsService
-      .getAll({ categoryId: catId ?? undefined, pageSize: 8 })
-      .then(r => setProducts(r.items))
-      .catch(() => console.warn('Failed to filter by category'));
+    queryClient.invalidateQueries({ queryKey: ['products'] });
   };
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    load();
-  }, [load]);
+    await refetch();
+    queryClient.invalidateQueries({ queryKey: ['products'] });
+    setRefreshing(false);
+  }, [refetch, queryClient]);
 
   return (
-    <View style={s.root}>
+    <KeyboardAwareScreen style={s.root} noDismiss>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       {/* ── HEADER ── */}
@@ -245,10 +227,7 @@ export default function HomeScreen() {
             <Text style={s.subGreeting}>Hôm nay muốn ăn gì?</Text>
           </View>
           <View style={s.headerActions}>
-            <TouchableOpacity
-              style={s.headerIconBtn}
-              onPress={() => router.push('/(tabs)/cart' as any)}
-            >
+            <TouchableOpacity style={s.headerIconBtn} onPress={() => router.push('/(tabs)/cart')}>
               <Ionicons name="cart-outline" size={22} color="#fff" />
               {itemCount > 0 && (
                 <View style={s.cartBadge}>
@@ -256,7 +235,7 @@ export default function HomeScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/profile' as any)}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
               <View style={s.avatarBtn}>
                 <Text style={s.avatarLetter}>{user?.fullName?.charAt(0)?.toUpperCase()}</Text>
               </View>
@@ -274,6 +253,8 @@ export default function HomeScreen() {
             onChangeText={setSearch}
             onSubmitEditing={handleSearch}
             returnKeyType="search"
+            accessibilityRole="search"
+            accessibilityLabel="Tìm kiếm sản phẩm"
           />
         </TouchableOpacity>
       </View>
@@ -337,7 +318,7 @@ export default function HomeScreen() {
         {activeOrder && (
           <TouchableOpacity
             style={s.orderStrip}
-            onPress={() => router.push(`/order/${activeOrder.id}` as any)}
+            onPress={() => router.push(`/order/${activeOrder.id}`)}
             activeOpacity={0.85}
           >
             <View style={s.orderStripIcon}>
@@ -382,7 +363,7 @@ export default function HomeScreen() {
         </View>
 
         {/* ── CATEGORIES (circles) ── */}
-        {categories.length > 0 && (
+        {(categories ?? []).length > 0 && (
           <View style={s.section}>
             <View style={s.sectionHeader}>
               <Text style={s.sectionLabel}>DANH MỤC</Text>
@@ -393,7 +374,7 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={s.catScroll}
             >
-              {categories.map(cat => {
+              {(categories ?? []).map(cat => {
                 const ic = getCatIcon(cat.name);
                 const isActive = selectedCat === cat.id;
                 return (
@@ -443,7 +424,7 @@ export default function HomeScreen() {
                 <Text style={s.flashTitle}>Flash Sale</Text>
                 <Text style={s.flashCountdown}>{countdown}</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/flash-sale' as any)}>
+              <TouchableOpacity onPress={() => router.push('/flash-sale')}>
                 <Text style={s.seeAll}>Xem tất cả →</Text>
               </TouchableOpacity>
             </View>
@@ -457,7 +438,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   key={item.id}
                   style={s.flashCard}
-                  onPress={() => router.push(`/product/${item.id}` as any)}
+                  onPress={() => router.push(`/product/${item.id}`)}
                   activeOpacity={0.88}
                 >
                   <View style={s.flashImgWrap}>
@@ -477,11 +458,18 @@ export default function HomeScreen() {
                     </View>
                   </View>
                   <View style={s.flashInfo}>
-                    <Text style={s.flashName} numberOfLines={2}>
+                    <Text
+                      style={[s.flashName, { fontSize: Math.round(12 * fontScale) }]}
+                      numberOfLines={2}
+                    >
                       {item.name}
                     </Text>
-                    <Text style={s.flashPrice}>{formatCurrency(item.flashSalePrice)}</Text>
-                    <Text style={s.flashOriginal}>{formatCurrency(item.originalPrice)}</Text>
+                    <Text style={[s.flashPrice, { fontSize: Math.round(13 * fontScale) }]}>
+                      {formatCurrency(item.flashSalePrice)}
+                    </Text>
+                    <Text style={[s.flashOriginal, { fontSize: Math.round(11 * fontScale) }]}>
+                      {formatCurrency(item.originalPrice)}
+                    </Text>
                     <View style={s.stockBarWrap}>
                       <View
                         style={[
@@ -493,7 +481,9 @@ export default function HomeScreen() {
                         ]}
                       />
                     </View>
-                    <Text style={s.stockText}>Còn {item.stockRemaining}</Text>
+                    <Text style={[s.stockText, { fontSize: Math.round(10 * fontScale) }]}>
+                      Còn {item.stockRemaining}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -508,32 +498,44 @@ export default function HomeScreen() {
               <Text style={s.sectionLabel}>HÀNG MỚI VỀ</Text>
               <Text style={s.sectionTitle}>Thu hoạch sáng — giao trong ngày</Text>
             </View>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/products' as any)}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/products')}>
               <Text style={s.seeAll}>Xem tất cả →</Text>
             </TouchableOpacity>
           </View>
 
           {loading ? (
-            <View style={[s.productGrid, { gap: cardGap }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: cardGap, paddingHorizontal: 16 }}
+            >
               {[1, 2, 3, 4].map(i => (
-                <ProductCardSkeleton key={i} />
+                <View key={i} style={{ width: cardWidth }}>
+                  <ProductCardSkeleton />
+                </View>
               ))}
-            </View>
+            </ScrollView>
           ) : products.length === 0 ? (
             <EmptyState icon="leaf-outline" title="Chưa có sản phẩm" />
           ) : (
-            <View style={[s.productGrid, { gap: cardGap }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: cardGap, paddingHorizontal: 16 }}
+            >
               {products.map(p => (
-                <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
+                <View key={p.id} style={{ width: cardWidth }}>
+                  <ProductCard product={p} onAddToCart={handleAddToCart} />
+                </View>
               ))}
-            </View>
+            </ScrollView>
           )}
         </View>
 
         {/* ── INTER BANNER ── */}
         <TouchableOpacity
           style={s.interBanner}
-          onPress={() => router.push('/(tabs)/products' as any)}
+          onPress={() => router.push('/(tabs)/products')}
           activeOpacity={0.88}
         >
           <Image
@@ -565,15 +567,21 @@ export default function HomeScreen() {
                 <Text style={s.sectionLabel}>GIÁ TỐT MỖI NGÀY</Text>
                 <Text style={s.sectionTitle}>Ưu đãi cập nhật liên tục</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/products' as any)}>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/products')}>
                 <Text style={s.seeAll}>Xem tất cả →</Text>
               </TouchableOpacity>
             </View>
-            <View style={[s.productGrid, { gap: cardGap }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: cardGap, paddingHorizontal: 16 }}
+            >
               {discountProducts.map(p => (
-                <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
+                <View key={p.id} style={{ width: cardWidth }}>
+                  <ProductCard product={p} onAddToCart={handleAddToCart} />
+                </View>
               ))}
-            </View>
+            </ScrollView>
           </View>
         )}
 
@@ -584,7 +592,7 @@ export default function HomeScreen() {
               <Text style={s.sectionLabel}>CẨM NANG</Text>
               <Text style={s.sectionTitle}>Bếp & Ẩm thực</Text>
             </View>
-            <TouchableOpacity onPress={() => router.push('/articles' as any)}>
+            <TouchableOpacity onPress={() => router.push('/articles/index/index' as any)}>
               <Text style={s.seeAll}>Xem tất cả →</Text>
             </TouchableOpacity>
           </View>
@@ -598,7 +606,7 @@ export default function HomeScreen() {
                   <TouchableOpacity
                     key={article.id}
                     style={i === 0 ? s.articleFeatured : s.articleCard}
-                    onPress={() => router.push(`/articles/${article.id}` as any)}
+                    onPress={() => router.push(`/articles/${article.id}`)}
                     activeOpacity={0.88}
                   >
                     {i === 0 ? (
@@ -660,7 +668,7 @@ export default function HomeScreen() {
           ) : (
             <TouchableOpacity
               style={s.articleBanner}
-              onPress={() => router.push('/articles' as any)}
+              onPress={() => router.push('/articles/index/index' as any)}
               activeOpacity={0.85}
             >
               <Ionicons name="book-outline" size={28} color={C.primary} />
@@ -687,7 +695,7 @@ export default function HomeScreen() {
           ))}
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

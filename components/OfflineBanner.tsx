@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function OfflineBanner() {
   const [isOffline, setIsOffline] = useState(false);
-  const translateY = new Animated.Value(-60);
+  const [translateY] = useState(new Animated.Value(-60));
 
   useEffect(() => {
     const unsub = NetInfo.addEventListener(state => {

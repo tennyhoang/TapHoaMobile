@@ -16,6 +16,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '@/components/ScreenHeader';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { productsService } from '@/services/products.service';
 import { adminService, type CreateProductPayload } from '@/services/admin.service';
 import { useRoleGuard } from '@/lib/useRoleGuard';
@@ -59,7 +60,7 @@ function ProductForm({
     }));
 
   return (
-    <View style={f.container}>
+    <KeyboardAwareScreen style={f.container}>
       <View style={f.header}>
         <Text style={f.title}>{initial.id ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}</Text>
         <TouchableOpacity onPress={onClose} style={f.closeBtn}>
@@ -159,7 +160,7 @@ function ProductForm({
           )}
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

@@ -6,18 +6,17 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   StatusBar,
   Alert,
   Modal,
   TextInput,
   ScrollView,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import EmptyState from '@/components/EmptyState';
 import { addressesService } from '@/services/addresses.service';
 import type { Address } from '@/types';
@@ -227,10 +226,7 @@ export default function AddressesScreen() {
 
       {/* Add address modal */}
       <Modal visible={showModal} animationType="slide" transparent>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={s.modalOverlay}
-        >
+        <KeyboardAwareScreen style={s.modalOverlay}>
           <View style={s.modalSheet}>
             <View style={s.modalHeader}>
               <Text style={s.modalTitle}>Thêm địa chỉ mới</Text>
@@ -239,7 +235,7 @@ export default function AddressesScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               {!!formError && (
                 <View style={s.errBox}>
                   <Ionicons name="alert-circle-outline" size={15} color={C.error} />
@@ -301,7 +297,7 @@ export default function AddressesScreen() {
               </TouchableOpacity>
             </ScrollView>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScreen>
       </Modal>
     </View>
   );
@@ -381,6 +377,7 @@ const s = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 24,
     maxHeight: '90%',
+    flexShrink: 1,
   },
   modalHeader: {
     flexDirection: 'row',

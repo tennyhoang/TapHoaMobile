@@ -1,20 +1,14 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import ProductsScreen from '@/app/(tabs)/products';
-import { productsService } from '@/services/products.service';
-import { categoriesService } from '@/services/categories.service';
+import { useProducts, useCategories, useAddToCart } from '@/lib/hooks';
 
-jest.mock('@/services/products.service', () => ({
-  productsService: { getAll: jest.fn() },
-}));
-
-jest.mock('@/services/categories.service', () => ({
-  categoriesService: { getAll: jest.fn() },
-}));
-
-jest.mock('@/services/cart.service', () => ({
-  cartService: { add: jest.fn() },
+jest.mock('@/lib/hooks', () => ({
+  useProducts: jest.fn(),
+  useCategories: jest.fn(),
+  useAddToCart: jest.fn(),
 }));
 
 jest.mock('@/components/Toast', () => ({
@@ -47,8 +41,8 @@ jest.mock('@/components/EmptyState', () => {
   return Mock;
 });
 
-jest.mock('@/lib/cart-context', () => ({
-  useCartCount: () => ({ refreshCount: jest.fn() }),
+jest.mock('@/components/Skeleton', () => ({
+  ProductCardSkeleton: () => null,
 }));
 
 jest.mock('@expo/vector-icons', () => ({
@@ -59,7 +53,17 @@ jest.mock('expo-image', () => ({
   Image: () => null,
 }));
 
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+function renderWithQuery(component: React.ReactElement) {
+  return render(
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>
+    </SafeAreaProvider>
+  );
+}
 
 const mockCategories = [
   { id: 'cat1', name: 'Gạo', children: [] },
@@ -105,19 +109,45 @@ const mockPagedResult = {
   totalPages: 1,
 };
 
+const defaultProductsResponse = {
+  data: mockPagedResult,
+  isLoading: false,
+  isFetching: false,
+  refetch: jest.fn(),
+  isRefetching: false,
+};
+
+const defaultCategoriesResponse = {
+  data: mockCategories,
+};
+
+const defaultAddToCartResponse = {
+  mutateAsync: jest.fn(),
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  (useProducts as jest.Mock).mockReturnValue(defaultProductsResponse);
+  (useCategories as jest.Mock).mockReturnValue(defaultCategoriesResponse);
+  (useAddToCart as jest.Mock).mockReturnValue(defaultAddToCartResponse);
+});
+
 describe('ProductsScreen', () => {
   it('renders loading state initially', () => {
-    (productsService.getAll as jest.Mock).mockReturnValue(new Promise(() => {}));
-    (categoriesService.getAll as jest.Mock).mockReturnValue(new Promise(() => {}));
-    const { toJSON } = render(<ProductsScreen />, { wrapper });
+    (useProducts as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isFetching: false,
+      refetch: jest.fn(),
+      isRefetching: false,
+    });
+    const { toJSON } = renderWithQuery(<ProductsScreen />);
     expect(toJSON()).not.toBeNull();
-    expect(productsService.getAll).toHaveBeenCalled();
+    expect(useProducts).toHaveBeenCalled();
   });
 
   it('renders product grid after data loads', async () => {
-    (productsService.getAll as jest.Mock).mockResolvedValue(mockPagedResult);
-    (categoriesService.getAll as jest.Mock).mockResolvedValue(mockCategories);
-    const { getByText } = render(<ProductsScreen />, { wrapper });
+    const { getByText } = renderWithQuery(<ProductsScreen />);
     await waitFor(() => {
       expect(getByText('Gạo ST25')).toBeTruthy();
       expect(getByText('Mì Hảo Hảo')).toBeTruthy();
@@ -125,9 +155,7 @@ describe('ProductsScreen', () => {
   });
 
   it('shows category filter chips', async () => {
-    (productsService.getAll as jest.Mock).mockResolvedValue(mockPagedResult);
-    (categoriesService.getAll as jest.Mock).mockResolvedValue(mockCategories);
-    const { getByText } = render(<ProductsScreen />, { wrapper });
+    const { getByText } = renderWithQuery(<ProductsScreen />);
     await waitFor(() => {
       expect(getByText('Tất cả')).toBeTruthy();
       expect(getByText('Gạo')).toBeTruthy();
@@ -135,81 +163,76 @@ describe('ProductsScreen', () => {
     });
   });
 
-  it('searching calls productsService.getAll with search term', async () => {
-    (productsService.getAll as jest.Mock).mockResolvedValue(mockPagedResult);
-    (categoriesService.getAll as jest.Mock).mockResolvedValue(mockCategories);
-    const { getByPlaceholderText } = render(<ProductsScreen />, { wrapper });
+  it('searching calls useProducts with search term', async () => {
+    const { getByPlaceholderText } = renderWithQuery(<ProductsScreen />);
 
-    await waitFor(() => expect(productsService.getAll).toHaveBeenCalled());
-    (productsService.getAll as jest.Mock).mockClear();
+    await waitFor(() => expect(useProducts).toHaveBeenCalled());
+    (useProducts as jest.Mock).mockClear();
+    (useCategories as jest.Mock).mockClear();
+    (useAddToCart as jest.Mock).mockClear();
 
     fireEvent.changeText(getByPlaceholderText('Tìm kiếm sản phẩm...'), 'gạo');
 
     // Debounce is 400ms — waitFor retries for 2s with real timers
     await waitFor(
       () => {
-        expect(productsService.getAll).toHaveBeenCalledWith(
-          expect.objectContaining({ search: 'gạo' })
-        );
+        expect(useProducts).toHaveBeenCalledWith(expect.objectContaining({ search: 'gạo' }));
       },
       { timeout: 2000 }
     );
   });
 
   it('shows empty state when no products found', async () => {
-    (productsService.getAll as jest.Mock).mockResolvedValue({
-      items: [],
-      totalCount: 0,
-      page: 1,
-      pageSize: 20,
-      totalPages: 0,
+    (useProducts as jest.Mock).mockReturnValue({
+      data: { items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 },
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+      isRefetching: false,
     });
-    (categoriesService.getAll as jest.Mock).mockResolvedValue(mockCategories);
-    const { getByText } = render(<ProductsScreen />, { wrapper });
+    const { getByText } = renderWithQuery(<ProductsScreen />);
     await waitFor(() => {
       expect(getByText('Không tìm thấy sản phẩm')).toBeTruthy();
     });
   });
 
   it('shows "Mới" tag toggle', async () => {
-    (productsService.getAll as jest.Mock).mockResolvedValue(mockPagedResult);
-    (categoriesService.getAll as jest.Mock).mockResolvedValue(mockCategories);
-    const { getByText } = render(<ProductsScreen />, { wrapper });
+    const { getByText } = renderWithQuery(<ProductsScreen />);
 
     await waitFor(() => {
       expect(getByText('Mới')).toBeTruthy();
     });
 
-    (productsService.getAll as jest.Mock).mockClear();
+    (useProducts as jest.Mock).mockClear();
+    (useCategories as jest.Mock).mockClear();
+    (useAddToCart as jest.Mock).mockClear();
 
     await act(async () => {
       fireEvent.press(getByText('Mới'));
     });
 
     await waitFor(() => {
-      expect(productsService.getAll).toHaveBeenCalledWith(expect.objectContaining({ isNew: true }));
+      expect(useProducts).toHaveBeenCalledWith(expect.objectContaining({ isNew: true }));
     });
   });
 
   it('shows "Giảm giá" tag toggle', async () => {
-    (productsService.getAll as jest.Mock).mockResolvedValue(mockPagedResult);
-    (categoriesService.getAll as jest.Mock).mockResolvedValue(mockCategories);
-    const { getByText } = render(<ProductsScreen />, { wrapper });
+    const { getByText } = renderWithQuery(<ProductsScreen />);
 
     await waitFor(() => {
       expect(getByText('Giảm giá')).toBeTruthy();
     });
 
-    (productsService.getAll as jest.Mock).mockClear();
+    (useProducts as jest.Mock).mockClear();
+    (useCategories as jest.Mock).mockClear();
+    (useAddToCart as jest.Mock).mockClear();
 
     await act(async () => {
       fireEvent.press(getByText('Giảm giá'));
     });
 
     await waitFor(() => {
-      expect(productsService.getAll).toHaveBeenCalledWith(
-        expect.objectContaining({ isDiscount: true })
-      );
+      expect(useProducts).toHaveBeenCalledWith(expect.objectContaining({ isDiscount: true }));
     });
   });
 });
