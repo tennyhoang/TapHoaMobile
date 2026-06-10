@@ -78,6 +78,9 @@ export type Hub = {
   city: string;
   latitude: number;
   longitude: number;
+  minimumOrderAmount: number;
+  freeShippingThreshold: number;
+  shippingFee: number;
 };
 
 export type OrderStatus =

@@ -17,6 +17,7 @@ interface Props {
   applying: boolean;
   voucherMsg: string;
   voucherOk: boolean;
+  voucherNote?: string;
 }
 
 export default function VoucherInput({
@@ -26,6 +27,7 @@ export default function VoucherInput({
   applying,
   voucherMsg,
   voucherOk,
+  voucherNote,
 }: Props) {
   return (
     <View style={s.section}>
@@ -66,6 +68,12 @@ export default function VoucherInput({
           <Text style={[s.voucherResultText, { color: voucherOk ? '#16A34A' : C.error }]}>
             {voucherMsg}
           </Text>
+        </View>
+      )}
+      {voucherOk && !!voucherNote && (
+        <View style={s.voucherNote}>
+          <Ionicons name="information-circle-outline" size={13} color="#92400E" />
+          <Text style={s.voucherNoteText}>{voucherNote}</Text>
         </View>
       )}
     </View>
@@ -115,4 +123,12 @@ const s = StyleSheet.create({
   voucherResultOk: { backgroundColor: '#F0FDF4' },
   voucherResultErr: { backgroundColor: '#FEF2F2' },
   voucherResultText: { fontSize: 13, fontWeight: '500' },
+  voucherNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+    paddingHorizontal: 6,
+  },
+  voucherNoteText: { fontSize: 11, color: '#92400E', fontStyle: 'italic', flex: 1 },
 });

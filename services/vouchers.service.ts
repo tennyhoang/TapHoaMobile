@@ -4,6 +4,7 @@ type VoucherValidateResult = {
   discount: number;
   type: 'percent' | 'flat';
   label: string;
+  note?: string;
 };
 
 export const vouchersService = {
