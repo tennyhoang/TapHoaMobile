@@ -15,6 +15,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '@/components/ScreenHeader';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { adminService, type UpdateUserPayload } from '@/services/admin.service';
@@ -267,7 +268,7 @@ export default function AdminUsersScreen() {
   if (unauthorized) return null;
 
   return (
-    <View style={s.root}>
+    <KeyboardAwareScreen style={s.root} noDismiss>
       <ScreenHeader title="Người dùng" />
 
       <View style={s.searchBar}>
@@ -353,7 +354,7 @@ export default function AdminUsersScreen() {
           />
         )}
       </Modal>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

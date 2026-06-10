@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   ActivityIndicator,
@@ -15,6 +14,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/lib/auth-context';
@@ -46,6 +46,8 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | null>(null);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
 
@@ -66,7 +68,7 @@ export default function LoginScreen() {
       try {
         const res = await authService.socialLogin(provider, token);
         await login(res.accessToken, res.email, res.fullName, res.role);
-        router.replace('/(tabs)' as any);
+        router.replace('/(tabs)');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Đăng nhập thất bại');
       } finally {
@@ -117,14 +119,21 @@ export default function LoginScreen() {
     }
 
     // Input validation
-    if (!email.trim() || !password) {
-      setError('Vui lòng nhập đầy đủ thông tin');
-      return;
+    let hasError = false;
+    setEmailError('');
+    setPasswordError('');
+    if (!email.trim()) {
+      setEmailError('Vui lòng nhập email');
+      hasError = true;
+    } else if (!EMAIL_RE.test(email.trim())) {
+      setEmailError('Email không hợp lệ');
+      hasError = true;
     }
-    if (!EMAIL_RE.test(email.trim())) {
-      setError('Email không hợp lệ');
-      return;
+    if (!password) {
+      setPasswordError('Vui lòng nhập mật khẩu');
+      hasError = true;
     }
+    if (hasError) return;
 
     setError('');
     setLoading(true);
@@ -172,7 +181,7 @@ export default function LoginScreen() {
 
       {/* ── FORM CARD ── */}
       <Animated.View style={[s.card, { opacity: cardOpacity, transform: [{ translateY: cardY }] }]}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAwareScreen>
           <ScrollView
             contentContainerStyle={s.form}
             keyboardShouldPersistTaps="handled"
@@ -191,37 +200,50 @@ export default function LoginScreen() {
             {/* Email */}
             <View style={s.field}>
               <Text style={s.label}>Email</Text>
-              <View style={s.inputRow}>
+              <View style={[s.inputRow, !!emailError && s.inputRowError]}>
                 <Ionicons name="mail-outline" size={18} color={C.muted} style={s.icon} />
                 <TextInput
                   style={s.input}
                   placeholder="you@example.com"
                   placeholderTextColor="#9CA3AF"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={v => {
+                    setEmail(v);
+                    setEmailError('');
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
                   testID="login-email-input"
+                  accessibilityLabel="Email"
                 />
               </View>
+              {!!emailError && <Text style={s.fieldError}>{emailError}</Text>}
             </View>
 
             {/* Password */}
             <View style={s.field}>
               <Text style={s.label}>Mật khẩu</Text>
-              <View style={s.inputRow}>
+              <View style={[s.inputRow, !!passwordError && s.inputRowError]}>
                 <Ionicons name="lock-closed-outline" size={18} color={C.muted} style={s.icon} />
                 <TextInput
                   style={[s.input, { flex: 1 }]}
                   placeholder="••••••••"
                   placeholderTextColor="#9CA3AF"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={v => {
+                    setPassword(v);
+                    setPasswordError('');
+                  }}
                   secureTextEntry={!showPassword}
                   testID="login-password-input"
+                  accessibilityLabel="Mật khẩu"
                 />
-                <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={s.eyeBtn}>
+                <TouchableOpacity
+                  onPress={() => setShowPassword(v => !v)}
+                  style={s.eyeBtn}
+                  accessibilityLabel={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={18}
@@ -229,12 +251,13 @@ export default function LoginScreen() {
                   />
                 </TouchableOpacity>
               </View>
+              {!!passwordError && <Text style={s.fieldError}>{passwordError}</Text>}
             </View>
 
             {/* Forgot password */}
             <TouchableOpacity
               style={s.forgotBtn}
-              onPress={() => router.push('/forgot-password' as any)}
+              onPress={() => router.push('/forgot-password')}
               activeOpacity={0.7}
             >
               <Text style={s.forgotText}>Quên mật khẩu?</Text>
@@ -298,12 +321,12 @@ export default function LoginScreen() {
             {/* Register link */}
             <View style={s.footer}>
               <Text style={s.footerText}>Chưa có tài khoản? </Text>
-              <TouchableOpacity onPress={() => router.push('/register' as any)}>
+              <TouchableOpacity onPress={() => router.push('/register')}>
                 <Text style={s.footerLink}>Đăng ký ngay</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScreen>
       </Animated.View>
     </View>
   );
@@ -403,10 +426,9 @@ const s = StyleSheet.create({
     backgroundColor: C.inputBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: C.border,
-    paddingHorizontal: 14,
-    height: 50,
   },
+  inputRowError: { borderColor: C.error, borderWidth: 1.5 },
+  fieldError: { fontSize: 12, color: C.error, marginTop: 4, marginLeft: 2 },
   icon: { marginRight: 10 },
   input: { flex: 1, fontSize: 15, color: C.text },
   eyeBtn: { padding: 4, marginLeft: 6 },

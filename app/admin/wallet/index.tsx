@@ -14,6 +14,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '@/components/ScreenHeader';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { adminService } from '@/services/admin.service';
@@ -47,7 +48,7 @@ function ProcessModal({
   const isReject = action === 'reject';
 
   return (
-    <View style={p.container}>
+    <KeyboardAwareScreen style={p.container}>
       <View style={p.header}>
         <Text style={p.title}>{isReject ? 'Từ chối yêu cầu' : 'Xác nhận đã chuyển tiền'}</Text>
         <TouchableOpacity onPress={onClose} style={p.closeBtn}>
@@ -106,7 +107,7 @@ function ProcessModal({
           )}
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

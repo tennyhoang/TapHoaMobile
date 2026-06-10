@@ -5,14 +5,13 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { authService } from '@/services/auth.service';
 import { C } from '@/constants/Colors';
 
@@ -72,7 +71,7 @@ export default function ForgotPasswordScreen() {
         </View>
       </View>
 
-      <KeyboardAvoidingView style={s.body} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAwareScreen style={s.body}>
         {sent ? (
           <View style={s.successCard}>
             <View style={s.successIcon}>
@@ -147,7 +146,7 @@ export default function ForgotPasswordScreen() {
             </TouchableOpacity>
           </View>
         )}
-      </KeyboardAvoidingView>
+      </KeyboardAwareScreen>
     </View>
   );
 }

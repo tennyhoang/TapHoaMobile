@@ -16,6 +16,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '@/components/ScreenHeader';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { adminService, type CreateFlashSaleSessionPayload } from '@/services/admin.service';
@@ -51,7 +52,7 @@ function CreateSessionModal({
   const valid = name.trim() && startTime && endTime && timeValid;
 
   return (
-    <View style={cs.container}>
+    <KeyboardAwareScreen style={cs.container}>
       <View style={cs.header}>
         <Text style={cs.title}>Tạo phiên Flash Sale</Text>
         <TouchableOpacity onPress={onClose} style={cs.closeBtn}>
@@ -121,7 +122,7 @@ function CreateSessionModal({
           )}
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 
@@ -238,7 +239,7 @@ function SessionItemsModal({
   const existingProductIds = new Set(items.map(i => i.productId));
 
   return (
-    <View style={im.container}>
+    <KeyboardAwareScreen style={im.container}>
       <View style={im.header}>
         <View style={{ flex: 1 }}>
           <Text style={im.title}>{session.name}</Text>
@@ -380,7 +381,7 @@ function SessionItemsModal({
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

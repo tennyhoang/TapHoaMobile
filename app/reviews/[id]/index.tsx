@@ -10,12 +10,12 @@ import {
   Platform,
   StatusBar,
   Alert,
-  KeyboardAvoidingView,
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import EmptyState from '@/components/EmptyState';
 import { reviewsService } from '@/services/reviews.service';
 import type { Review } from '@/types';
@@ -148,7 +148,7 @@ export default function ReviewsScreen() {
   );
 
   return (
-    <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAwareScreen style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       <View style={[s.header, { paddingTop: top + 16 }]}>
@@ -247,7 +247,7 @@ export default function ReviewsScreen() {
           </TouchableOpacity>
         </View>
       )}
-    </KeyboardAvoidingView>
+    </KeyboardAwareScreen>
   );
 }
 

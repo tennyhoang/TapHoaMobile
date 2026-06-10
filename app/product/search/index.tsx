@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayout } from '@/lib/layout';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { productsService } from '@/services/products.service';
 import { categoriesService } from '@/services/categories.service';
 import { cartService } from '@/services/cart.service';
@@ -193,7 +194,7 @@ export default function SearchScreen() {
   };
 
   return (
-    <View style={s.root}>
+    <KeyboardAwareScreen style={s.root} noDismiss>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
 
       <View style={[s.header, { paddingTop: top + 16 }]}>
@@ -454,7 +455,7 @@ export default function SearchScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

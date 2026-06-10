@@ -15,6 +15,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '@/components/ScreenHeader';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { articlesService, type Article, type ArticlePayload } from '@/services/articles.service';
@@ -54,7 +55,7 @@ function ArticleForm({
     setForm(prev => ({ ...prev, [k]: Number(v) || 0 }));
 
   return (
-    <View style={f.container}>
+    <KeyboardAwareScreen style={f.container}>
       <View style={f.header}>
         <Text style={f.title}>{initial.title ? 'Sửa bài viết' : 'Thêm bài viết'}</Text>
         <TouchableOpacity onPress={onClose} style={f.closeBtn}>
@@ -143,7 +144,7 @@ function ArticleForm({
           )}
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 

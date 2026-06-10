@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,13 +13,12 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayout } from '@/lib/layout';
 import { Ionicons } from '@expo/vector-icons';
-import { flashSaleService } from '@/services/flashsale.service';
-import { cartService } from '@/services/cart.service';
 import ProductImage from '@/components/ProductImage';
+import { useCurrentFlashSale, useAddToCart } from '@/lib/hooks';
 import { useToast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
 import { formatCurrency, formatCountdown } from '@/lib/utils';
-import type { FlashSaleSession, FlashSaleProduct } from '@/types';
+import type { FlashSaleProduct } from '@/types';
 import { C } from '@/constants/Colors';
 
 const FLASH_BG = '#FFF8F0';
@@ -28,27 +27,12 @@ export default function FlashSaleScreen() {
   const { top } = useSafeAreaInsets();
   const { productColumns, cardGap } = useLayout();
   const { show } = useToast();
-  const [session, setSession] = useState<FlashSaleSession | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [countdown, setCountdown] = useState('');
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const data = await flashSaleService.getCurrent();
-      setSession(data);
-    } catch {
-      console.warn('Failed to load flash sale');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const { data: session, isLoading, isFetching, refetch } = useCurrentFlashSale();
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const addToCartMutation = useAddToCart();
 
   useEffect(() => {
     if (!session) return;
@@ -60,7 +44,7 @@ export default function FlashSaleScreen() {
   const handleAddToCart = async (product: FlashSaleProduct) => {
     setAddingToCart(product.id);
     try {
-      await cartService.add(product.id, 1);
+      await addToCartMutation.mutateAsync({ productId: product.id, quantity: 1 });
       show(`Đã thêm "${product.name}" vào giỏ`);
     } catch {
       show('Không thể thêm vào giỏ hàng', 'error');
@@ -81,7 +65,7 @@ export default function FlashSaleScreen() {
     return (
       <TouchableOpacity
         style={s.card}
-        onPress={() => router.push(`/product/${item.id}` as any)}
+        onPress={() => router.push(`/product/${item.id}`)}
         activeOpacity={0.88}
       >
         <View style={s.imgWrap}>
@@ -110,7 +94,7 @@ export default function FlashSaleScreen() {
           {/* Stock progress */}
           <View style={s.stockSection}>
             <View style={s.stockBar}>
-              <View style={[s.stockFill, { width: `${soldPct}%` as any }]} />
+              <View style={[s.stockFill, { width: `${soldPct}%` }]} />
             </View>
             <Text style={s.stockText}>Đã bán {item.soldCount}</Text>
           </View>
@@ -158,7 +142,7 @@ export default function FlashSaleScreen() {
         )}
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View style={s.center}>
           <ActivityIndicator color={C.sale} size="large" />
         </View>
@@ -170,7 +154,7 @@ export default function FlashSaleScreen() {
           subtitle="Hiện chưa có phiên Flash Sale nào đang diễn ra"
           action={{
             label: 'Xem sản phẩm thường',
-            onPress: () => router.push('/(tabs)/products' as any),
+            onPress: () => router.push('/(tabs)/products'),
           }}
         />
       ) : (
@@ -182,13 +166,12 @@ export default function FlashSaleScreen() {
           contentContainerStyle={[s.grid, { gap: cardGap }]}
           columnWrapperStyle={{ gap: cardGap }}
           showsVerticalScrollIndicator={false}
+          windowSize={5}
+          maxToRenderPerBatch={10}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                load();
-              }}
+              refreshing={isFetching}
+              onRefresh={() => refetch()}
               tintColor={C.sale}
             />
           }

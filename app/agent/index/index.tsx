@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { agentService } from '@/services/agent.service';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { useToast } from '@/components/Toast';
@@ -173,7 +174,7 @@ export default function AgentScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <KeyboardAwareScreen style={s.root} noDismiss>
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.blob} />
@@ -383,7 +384,7 @@ export default function AgentScreen() {
             </>
           ))}
       </ScrollView>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 
