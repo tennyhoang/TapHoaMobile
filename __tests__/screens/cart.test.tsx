@@ -146,7 +146,7 @@ describe('CartScreen', () => {
     expect(mockMutateAsync).toHaveBeenCalled();
   });
 
-  it('navigates to products on "Mua sắm ngay" press', async () => {
+  it('navigates to products on shop button press', async () => {
     mockUseCart.mockReturnValue({
       data: { items: [], totalAmount: 0, totalItems: 0 },
       isLoading: false,
@@ -154,9 +154,9 @@ describe('CartScreen', () => {
       refetch: mockRefetch,
     });
     const { getByText } = render(<CartScreen />, { wrapper });
-    await waitFor(() => getByText('Mua sắm ngay'));
+    await waitFor(() => getByText('Khám phá sản phẩm'));
     const { router } = jest.requireMock('expo-router');
-    fireEvent.press(getByText('Mua sắm ngay'));
+    fireEvent.press(getByText('Khám phá sản phẩm'));
     expect(router.push).toHaveBeenCalledWith('/(tabs)/products');
   });
 

@@ -27,7 +27,7 @@ jest.mock('@/lib/auth-context', () => ({
 }));
 
 jest.mock('@/lib/layout', () => ({
-  useLayout: () => ({ cardGap: 12 }),
+  useLayout: () => ({ cardGap: 12, fontScale: 1 }),
 }));
 
 jest.mock('@/lib/cart-context', () => ({
@@ -247,14 +247,14 @@ describe('HomeScreen', () => {
     expect(toJSON()).not.toBeNull();
   });
 
-  it('renders greeting text', async () => {
+  it('renders header logo', async () => {
     const { findByText } = renderWithQuery(<HomeScreen />);
-    expect(await findByText(/Xin chào/, {}, { timeout: 20000 })).toBeTruthy();
+    expect(await findByText('Tạp Hóa', {}, { timeout: 20000 })).toBeTruthy();
   });
 
-  it('renders hero carousel badge', async () => {
+  it('renders flash sale title', async () => {
     const { findByText } = renderWithQuery(<HomeScreen />);
-    expect(await findByText(/🔥 Flash Sale/, {}, { timeout: 20000 })).toBeTruthy();
+    expect(await findByText(/Flash Sale/, {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('renders active order strip', async () => {
@@ -285,7 +285,7 @@ describe('HomeScreen', () => {
 
   it('renders trust badges', async () => {
     const { findByText } = renderWithQuery(<HomeScreen />);
-    expect(await findByText('Kiểm định chất lượng', {}, { timeout: 20000 })).toBeTruthy();
+    expect(await findByText('Kiểm định từng lô', {}, { timeout: 20000 })).toBeTruthy();
   });
 
   it('shows loading state with skeleton', () => {
