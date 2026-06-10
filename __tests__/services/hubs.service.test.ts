@@ -29,13 +29,13 @@ describe('hubsService', () => {
 
     it('appends city param', async () => {
       mockApi.get.mockResolvedValueOnce(mockHubs);
-      await hubsService.getActive('TP.HCM');
+      await hubsService.getActive({ city: 'TP.HCM' });
       expect(mockApi.get).toHaveBeenCalledWith('/hubs?city=TP.HCM');
     });
 
     it('appends city and district params', async () => {
       mockApi.get.mockResolvedValueOnce(mockHubs);
-      await hubsService.getActive('TP.HCM', 'Quận 1');
+      await hubsService.getActive({ city: 'TP.HCM', district: 'Quận 1' });
       const url = (mockApi.get as jest.Mock).mock.calls[0][0] as string;
       expect(url).toContain('city=TP.HCM');
       expect(url).toContain('district=Qu%E1%BA%ADn+1');
@@ -43,7 +43,7 @@ describe('hubsService', () => {
 
     it('ignores undefined district', async () => {
       mockApi.get.mockResolvedValueOnce(mockHubs);
-      await hubsService.getActive('TP.HCM', undefined);
+      await hubsService.getActive({ city: 'TP.HCM', district: undefined });
       expect(mockApi.get).toHaveBeenCalledWith('/hubs?city=TP.HCM');
     });
 

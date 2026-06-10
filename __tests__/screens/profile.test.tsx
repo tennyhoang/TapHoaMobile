@@ -1,10 +1,15 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ProfileScreen from '@/app/(tabs)/profile';
 
 jest.mock('@/services/profile.service', () => ({
   profileService: { deleteAccount: jest.fn() },
+}));
+
+jest.mock('@/lib/hooks/useWallet', () => ({
+  useWalletBalance: () => ({ data: { balance: 150000 }, isLoading: false }),
 }));
 
 const mockUseAuth = jest.fn();
@@ -15,7 +20,12 @@ jest.mock('@/lib/auth-context', () => ({
 const customerUser = { fullName: 'Test User', email: 'test@example.com', role: 'Customer' };
 const adminUser = { fullName: 'Admin', email: 'admin@example.com', role: 'Admin' };
 
-const wrapper = ({ children }: any) => <SafeAreaProvider>{children}</SafeAreaProvider>;
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+const wrapper = ({ children }: any) => (
+  <SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  </SafeAreaProvider>
+);
 
 describe('ProfileScreen', () => {
   beforeEach(() => {
@@ -30,7 +40,6 @@ describe('ProfileScreen', () => {
 
   it('renders standard menu items', () => {
     const { getByText } = render(<ProfileScreen />, { wrapper });
-    expect(getByText('Ví của tôi')).toBeTruthy();
     expect(getByText('Đơn hàng của tôi')).toBeTruthy();
     expect(getByText('Sản phẩm yêu thích')).toBeTruthy();
     expect(getByText('Thông báo')).toBeTruthy();
@@ -55,8 +64,8 @@ describe('ProfileScreen', () => {
   it('navigates to correct routes on menu press', () => {
     const { getByText } = render(<ProfileScreen />, { wrapper });
     const { router } = jest.requireMock('expo-router');
-    fireEvent.press(getByText('Ví của tôi'));
-    expect(router.push).toHaveBeenCalledWith('/wallet');
+    fireEvent.press(getByText('Đơn hàng của tôi'));
+    expect(router.push).toHaveBeenCalledWith('/orders');
   });
 
   it('calls logout and navigates on logout button press', async () => {

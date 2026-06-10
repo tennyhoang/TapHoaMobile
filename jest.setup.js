@@ -61,11 +61,23 @@ jest.mock('expo-localization', () => ({
 }));
 
 // Mock react-i18next and i18next globally so useTranslation() works in tests
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key) => key, i18n: { language: 'vi', changeLanguage: jest.fn() } }),
-  initReactI18next: { type: '3rdParty', init: () => {} },
-  Trans: ({ children }) => children,
-}));
+jest.mock('react-i18next', () => {
+  const vi = require('./locales/vi.json');
+  function t(key, fallback) {
+    const parts = String(key).split('.');
+    let val = vi;
+    for (const p of parts) {
+      if (val && typeof val === 'object' && p in val) { val = val[p]; }
+      else { return typeof fallback === 'string' ? fallback : key; }
+    }
+    return typeof val === 'string' ? val : key;
+  }
+  return {
+    useTranslation: () => ({ t, i18n: { language: 'vi', changeLanguage: jest.fn() } }),
+    initReactI18next: { type: '3rdParty', init: () => {} },
+    Trans: ({ children }) => children,
+  };
+});
 
 // Mock expo-router
 jest.mock('expo-router', () => ({

@@ -36,7 +36,8 @@ function TabItem({
   badge?: number;
 }) {
   const { t } = useTranslation();
-  const label = t(`tab.${route.name}`, route.name);
+  const i18nKey = route.name === 'index' ? 'home' : route.name;
+  const label = t(`tab.${i18nKey}`, route.name);
   const scale = useSharedValue(1);
   const iconScale = useSharedValue(1);
 
