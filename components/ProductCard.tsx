@@ -160,7 +160,7 @@ const ProductCard = memo(function ProductCard({ product, onAddToCart }: Props) {
           accessibilityLabel={`Thêm ${product.name} vào giỏ`}
         >
           <Animated.View style={[s.cartBtn, cartStyle]}>
-            <Ionicons name="add" size={18} color="#fff" />
+            <Ionicons name="add" size={18} color={C.primary} />
           </Animated.View>
         </Pressable>
       )}
@@ -173,21 +173,21 @@ export default ProductCard;
 const s = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: C.card,
+    backgroundColor: '#fff',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: '#E5E7EB',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   imgWrap: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#F0FDF9',
+    backgroundColor: '#F0FAFA',
   },
   img: { width: '100%', height: '100%' },
 
@@ -195,7 +195,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: C.discount,
+    backgroundColor: '#EF4444',
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -208,7 +208,7 @@ const s = StyleSheet.create({
     right: 6,
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.92)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -219,16 +219,16 @@ const s = StyleSheet.create({
     elevation: 1,
   },
 
-  info: { padding: 10, paddingBottom: 44 },
+  info: { padding: 10, paddingBottom: 46 },
   category: {
     fontSize: 10,
-    color: C.primary,
+    color: C.muted,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 3,
   },
-  name: { fontSize: 13, fontWeight: '600', color: C.text, lineHeight: 18, marginBottom: 5 },
+  name: { fontSize: 13, fontWeight: '600', color: '#111827', lineHeight: 18, marginBottom: 5 },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -237,10 +237,10 @@ const s = StyleSheet.create({
     marginBottom: 4,
   },
   price: { fontSize: 15, fontWeight: '800', color: C.primary },
-  originalPrice: { fontSize: 11, color: C.muted, textDecorationLine: 'line-through' },
+  originalPrice: { fontSize: 11, color: '#6B7280', textDecorationLine: 'line-through' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  rating: { fontSize: 11, fontWeight: '600', color: C.text },
-  reviewCount: { fontSize: 11, color: C.muted },
+  rating: { fontSize: 11, fontWeight: '600', color: '#111827' },
+  reviewCount: { fontSize: 11, color: '#6B7280' },
 
   cartBtnWrap: {
     position: 'absolute',
@@ -248,16 +248,16 @@ const s = StyleSheet.create({
     right: 10,
   },
   cartBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    backgroundColor: C.primary,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E5F9FA',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });
