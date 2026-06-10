@@ -63,9 +63,26 @@ export default function CheckoutScreen() {
   );
 
   useEffect(() => {
+    const fetchHubsWithLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+          return hubsService.getActive({
+            lat: loc.coords.latitude,
+            lng: loc.coords.longitude,
+          });
+        }
+      } catch {}
+      return hubsService.getActive();
+    };
+
     Promise.all([
       cartService.get(),
-      hubsService.getActive(),
+      fetchHubsWithLocation(),
       walletService.getBalance(),
       addressesService.getAll(),
     ])
