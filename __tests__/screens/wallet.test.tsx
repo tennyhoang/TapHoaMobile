@@ -118,7 +118,7 @@ describe('WalletScreen', () => {
     await waitFor(() => {
       expect(getByText('Nạp tiền')).toBeTruthy();
       expect(getByText('Lịch sử dùng')).toBeTruthy();
-      expect(getByText('Hỗ trợ')).toBeTruthy();
+      expect(getByText('Rút tiền')).toBeTruthy();
     });
   });
 
