@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth-context';
 import { useCartCount } from '@/lib/cart-context';
+import { useUnreadCount } from '@/lib/hooks';
 import TabBar from '@/components/TabBar';
 import Colors from '@/constants/Colors';
 
@@ -12,6 +13,8 @@ export default function TabLayout() {
   const { t } = useTranslation();
   const { token, isLoading } = useAuth();
   const { itemCount, refreshCount } = useCartCount();
+  const { data: unreadData } = useUnreadCount();
+  const unreadCount = unreadData?.count ?? 0;
 
   useEffect(() => {
     if (token) refreshCount();
@@ -75,6 +78,8 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: t('tab.profile'),
+          tabBarBadge: unreadCount > 0 ? (unreadCount > 99 ? '99+' : unreadCount) : undefined,
+          tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
           ),
