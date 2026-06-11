@@ -61,6 +61,7 @@ function getCatIcon(name: string) {
 const ACTIVE_ORDER_STATUSES = [
   'PendingPayment',
   'Paid_WaitingForBatch',
+  'PackedAtWarehouse',
   'ShippingToHub',
   'InHub_ReadyForPickup',
 ];
@@ -68,6 +69,7 @@ const ACTIVE_ORDER_STATUSES = [
 const ORDER_STATUS_LABELS: Record<string, string> = {
   PendingPayment: 'Chờ thanh toán',
   Paid_WaitingForBatch: 'Đang chuẩn bị hàng',
+  PackedAtWarehouse: 'Đang đóng gói tại kho',
   ShippingToHub: 'Đang vận chuyển về Hub',
   InHub_ReadyForPickup: 'Tại Hub — sẵn sàng lấy hàng 🎉',
 };
