@@ -121,6 +121,8 @@ export type Order = {
   cancelledAt?: string;
   refundedAt?: string;
   deliveryPhotoUrl?: string;
+  shippingFee?: number;
+  voucherDiscount?: number;
 };
 
 export type Address = {

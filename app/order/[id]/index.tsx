@@ -441,10 +441,29 @@ export default function OrderDetailScreen() {
         <View style={s.section}>
           <Text style={s.sectionTitle}>Thanh toán</Text>
           <View style={s.card}>
+            {/* Subtotal = totalAmount - shippingFee + voucherDiscount */}
             <View style={[s.payRow, s.itemBorder]}>
               <Text style={s.payLabel}>Tổng sản phẩm</Text>
-              <Text style={s.payValue}>{formatCurrency(order.totalAmount)}</Text>
+              <Text style={s.payValue}>
+                {formatCurrency(
+                  order.totalAmount - (order.shippingFee ?? 0) + (order.voucherDiscount ?? 0)
+                )}
+              </Text>
             </View>
+            {(order.shippingFee ?? 0) > 0 && (
+              <View style={[s.payRow, s.itemBorder]}>
+                <Text style={s.payLabel}>Phí vận chuyển</Text>
+                <Text style={s.payValue}>{formatCurrency(order.shippingFee!)}</Text>
+              </View>
+            )}
+            {(order.voucherDiscount ?? 0) > 0 && (
+              <View style={[s.payRow, s.itemBorder]}>
+                <Text style={s.payLabel}>Giảm giá voucher</Text>
+                <Text style={[s.payValue, { color: '#22C55E' }]}>
+                  -{formatCurrency(order.voucherDiscount!)}
+                </Text>
+              </View>
+            )}
             {order.walletAmountUsed > 0 && (
               <View style={[s.payRow, s.itemBorder]}>
                 <Text style={s.payLabel}>Ví điện tử</Text>

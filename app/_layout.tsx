@@ -12,6 +12,7 @@ import { WishlistProvider } from '@/lib/wishlist-context';
 import { ToastProvider } from '@/components/Toast';
 import { ThemeProvider } from '@/lib/theme';
 import OfflineBanner from '@/components/OfflineBanner';
+import OrderSocketBridge from '@/components/OrderSocketBridge';
 import { storage } from '@/lib/storage';
 import { ONBOARDING_KEY } from '@/app/onboarding/index';
 import { addNotificationListener } from '@/lib/notifications';
@@ -68,6 +69,7 @@ export default Sentry.wrap(function RootLayout() {
               <WishlistProvider>
                 <ToastProvider>
                   <OfflineBanner />
+                  <OrderSocketBridge />
                   <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="(auth)" />
                     <Stack.Screen name="(tabs)" />
