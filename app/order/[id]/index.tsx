@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -94,6 +95,7 @@ function PaymentQR({ amount, paymentRef }: { amount: number; paymentRef: string 
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
@@ -211,7 +213,7 @@ export default function OrderDetailScreen() {
         {(order.status === 'PendingPayment' || order.status === 'AwaitingPayment') && (
           <View style={s.refreshRow}>
             <Ionicons name="time-outline" size={13} color={C.muted} />
-            <Text style={s.refreshHint}>Tự động cập nhật mỗi 15 giây</Text>
+            <Text style={s.refreshHint}>{t('payment.auto_refresh')}</Text>
           </View>
         )}
         {order.cancelReason && <Text style={s.cancelReason}>Lý do: {order.cancelReason}</Text>}
@@ -228,7 +230,7 @@ export default function OrderDetailScreen() {
         {order.status === 'AwaitingPayment' && (
           <View style={s.waitingGatewayCard}>
             <Ionicons name="hourglass-outline" size={20} color="#F59E0B" />
-            <Text style={s.waitingGatewayText}>Đang chờ cổng thanh toán xác nhận...</Text>
+            <Text style={s.waitingGatewayText}>{t('payment.awaiting')}</Text>
           </View>
         )}
 
@@ -621,11 +623,9 @@ export default function OrderDetailScreen() {
             <View style={m.handle} />
             <View style={m.headerRow}>
               <Ionicons name="star" size={22} color="#F59E0B" />
-              <Text style={m.title}>Đánh giá đơn hàng</Text>
+              <Text style={m.title}>{t('order_review.title')}</Text>
             </View>
-            <Text style={m.subtitle}>
-              Cảm ơn bạn đã mua hàng! Chia sẻ cảm nhận về sản phẩm nhé.
-            </Text>
+            <Text style={m.subtitle}>{t('order_review.subtitle')}</Text>
             <View style={m.itemList}>
               {order?.items.map(item => (
                 <TouchableOpacity
@@ -658,7 +658,7 @@ export default function OrderDetailScreen() {
               accessibilityLabel="Bỏ qua đánh giá"
               accessibilityRole="button"
             >
-              <Text style={m.skipText}>Để sau</Text>
+              <Text style={m.skipText}>{t('order_review.later')}</Text>
             </TouchableOpacity>
           </View>
         </View>
