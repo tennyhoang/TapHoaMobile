@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
 
-type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet';
+type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet' | 'Vnpay' | 'Momo';
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc: string }[] = [
   {
@@ -20,6 +20,18 @@ const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc
     desc: 'Chuyển khoản ngân hàng theo mã đơn',
   },
   { value: 'Wallet', label: 'Ví TapHoa', icon: 'wallet-outline', desc: 'Thanh toán từ ví điện tử' },
+  {
+    value: 'Vnpay',
+    label: 'VNPay',
+    icon: 'card-outline',
+    desc: 'Thẻ ATM & Visa/Mastercard',
+  },
+  {
+    value: 'Momo',
+    label: 'Ví MoMo',
+    icon: 'phone-portrait-outline',
+    desc: 'Thanh toán qua ví MoMo',
+  },
 ];
 
 interface Props {

@@ -70,7 +70,8 @@ export {
   useOptimizeRoute,
 } from './useDriver';
 export { useAgentOrders, useArriveOrder, useCompletePickup } from './useAgent';
-export { useProductReviews, useSubmitReview } from './useReviews';
+export { useProductReviews } from './useReviews';
+export { useLoyaltyBalance, useLoyaltyTransactions } from './useLoyalty';
 export { useActiveHubs } from './useHubs';
 export { useValidateVoucher } from './useVouchers';
 export { useMyClaims, useCreateClaim } from './useClaims';

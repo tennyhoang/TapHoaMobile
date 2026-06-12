@@ -62,4 +62,10 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, StatusConfig> = {
     bg: '#F8F9FA',
     icon: 'return-down-back-outline',
   },
+  AwaitingPayment: {
+    label: statusLabel('AwaitingPayment'),
+    color: '#F59E0B',
+    bg: '#FEF3C7',
+    icon: 'time-outline',
+  },
 };

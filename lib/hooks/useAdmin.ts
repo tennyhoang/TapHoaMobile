@@ -12,6 +12,7 @@ import {
 } from '@/services/admin.service';
 import { queryKeys } from './queryKeys';
 import type { Order, OrderStatus, PagedResult } from '@/types';
+import type { CreateVoucherPayload, UpdateVoucherPayload } from '@/types';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
 export function useAdminStats(options?: Partial<UseQueryOptions<AdminStats>>) {
@@ -304,6 +305,47 @@ export function useCompleteWithdraw() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.wallet('Pending') });
       qc.invalidateQueries({ queryKey: queryKeys.admin.wallet('Completed') });
+    },
+  });
+}
+
+// ── Vouchers ───────────────────────────────────────────────────────────────────
+
+export function useAdminVouchers() {
+  return useQuery({
+    queryKey: queryKeys.admin.vouchers.all,
+    queryFn: () => adminService.vouchers.getAll(),
+    staleTime: 30_000,
+  });
+}
+
+export function useCreateVoucher() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateVoucherPayload) => adminService.vouchers.create(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.vouchers.all });
+    },
+  });
+}
+
+export function useUpdateVoucher() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateVoucherPayload }) =>
+      adminService.vouchers.update(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.vouchers.all });
+    },
+  });
+}
+
+export function useDeleteVoucher() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.vouchers.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.vouchers.all });
     },
   });
 }

@@ -47,6 +47,9 @@ export const queryKeys = {
     users: (params?: Record<string, unknown>) => ['admin', 'users', params] as const,
     warehouses: ['admin', 'warehouses'] as const,
     wallet: (status: string) => ['admin', 'wallet', status] as const,
+    vouchers: {
+      all: ['admin', 'vouchers'] as const,
+    },
   },
   warehouse: {
     dashboard: ['warehouse', 'dashboard'] as const,
@@ -76,5 +79,9 @@ export const queryKeys = {
   claims: {
     all: ['claims'] as const,
     my: (params?: Record<string, unknown>) => ['claims', 'my', params] as const,
+  },
+  loyalty: {
+    balance: ['loyalty', 'balance'] as const,
+    transactions: (page?: number) => ['loyalty', 'transactions', page] as const,
   },
 };

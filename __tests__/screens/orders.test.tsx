@@ -133,6 +133,7 @@ describe('OrdersScreen', () => {
     const { getByText } = render(<OrdersScreen />, { wrapper });
     await waitFor(() => {
       expect(getByText('Tất cả')).toBeTruthy();
+      expect(getByText('Chờ XN')).toBeTruthy();
       expect(getByText('Hoàn thành')).toBeTruthy();
     });
   });
