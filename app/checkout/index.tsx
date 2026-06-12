@@ -24,17 +24,19 @@ import HubMapModal from '@/components/checkout/HubMapModal';
 import AddressPickerModal from '@/components/checkout/AddressPickerModal';
 import { hubsService } from '@/services/hubs.service';
 import { ordersService } from '@/services/orders.service';
+import { loyaltyService } from '@/services/loyalty.service';
 import { cartService } from '@/services/cart.service';
 import { walletService } from '@/services/wallet.service';
 import { addressesService } from '@/services/addresses.service';
 import { vouchersService } from '@/services/vouchers.service';
 import { biometrics } from '@/lib/biometrics';
+import { api } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import * as Location from 'expo-location';
 import { C } from '@/constants/Colors';
 import type { Hub, Cart, Address } from '@/types';
 
-type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet';
+type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet' | 'Vnpay' | 'Momo';
 
 export default function CheckoutScreen() {
   const { bottom } = useSafeAreaInsets();
@@ -53,6 +55,8 @@ export default function CheckoutScreen() {
   const [voucherNote, setVoucherNote] = useState('');
   const [voucherOk, setVoucherOk] = useState(false);
   const [applyingVoucher, setApplyingVoucher] = useState(false);
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [pointsToRedeem, setPointsToRedeem] = useState(0);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
@@ -97,6 +101,10 @@ export default function CheckoutScreen() {
       })
       .catch(() => router.back())
       .finally(() => setLoading(false));
+    loyaltyService
+      .getBalance()
+      .then(b => setLoyaltyPoints(b?.points ?? 0))
+      .catch(() => {});
   }, []);
 
   const handleApplyVoucher = async () => {
@@ -162,7 +170,28 @@ export default function CheckoutScreen() {
         note: note.trim() || undefined,
         paymentMethod,
         voucherCode: voucherOk && voucherCode.trim() ? voucherCode.trim() : undefined,
+        pointsToRedeem,
       });
+
+      if (paymentMethod === 'Vnpay') {
+        const { paymentUrl } = await api.post<{ paymentUrl: string }>('/payment/vnpay/create', {
+          orderId: order.id,
+        });
+        router.push(
+          `/payment?url=${encodeURIComponent(paymentUrl)}&orderId=${order.id}&gateway=vnpay` as any
+        );
+        return;
+      }
+      if (paymentMethod === 'Momo') {
+        const { payUrl } = await api.post<{ payUrl: string }>('/payment/momo/create', {
+          orderId: order.id,
+        });
+        router.push(
+          `/payment?url=${encodeURIComponent(payUrl)}&orderId=${order.id}&gateway=momo` as any
+        );
+        return;
+      }
+
       router.replace(`/order/${order.id}` as any);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đặt hàng thất bại');
@@ -248,6 +277,39 @@ export default function CheckoutScreen() {
           voucherNote={voucherNote}
         />
 
+        {/* Loyalty points */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Điểm tích luỹ</Text>
+          <View style={s.card}>
+            <View style={s.hubRow}>
+              <View style={s.payIcon}>
+                <Ionicons name="star-outline" size={18} color="#D97706" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.hubName}>Đổi điểm</Text>
+                <Text style={s.hubAddr}>Bạn có {loyaltyPoints.toLocaleString()} điểm</Text>
+              </View>
+              <TouchableOpacity
+                style={[s.redeemBtn, pointsToRedeem > 0 && s.redeemBtnActive]}
+                onPress={() => {
+                  if (pointsToRedeem > 0) {
+                    setPointsToRedeem(0);
+                  } else if (loyaltyPoints > 0) {
+                    const max = Math.min(loyaltyPoints, Math.floor(finalAmount / 200));
+                    setPointsToRedeem(max);
+                  }
+                }}
+              >
+                <Text style={[s.redeemBtnText, pointsToRedeem > 0 && s.redeemBtnTextActive]}>
+                  {pointsToRedeem > 0
+                    ? `Đã đổi ${pointsToRedeem.toLocaleString()} điểm (${formatCurrency(pointsToRedeem * 200)})`
+                    : 'Đổi điểm'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
         <OrderTotal
           totalAmount={subtotal}
           shippingFee={shippingFee}
@@ -307,6 +369,51 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   body: { padding: 16, paddingBottom: 120 },
+  section: { marginBottom: 16 },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 8 },
+  card: {
+    backgroundColor: C.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  hubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  hubName: { fontSize: 14, fontWeight: '600', color: C.text, marginBottom: 2 },
+  hubAddr: { fontSize: 12, color: C.muted, lineHeight: 18 },
+  payIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#FFFBEB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  redeemBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: C.bg,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  redeemBtnActive: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#F59E0B',
+  },
+  redeemBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: C.primary,
+  },
+  redeemBtnTextActive: {
+    color: '#92400E',
+  },
   errBox: {
     flexDirection: 'row',
     alignItems: 'center',

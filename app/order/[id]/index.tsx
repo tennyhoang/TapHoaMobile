@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Share,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
@@ -22,6 +23,7 @@ import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-context';
 import { useOrderTracking } from '@/lib/hooks/useOrderTracking';
+import { storage } from '@/lib/storage';
 import type { Order } from '@/types';
 
 const BANK_CODE = process.env.EXPO_PUBLIC_BANK_CODE ?? 'MB';
@@ -95,6 +97,7 @@ export default function OrderDetailScreen() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const { show } = useToast();
   const { token } = useAuth();
 
@@ -124,13 +127,25 @@ export default function OrderDetailScreen() {
 
   // Poll every 15s while waiting for payment confirmation
   useEffect(() => {
-    if (order?.status !== 'PendingPayment') return;
+    if (order?.status !== 'PendingPayment' && order?.status !== 'AwaitingPayment') return;
     const timer = setInterval(fetchOrder, 15000);
     return () => clearInterval(timer);
   }, [order?.status, fetchOrder]);
 
   // Real-time order status updates via SignalR
   useOrderTracking(token, id ?? '', fetchOrder);
+
+  // Show review prompt once when order is Completed
+  useEffect(() => {
+    if (!order || order.status !== 'Completed' || !id) return;
+    const key = `review_prompted_${id}`;
+    storage.getItem(key).then(shown => {
+      if (!shown) {
+        setShowReviewModal(true);
+        storage.setItem(key, '1');
+      }
+    });
+  }, [order?.status, id]);
 
   const handleCancel = () => {
     Alert.alert('Huỷ đơn hàng', 'Bạn có chắc muốn huỷ đơn hàng này?', [
@@ -162,7 +177,10 @@ export default function OrderDetailScreen() {
   }
   if (!order) return null;
 
-  const canCancel = order.status === 'PendingPayment' || order.status === 'Paid_WaitingForBatch';
+  const canCancel =
+    order.status === 'PendingPayment' ||
+    order.status === 'Paid_WaitingForBatch' ||
+    order.status === 'AwaitingPayment';
   const canRefund = order.status === 'Completed';
 
   const handleRefund = () => {
@@ -190,7 +208,7 @@ export default function OrderDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.body}>
         {/* Status */}
         <StatusBadge status={order.status} size="lg" />
-        {order.status === 'PendingPayment' && (
+        {(order.status === 'PendingPayment' || order.status === 'AwaitingPayment') && (
           <View style={s.refreshRow}>
             <Ionicons name="time-outline" size={13} color={C.muted} />
             <Text style={s.refreshHint}>Tự động cập nhật mỗi 15 giây</Text>
@@ -198,12 +216,20 @@ export default function OrderDetailScreen() {
         )}
         {order.cancelReason && <Text style={s.cancelReason}>Lý do: {order.cancelReason}</Text>}
 
-        {/* QR payment */}
+        {/* QR payment (bank transfer) */}
         {order.status === 'PendingPayment' && order.paymentRef && (
           <PaymentQR
             amount={order.totalAmount - (order.walletAmountUsed ?? 0)}
             paymentRef={order.paymentRef}
           />
+        )}
+
+        {/* Awaiting payment gateway confirmation */}
+        {order.status === 'AwaitingPayment' && (
+          <View style={s.waitingGatewayCard}>
+            <Ionicons name="hourglass-outline" size={20} color="#F59E0B" />
+            <Text style={s.waitingGatewayText}>Đang chờ cổng thanh toán xác nhận...</Text>
+          </View>
         )}
 
         {/* Timeline */}
@@ -582,6 +608,61 @@ export default function OrderDetailScreen() {
           <Text style={s.shopBtnText}>Tiếp tục mua sắm</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Review prompt modal */}
+      <Modal
+        visible={showReviewModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowReviewModal(false)}
+      >
+        <View style={m.overlay}>
+          <View style={m.sheet}>
+            <View style={m.handle} />
+            <View style={m.headerRow}>
+              <Ionicons name="star" size={22} color="#F59E0B" />
+              <Text style={m.title}>Đánh giá đơn hàng</Text>
+            </View>
+            <Text style={m.subtitle}>
+              Cảm ơn bạn đã mua hàng! Chia sẻ cảm nhận về sản phẩm nhé.
+            </Text>
+            <View style={m.itemList}>
+              {order?.items.map(item => (
+                <TouchableOpacity
+                  key={item.productId}
+                  style={m.itemRow}
+                  onPress={() => {
+                    setShowReviewModal(false);
+                    router.push(
+                      `/reviews/${item.productId}?name=${encodeURIComponent(item.productName)}` as any
+                    );
+                  }}
+                  activeOpacity={0.75}
+                  accessibilityLabel={`Đánh giá ${item.productName}`}
+                  accessibilityRole="button"
+                >
+                  <Text style={m.itemName} numberOfLines={1}>
+                    {item.productName}
+                  </Text>
+                  <View style={m.rateChip}>
+                    <Ionicons name="star-outline" size={13} color="#F59E0B" />
+                    <Text style={m.rateChipText}>Đánh giá</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={m.skipBtn}
+              onPress={() => setShowReviewModal(false)}
+              activeOpacity={0.7}
+              accessibilityLabel="Bỏ qua đánh giá"
+              accessibilityRole="button"
+            >
+              <Text style={m.skipText}>Để sau</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -601,6 +682,18 @@ const s = StyleSheet.create({
   refreshRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
   refreshHint: { fontSize: 11, color: C.muted },
   cancelReason: { fontSize: 13, color: C.muted, textAlign: 'center' },
+  waitingGatewayCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    padding: 14,
+    marginBottom: 12,
+  },
+  waitingGatewayText: { fontSize: 13, fontWeight: '600', color: '#D97706', flex: 1 },
   section: { marginBottom: 16 },
   sectionTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 8 },
   card: { backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: C.border },
@@ -772,6 +865,68 @@ const s = StyleSheet.create({
     paddingVertical: 4,
   },
   reviewChipText: { fontSize: 11, fontWeight: '600', color: '#D97706' },
+});
+
+const m = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: C.bg,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+    paddingTop: 12,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: C.border,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  title: { fontSize: 18, fontWeight: '700', color: C.text },
+  subtitle: { fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 20 },
+  itemList: { gap: 10, marginBottom: 20 },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: C.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  itemName: { flex: 1, fontSize: 14, color: C.text, marginRight: 10 },
+  rateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  rateChipText: { fontSize: 12, fontWeight: '600', color: '#D97706' },
+  skipBtn: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  skipText: { fontSize: 14, color: C.muted },
 });
 
 const q = StyleSheet.create({

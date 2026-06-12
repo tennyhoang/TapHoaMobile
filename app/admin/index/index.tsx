@@ -72,6 +72,13 @@ const NAV_ITEMS = [
     color: '#EC4899',
     route: '/admin/articles',
   },
+  {
+    icon: 'pricetag-outline',
+    label: 'Voucher',
+    desc: 'Mã giảm giá & khuyến mãi',
+    color: '#D97706',
+    route: '/admin/vouchers',
+  },
 ];
 
 export default function AdminDashboard() {

@@ -22,6 +22,7 @@ import StatusBadge from '@/components/StatusBadge';
 const FILTERS: { label: string; value: OrderStatus | undefined }[] = [
   { label: 'Tất cả', value: undefined },
   { label: 'Chờ TT', value: 'PendingPayment' },
+  { label: 'Chờ XN', value: 'AwaitingPayment' },
   { label: 'Đang giao', value: 'ShippingToHub' },
   { label: 'Lấy hàng', value: 'InHub_ReadyForPickup' },
   { label: 'Hoàn thành', value: 'Completed' },

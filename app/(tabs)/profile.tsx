@@ -46,6 +46,12 @@ const ACCOUNT_ITEMS: MenuItem[] = [
     color: '#F59E0B',
     route: '/notifications',
   },
+  {
+    icon: 'star-outline',
+    label: 'Điểm tích luỹ',
+    color: '#D97706',
+    route: '/loyalty',
+  },
 ];
 
 const SUPPORT_ITEMS: MenuItem[] = [

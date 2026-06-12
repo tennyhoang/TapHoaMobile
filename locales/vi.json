@@ -551,6 +551,7 @@
     "failure_logged": "Đã ghi nhận thất bại"
   },
   "status": {
+    "AwaitingPayment": "Chờ xác nhận thanh toán",
     "PendingPayment": "Chờ thanh toán",
     "Paid_WaitingForBatch": "Đã thanh toán",
     "PackedAtWarehouse": "Đã đóng gói",

@@ -26,6 +26,7 @@ import type { Order, OrderStatus } from '@/types';
 const STATUS_TABS: { label: string; value: OrderStatus | '' }[] = [
   { label: 'Tất cả', value: '' },
   { label: 'Chờ TT', value: 'PendingPayment' },
+  { label: 'Chờ XN', value: 'AwaitingPayment' },
   { label: 'Đã TT', value: 'Paid_WaitingForBatch' },
   { label: 'Vận chuyển', value: 'ShippingToHub' },
   { label: 'Tại Hub', value: 'InHub_ReadyForPickup' },

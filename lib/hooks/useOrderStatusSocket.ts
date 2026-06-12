@@ -6,6 +6,7 @@ import { API_BASE_URL } from '@/constants/api';
 import { queryKeys } from './queryKeys';
 
 const STATUS_LABELS: Record<string, string> = {
+  AwaitingPayment: 'Đơn hàng đang chờ cổng thanh toán xác nhận.',
   ShippingToHub: 'Đơn hàng đang được vận chuyển đến Hub.',
   InHub_ReadyForPickup: 'Hàng đã đến Hub, bạn có thể đến lấy!',
   Completed: 'Đơn hàng hoàn thành. Cảm ơn bạn đã mua sắm!',

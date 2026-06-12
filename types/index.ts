@@ -91,7 +91,8 @@ export type OrderStatus =
   | 'InHub_ReadyForPickup'
   | 'Completed'
   | 'Cancelled'
-  | 'Refunded';
+  | 'Refunded'
+  | 'AwaitingPayment';
 
 export type OrderItem = {
   productId: string;
@@ -107,7 +108,7 @@ export type Order = {
   status: OrderStatus;
   totalAmount: number;
   walletAmountUsed: number;
-  paymentMethod?: 'COD' | 'BankTransfer' | 'Wallet';
+  paymentMethod?: 'COD' | 'BankTransfer' | 'Wallet' | 'Vnpay' | 'Momo';
   note?: string;
   hub: Hub;
   items: OrderItem[];
@@ -123,6 +124,8 @@ export type Order = {
   deliveryPhotoUrl?: string;
   shippingFee?: number;
   voucherDiscount?: number;
+  pointsRedeemed?: number;
+  pointsDiscount?: number;
 };
 
 export type Address = {
@@ -341,4 +344,52 @@ export type Claim = {
   createdAt: string;
   resolvedAt?: string;
   resolution?: string;
+};
+
+export type VoucherDiscountType = 'percent' | 'flat';
+
+export type AdminVoucher = {
+  id: string;
+  code: string;
+  type: VoucherDiscountType;
+  value: number;
+  minOrder: number;
+  maxDiscount?: number;
+  usageLimit: number;
+  usedCount: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  description?: string;
+  createdAt: string;
+};
+
+export type CreateVoucherPayload = {
+  code: string;
+  type: VoucherDiscountType;
+  value: number;
+  minOrder: number;
+  maxDiscount?: number;
+  usageLimit: number;
+  startDate: string;
+  endDate: string;
+  description?: string;
+};
+
+export type UpdateVoucherPayload = Partial<CreateVoucherPayload> & {
+  isActive?: boolean;
+};
+
+export type LoyaltyPointsBalance = {
+  points: number;
+  lifetimePoints: number;
+};
+
+export type LoyaltyTransaction = {
+  id: string;
+  points: number;
+  type: 'Earned' | 'Redeemed' | 'Expired';
+  description: string;
+  referenceId?: string;
+  createdAt: string;
 };

@@ -551,6 +551,7 @@
     "failure_logged": "Failure logged"
   },
   "status": {
+    "AwaitingPayment": "Awaiting payment confirmation",
     "PendingPayment": "Pending payment",
     "Paid_WaitingForBatch": "Paid",
     "PackedAtWarehouse": "Packed at warehouse",

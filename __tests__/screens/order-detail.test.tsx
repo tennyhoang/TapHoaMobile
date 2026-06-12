@@ -124,9 +124,9 @@ describe('OrderDetailScreen', () => {
 
   it('renders item name and quantity', async () => {
     mockOrders.getById.mockResolvedValueOnce(baseOrder as any);
-    const { getByText } = render(<OrderDetailScreen />, { wrapper });
+    const { getByText, getAllByText } = render(<OrderDetailScreen />, { wrapper });
     await waitFor(() => {
-      expect(getByText('Gạo ST25')).toBeTruthy();
+      expect(getAllByText('Gạo ST25').length).toBeGreaterThanOrEqual(1);
       expect(getByText('x2')).toBeTruthy();
     });
   });
@@ -186,5 +186,31 @@ describe('OrderDetailScreen', () => {
     await waitFor(() => {
       expect(router.back).toHaveBeenCalled();
     });
+  });
+
+  it('shows waiting gateway message for AwaitingPayment status', async () => {
+    const order = { ...baseOrder, status: 'AwaitingPayment' as const, paymentRef: 'REF123' };
+    mockOrders.getById.mockResolvedValueOnce(order as any);
+    const { getByText } = render(<OrderDetailScreen />, { wrapper });
+    await waitFor(() => {
+      expect(getByText('Đang chờ cổng thanh toán xác nhận...')).toBeTruthy();
+    });
+  });
+
+  it('shows cancel button for AwaitingPayment status', async () => {
+    const order = { ...baseOrder, status: 'AwaitingPayment' as const, paymentRef: 'REF123' };
+    mockOrders.getById.mockResolvedValueOnce(order as any);
+    const { getByText } = render(<OrderDetailScreen />, { wrapper });
+    await waitFor(() => {
+      expect(getByText('Huỷ đơn hàng')).toBeTruthy();
+    });
+  });
+
+  it('does not render QR payment for AwaitingPayment', async () => {
+    const order = { ...baseOrder, status: 'AwaitingPayment' as const, paymentRef: 'REF123' };
+    mockOrders.getById.mockResolvedValueOnce(order as any);
+    const { queryByText } = render(<OrderDetailScreen />, { wrapper });
+    await waitFor(() => queryByText('Đang chờ cổng thanh toán xác nhận...'));
+    expect(queryByText('Quét mã để chuyển khoản')).toBeNull();
   });
 });
