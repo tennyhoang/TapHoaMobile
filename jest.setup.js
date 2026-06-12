@@ -41,11 +41,11 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-// Mock expo-secure-store
+// Mock expo-secure-store (must return Promises to match the real API)
 jest.mock('expo-secure-store', () => ({
-  getItemAsync: jest.fn(),
-  setItemAsync: jest.fn(),
-  deleteItemAsync: jest.fn(),
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Suppress act() warnings — unavoidable with async state updates in useEffect chains

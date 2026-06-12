@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -88,6 +89,7 @@ function renderMarkdown(content: string) {
 }
 
 export default function ArticleDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,7 +119,7 @@ export default function ArticleDetailScreen() {
         <Ionicons name="document-outline" size={48} color="#D1D5DB" />
         <Text style={{ color: C.muted, marginTop: 12 }}>Không tìm thấy bài viết</Text>
         <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: C.primary, fontWeight: '600' }}>← Quay lại</Text>
+          <Text style={{ color: C.primary, fontWeight: '600' }}>← {t('common.back')}</Text>
         </TouchableOpacity>
       </View>
     );

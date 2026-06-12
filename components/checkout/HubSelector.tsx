@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { C } from '@/constants/Colors';
 import type { Hub } from '@/types';
 
@@ -12,10 +13,11 @@ interface Props {
 }
 
 export default function HubSelector({ hubs, selectedHub, onSelect, onOpenMap }: Props) {
+  const { t } = useTranslation();
   return (
     <View style={s.section}>
       <View style={s.sectionRow}>
-        <Text style={s.sectionTitle}>Điểm nhận hàng</Text>
+        <Text style={s.sectionTitle}>{t('checkout.select_hub')}</Text>
         {hubs.length > 0 && (
           <TouchableOpacity style={s.mapBtn} onPress={onOpenMap} activeOpacity={0.8}>
             <Ionicons name="map-outline" size={14} color={C.primary} />

@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
@@ -35,6 +36,7 @@ function CreateSessionModal({
   onClose: () => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
   const defaultStart = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
@@ -69,7 +71,7 @@ function CreateSessionModal({
           placeholderTextColor={C.muted}
         />
 
-        <Text style={cs.label}>Thời gian bắt đầu *</Text>
+        <Text style={cs.label}>{t('admin.start_time')} *</Text>
         <TextInput
           style={cs.input}
           value={startTime}
@@ -79,7 +81,7 @@ function CreateSessionModal({
           autoCapitalize="none"
         />
 
-        <Text style={cs.label}>Thời gian kết thúc *</Text>
+        <Text style={cs.label}>{t('admin.end_time')} *</Text>
         <TextInput
           style={cs.input}
           value={endTime}
@@ -133,6 +135,7 @@ function SessionItemsModal({
   session: AdminFlashSaleSession;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const { show } = useToast();
   const [items, setItems] = useState<AdminFlashSaleItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -215,10 +218,10 @@ function SessionItemsModal({
   };
 
   const handleRemoveItem = async (item: AdminFlashSaleItem) => {
-    Alert.alert('Xoá sản phẩm', `Xoá "${item.productName}" khỏi phiên?`, [
-      { text: 'Huỷ', style: 'cancel' },
+    Alert.alert('Xoá sản phẩm', t('admin.delete_confirm', { name: item.productName }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           setRemovingId(item.id);
@@ -305,7 +308,7 @@ function SessionItemsModal({
                 <Text style={im.priceStockTitle}>Cấu hình: {selectedProduct.name}</Text>
                 <View style={im.priceStockRow}>
                   <View style={im.priceStockField}>
-                    <Text style={im.priceStockLabel}>Giá Flash Sale</Text>
+                    <Text style={im.priceStockLabel}>{t('admin.sale_price')}</Text>
                     <TextInput
                       style={im.priceStockInput}
                       value={pickerPrice}
@@ -386,6 +389,7 @@ function SessionItemsModal({
 }
 
 export default function AdminFlashSaleScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -445,10 +449,10 @@ export default function AdminFlashSaleScreen() {
   };
 
   const handleDelete = (session: AdminFlashSaleSession) => {
-    Alert.alert('Xoá phiên', `Xoá phiên "${session.name}"?`, [
-      { text: 'Huỷ', style: 'cancel' },
+    Alert.alert('Xoá phiên', t('admin.delete_confirm', { name: session.name }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -540,7 +544,7 @@ export default function AdminFlashSaleScreen() {
   return (
     <View style={s.root}>
       <ScreenHeader
-        title="Flash Sale"
+        title={t('admin.flash_sale')}
         right={
           <TouchableOpacity onPress={() => setCreateModalVisible(true)} style={s.addBtn}>
             <Ionicons name="add" size={22} color="#fff" />

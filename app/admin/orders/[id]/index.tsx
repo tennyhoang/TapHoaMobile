@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import StatusBadge from '@/components/StatusBadge';
 import { adminService } from '@/services/admin.service';
@@ -34,6 +35,7 @@ const TIMELINE_FIELDS: { label: string; key: keyof Order; icon: string }[] = [
 ];
 
 export default function AdminOrderDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { show } = useToast();
 
@@ -54,9 +56,9 @@ export default function AdminOrderDetailScreen() {
   const handleUpdateStatus = (next: { label: string; value: OrderStatus }) => {
     if (!order) return;
     Alert.alert('Cập nhật trạng thái', `Chuyển sang "${next.label}"?`, [
-      { text: 'Huỷ', style: 'cancel' },
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xác nhận',
+        text: t('common.confirm'),
         onPress: async () => {
           setUpdating(true);
           try {
@@ -86,7 +88,7 @@ export default function AdminOrderDetailScreen() {
       <View style={s.center}>
         <Text style={s.errorText}>Không tìm thấy đơn hàng</Text>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backBtnText}>Quay lại</Text>
+          <Text style={s.backBtnText}>{t('common.back')}</Text>
         </TouchableOpacity>
       </View>
     );

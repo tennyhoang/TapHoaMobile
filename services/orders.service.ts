@@ -5,9 +5,10 @@ type CreateOrderPayload = {
   hubId: string;
   addressId?: string;
   note?: string;
-  paymentMethod?: 'COD' | 'BankTransfer' | 'Wallet';
+  paymentMethod?: 'COD' | 'BankTransfer' | 'Wallet' | 'Vnpay' | 'Momo';
   useWallet?: boolean;
   voucherCode?: string;
+  pointsToRedeem?: number;
 };
 
 export const ordersService = {

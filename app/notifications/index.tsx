@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { notificationsService } from '@/services/notifications.service';
 import ErrorScreen from '@/components/ErrorScreen';
 import EmptyState from '@/components/EmptyState';
@@ -27,6 +28,7 @@ const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string }> = {
 };
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +141,7 @@ export default function NotificationsScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Thông báo</Text>
+        <Text style={s.headerTitle}>{t('notification.title')}</Text>
         {unreadCount > 0 && (
           <TouchableOpacity
             style={s.markAllBtn}
@@ -182,7 +184,7 @@ export default function NotificationsScreen() {
           onEndReachedThreshold={0.3}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           ListEmptyComponent={
-            <EmptyState icon="notifications-off-outline" title="Không có thông báo nào" />
+            <EmptyState icon="notifications-off-outline" title={t('notification.empty')} />
           }
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color={C.primary} style={{ padding: 16 }} /> : null

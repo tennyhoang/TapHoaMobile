@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useWishlist } from '@/lib/wishlist-context';
 import { productsService } from '@/services/products.service';
@@ -22,6 +23,7 @@ import ScreenHeader from '@/components/ScreenHeader';
 import EmptyState from '@/components/EmptyState';
 
 export default function WishlistScreen() {
+  const { t } = useTranslation();
   const { ids, toggle } = useWishlist();
   const { show } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
@@ -138,7 +140,7 @@ export default function WishlistScreen() {
   return (
     <View style={s.root}>
       <ScreenHeader
-        title="Yêu thích"
+        title={t('tab.wishlist')}
         right={
           ids.length > 0 ? (
             <View style={s.countBadge}>

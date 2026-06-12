@@ -117,6 +117,7 @@ describe('AdminOrdersScreen', () => {
     await waitFor(() => {
       expect(getByText('Tất cả')).toBeTruthy();
       expect(getByText('Chờ TT')).toBeTruthy();
+      expect(getByText('Chờ XN')).toBeTruthy();
       expect(getByText('Đã TT')).toBeTruthy();
       expect(getByText('Hoàn thành')).toBeTruthy();
     });

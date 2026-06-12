@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { warehouseManagerService } from '@/services/warehouse-manager.service';
 import type { WarehouseDashboard } from '@/types';
@@ -64,6 +65,7 @@ const NAV_ITEMS = [
 ];
 
 export default function WarehouseDashboardScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const unauthorized = useRoleGuard('WarehouseManager');
   const [data, setData] = useState<WarehouseDashboard | null>(null);
@@ -178,7 +180,7 @@ export default function WarehouseDashboardScreen() {
             activeOpacity={0.8}
           >
             <Ionicons name="refresh-outline" size={18} color="#fff" />
-            <Text style={s.retryText}>Thử lại</Text>
+            <Text style={s.retryText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : (

@@ -15,6 +15,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { useToast } from '@/components/Toast';
@@ -140,6 +141,7 @@ function AdjustModal({
 }
 
 export default function WarehouseInventoryScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const { filter: initialFilter } = useLocalSearchParams<{ filter?: string }>();
   const unauthorized = useRoleGuard('WarehouseManager');
@@ -318,7 +320,7 @@ export default function WarehouseInventoryScreen() {
       <View style={s.filterRow}>
         {(
           [
-            ['', 'Tất cả'],
+            ['', t('common.all')],
             ['low', 'Sắp hết'],
             ['out', 'Hết hàng'],
           ] as [FilterType, string][]

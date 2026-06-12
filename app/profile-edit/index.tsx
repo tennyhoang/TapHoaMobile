@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { useEffect } from 'react';
@@ -39,6 +40,7 @@ async function uploadAvatar(uri: string): Promise<string> {
 }
 
 export default function ProfileEditScreen() {
+  const { t } = useTranslation();
   const { user, updateUser } = useAuth();
 
   const { show } = useToast();
@@ -102,7 +104,7 @@ export default function ProfileEditScreen() {
 
   const handleSaveProfile = async () => {
     if (!fullName.trim()) {
-      setProfileError('Tên không được để trống');
+      setProfileError(t('profile.name_required'));
       return;
     }
     setProfileError('');
@@ -155,7 +157,7 @@ export default function ProfileEditScreen() {
 
   return (
     <KeyboardAwareScreen style={s.root}>
-      <ScreenHeader title="Chỉnh sửa hồ sơ" />
+      <ScreenHeader title={t('profile.edit_profile')} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -193,23 +195,23 @@ export default function ProfileEditScreen() {
           <Text style={s.sectionTitle}>Thông tin cá nhân</Text>
           <View style={s.card}>
             <View style={s.fieldWrap}>
-              <Text style={s.fieldLabel}>Họ và tên</Text>
+              <Text style={s.fieldLabel}>{t('profile.full_name')}</Text>
               <TextInput
                 style={s.fieldInput}
                 value={fullName}
                 onChangeText={setFullName}
-                placeholder="Nhập họ và tên"
+                placeholder={t('profile.name_placeholder')}
                 placeholderTextColor="#9CA3AF"
                 autoCorrect={false}
               />
             </View>
             <View style={[s.fieldWrap, s.fieldBorderTop]}>
-              <Text style={s.fieldLabel}>Số điện thoại</Text>
+              <Text style={s.fieldLabel}>{t('profile.phone_number')}</Text>
               <TextInput
                 style={s.fieldInput}
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
-                placeholder="Nhập số điện thoại"
+                placeholder={t('profile.phone_placeholder')}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="phone-pad"
               />
@@ -233,7 +235,7 @@ export default function ProfileEditScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-outline" size={18} color="#fff" />
-                <Text style={s.saveBtnText}>Lưu thay đổi</Text>
+                <Text style={s.saveBtnText}>{t('common.save')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -250,7 +252,7 @@ export default function ProfileEditScreen() {
               <View style={s.pwIcon}>
                 <Ionicons name="lock-closed-outline" size={18} color={C.primary} />
               </View>
-              <Text style={s.sectionTitle}>Đổi mật khẩu</Text>
+              <Text style={s.sectionTitle}>{t('profile.change_password')}</Text>
             </View>
             <Ionicons
               name={showPwSection ? 'chevron-up' : 'chevron-down'}
@@ -262,7 +264,7 @@ export default function ProfileEditScreen() {
           {showPwSection && (
             <View style={[s.card, { marginTop: 10 }]}>
               <View style={s.fieldWrap}>
-                <Text style={s.fieldLabel}>Mật khẩu hiện tại</Text>
+                <Text style={s.fieldLabel}>{t('auth.current_password')}</Text>
                 <View style={s.pwRow}>
                   <TextInput
                     style={[s.fieldInput, { flex: 1 }]}
@@ -282,7 +284,7 @@ export default function ProfileEditScreen() {
                 </View>
               </View>
               <View style={[s.fieldWrap, s.fieldBorderTop]}>
-                <Text style={s.fieldLabel}>Mật khẩu mới</Text>
+                <Text style={s.fieldLabel}>{t('auth.new_password')}</Text>
                 <View style={s.pwRow}>
                   <TextInput
                     style={[s.fieldInput, { flex: 1 }]}

@@ -195,13 +195,13 @@ describe('CheckoutScreen', () => {
   it('enters note text', async () => {
     const { getByPlaceholderText } = render(<CheckoutScreen />, { wrapper });
     await waitFor(() =>
-      expect(getByPlaceholderText('Ghi chú cho đơn hàng (tuỳ chọn)...')).toBeTruthy()
+      expect(getByPlaceholderText('VD: Để hàng trước cửa, bấm chuông...')).toBeTruthy()
     );
     fireEvent.changeText(
-      getByPlaceholderText('Ghi chú cho đơn hàng (tuỳ chọn)...'),
+      getByPlaceholderText('VD: Để hàng trước cửa, bấm chuông...'),
       'Giao giờ hành chính'
     );
-    expect(getByPlaceholderText('Ghi chú cho đơn hàng (tuỳ chọn)...').props.value).toBe(
+    expect(getByPlaceholderText('VD: Để hàng trước cửa, bấm chuông...').props.value).toBe(
       'Giao giờ hành chính'
     );
   });
@@ -232,8 +232,8 @@ describe('CheckoutScreen', () => {
       message: 'Áp dụng thành công',
     });
     const { getByPlaceholderText, getByText } = render(<CheckoutScreen />, { wrapper });
-    await waitFor(() => expect(getByPlaceholderText('Nhập mã voucher...')).toBeTruthy());
-    fireEvent.changeText(getByPlaceholderText('Nhập mã voucher...'), 'SALE10');
+    await waitFor(() => expect(getByPlaceholderText('Nhập mã giảm giá')).toBeTruthy());
+    fireEvent.changeText(getByPlaceholderText('Nhập mã giảm giá'), 'SALE10');
     fireEvent.press(getByText('Áp dụng'));
     await waitFor(() => {
       expect(vouchersService.validate).toHaveBeenCalledWith('SALE10', expect.any(Number));

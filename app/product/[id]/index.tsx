@@ -15,6 +15,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ProductImage from '@/components/ProductImage';
 import ProductCard from '@/components/ProductCard';
 import { useProduct, useProducts, useAddToCart } from '@/lib/hooks';
@@ -28,6 +29,7 @@ const { width: W } = Dimensions.get('window');
 const IMG_H = W * 0.85;
 
 export default function ProductDetailScreen() {
+  const { t } = useTranslation();
   const { bottom } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -235,7 +237,7 @@ export default function ProductDetailScreen() {
           <View style={s.stockRow}>
             <View style={[s.stockDot, { backgroundColor: inStock ? '#22C55E' : C.error }]} />
             <Text style={[s.stockText, { color: inStock ? '#22C55E' : C.error }]}>
-              {inStock ? `Còn hàng (${product.stock})` : 'Hết hàng'}
+              {inStock ? `${t('product.in_stock')} (${product.stock})` : t('product.out_of_stock')}
             </Text>
           </View>
 
@@ -253,7 +255,7 @@ export default function ProductDetailScreen() {
               <View style={s.relatedHeader}>
                 <View>
                   <Text style={s.relatedLabel}>CÓ THỂ BẠN THÍCH</Text>
-                  <Text style={s.relatedTitle}>Sản phẩm tương tự</Text>
+                  <Text style={s.relatedTitle}>{t('product.related')}</Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => router.push('/(tabs)/products')}
@@ -318,7 +320,7 @@ export default function ProductDetailScreen() {
           disabled={!inStock || cartLoading}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={inStock ? 'Thêm vào giỏ hàng' : 'Hết hàng'}
+          accessibilityLabel={inStock ? 'Thêm vào giỏ hàng' : t('product.out_of_stock')}
         >
           {cartLoading ? (
             <ActivityIndicator color="#fff" size="small" />
@@ -330,7 +332,9 @@ export default function ProductDetailScreen() {
           ) : (
             <>
               <Ionicons name="cart-outline" size={20} color="#fff" />
-              <Text style={s.addBtnText}>{inStock ? 'Thêm vào giỏ' : 'Hết hàng'}</Text>
+              <Text style={s.addBtnText}>
+                {inStock ? t('product.add_to_cart') : t('product.out_of_stock')}
+              </Text>
             </>
           )}
         </TouchableOpacity>

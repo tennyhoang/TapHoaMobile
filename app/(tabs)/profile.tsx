@@ -17,6 +17,7 @@ import { useAuth } from '@/lib/auth-context';
 import { profileService } from '@/services/profile.service';
 import { useWalletBalance } from '@/lib/hooks/useWallet';
 import { formatCurrency } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 type MenuItem = {
   icon: string;
@@ -45,6 +46,12 @@ const ACCOUNT_ITEMS: MenuItem[] = [
     label: 'Thông báo',
     color: '#F59E0B',
     route: '/notifications',
+  },
+  {
+    icon: 'star-outline',
+    label: 'Điểm tích luỹ',
+    color: '#D97706',
+    route: '/loyalty',
   },
 ];
 
@@ -110,6 +117,7 @@ function MenuCard({ section }: { section: MenuSection }) {
 }
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const { data: walletData } = useWalletBalance();
@@ -121,12 +129,12 @@ export default function ProfileScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Xoá tài khoản',
+      t('profile.delete_account'),
       'Tất cả dữ liệu của bạn sẽ bị xoá vĩnh viễn. Bạn có chắc chắn không?',
       [
-        { text: 'Huỷ', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Xoá tài khoản',
+          text: t('profile.delete_account'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -268,7 +276,7 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => router.push('/profile-edit' as any)}
           >
-            <Text style={s.editLinkText}>Chỉnh sửa hồ sơ</Text>
+            <Text style={s.editLinkText}>{t('profile.edit_profile')}</Text>
             <Ionicons name="chevron-forward" size={14} color={C.primary} />
           </TouchableOpacity>
         </View>
@@ -288,13 +296,13 @@ export default function ProfileScreen() {
         {/* Logout */}
         <TouchableOpacity style={s.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={20} color={C.error} />
-          <Text style={s.logoutText}>Đăng xuất</Text>
+          <Text style={s.logoutText}>{t('profile.log_out')}</Text>
         </TouchableOpacity>
 
         {/* Delete account */}
         <TouchableOpacity style={s.deleteBtn} onPress={handleDeleteAccount} activeOpacity={0.8}>
           <Ionicons name="trash-outline" size={16} color="#9CA3AF" />
-          <Text style={s.deleteText}>Xoá tài khoản</Text>
+          <Text style={s.deleteText}>{t('profile.delete_account')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

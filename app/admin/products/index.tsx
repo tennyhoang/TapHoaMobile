@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { productsService } from '@/services/products.service';
@@ -52,6 +53,7 @@ function ProductForm({
   onClose: () => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState(initial);
   const set = (k: keyof CreateProductPayload) => (v: string) =>
     setForm(prev => ({
@@ -62,7 +64,7 @@ function ProductForm({
   return (
     <KeyboardAwareScreen style={f.container}>
       <View style={f.header}>
-        <Text style={f.title}>{initial.id ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}</Text>
+        <Text style={f.title}>{initial.id ? t('admin.edit_product') : t('admin.add_product')}</Text>
         <TouchableOpacity onPress={onClose} style={f.closeBtn}>
           <Ionicons name="close" size={22} color={C.muted} />
         </TouchableOpacity>
@@ -77,7 +79,7 @@ function ProductForm({
           placeholderTextColor={C.muted}
         />
 
-        <Text style={f.label}>Mô tả</Text>
+        <Text style={f.label}>{t('admin.description')}</Text>
         <TextInput
           style={[f.input, { height: 80, textAlignVertical: 'top' }]}
           value={form.description ?? ''}
@@ -97,7 +99,7 @@ function ProductForm({
           keyboardType="numeric"
         />
 
-        <Text style={f.label}>Giá khuyến mãi</Text>
+        <Text style={f.label}>{t('admin.discount_price')}</Text>
         <TextInput
           style={f.input}
           value={form.discountPrice ? String(form.discountPrice) : ''}
@@ -134,7 +136,7 @@ function ProductForm({
           ))}
         </ScrollView>
 
-        <Text style={f.label}>URL hình ảnh</Text>
+        <Text style={f.label}>{t('admin.image_url')}</Text>
         <TextInput
           style={f.input}
           value={form.thumbnailUrl ?? ''}
@@ -165,6 +167,7 @@ function ProductForm({
 }
 
 export default function AdminProductsScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -280,10 +283,10 @@ export default function AdminProductsScreen() {
   };
 
   const handleDelete = (p: Product) => {
-    Alert.alert('Xoá sản phẩm', `Xoá "${p.name}"?`, [
-      { text: 'Huỷ', style: 'cancel' },
+    Alert.alert('Xoá sản phẩm', t('admin.delete_confirm', { name: p.name }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -438,7 +441,7 @@ export default function AdminProductsScreen() {
   return (
     <View style={s.root}>
       <ScreenHeader
-        title="Sản phẩm"
+        title={t('admin.products')}
         right={
           <TouchableOpacity onPress={openAdd} style={s.addBtn}>
             <Ionicons name="add" size={22} color="#fff" />
@@ -452,7 +455,7 @@ export default function AdminProductsScreen() {
           style={s.searchInput}
           value={search}
           onChangeText={setSearch}
-          placeholder="Tìm sản phẩm..."
+          placeholder={t('admin.search_placeholder')}
           placeholderTextColor={C.muted}
         />
         {search ? (

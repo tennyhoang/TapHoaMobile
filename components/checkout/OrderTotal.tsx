@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
 
@@ -16,14 +17,15 @@ export default function OrderTotal({
   voucherDiscount,
   finalAmount,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <View style={s.totalCard}>
       <View style={s.totalRow}>
-        <Text style={s.totalLabel}>Tạm tính</Text>
+        <Text style={s.totalLabel}>{t('cart.subtotal')}</Text>
         <Text style={s.totalValue}>{formatCurrency(totalAmount)}</Text>
       </View>
       <View style={s.totalRow}>
-        <Text style={s.totalLabel}>Phí giao hàng</Text>
+        <Text style={s.totalLabel}>{t('cart.shipping_fee')}</Text>
         {shippingFee === 0 ? (
           <Text style={[s.totalValue, { color: '#22C55E' }]}>Miễn phí</Text>
         ) : (
@@ -32,14 +34,14 @@ export default function OrderTotal({
       </View>
       {voucherDiscount > 0 && (
         <View style={s.totalRow}>
-          <Text style={s.totalLabel}>Voucher</Text>
+          <Text style={s.totalLabel}>{t('cart.discount')}</Text>
           <Text style={[s.totalValue, { color: '#22C55E' }]}>
             -{formatCurrency(voucherDiscount)}
           </Text>
         </View>
       )}
       <View style={[s.totalRow, s.totalFinal]}>
-        <Text style={s.totalFinalLabel}>Tổng cộng</Text>
+        <Text style={s.totalFinalLabel}>{t('cart.grand_total')}</Text>
         <Text style={s.totalFinalValue}>{formatCurrency(finalAmount)}</Text>
       </View>
     </View>

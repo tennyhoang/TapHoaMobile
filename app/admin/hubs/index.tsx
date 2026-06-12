@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
@@ -46,6 +47,7 @@ function WarehouseForm({
   loading: boolean;
   isEdit: boolean;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<WarehousePayload>(initial);
   const set = (k: keyof WarehousePayload) => (v: string) => setForm(prev => ({ ...prev, [k]: v }));
   const valid =
@@ -58,7 +60,7 @@ function WarehouseForm({
   return (
     <KeyboardAwareScreen style={f.container}>
       <View style={f.header}>
-        <Text style={f.title}>{isEdit ? 'Sửa kho/hub' : 'Thêm kho/hub'}</Text>
+        <Text style={f.title}>{isEdit ? t('admin.edit_hub') : t('admin.add_hub')}</Text>
         <TouchableOpacity onPress={onClose} style={f.closeBtn}>
           <Ionicons name="close" size={22} color={C.muted} />
         </TouchableOpacity>
@@ -106,6 +108,7 @@ function WarehouseForm({
 }
 
 export default function AdminHubsScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -186,10 +189,10 @@ export default function AdminHubsScreen() {
   };
 
   const handleDelete = (hub: Warehouse) => {
-    Alert.alert('Xoá kho', `Xoá "${hub.name}"?`, [
-      { text: 'Huỷ', style: 'cancel' },
+    Alert.alert('Xoá kho', t('admin.delete_confirm', { name: hub.name }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -233,11 +236,11 @@ export default function AdminHubsScreen() {
       <View style={s.cardBtns}>
         <TouchableOpacity style={s.editBtn} onPress={() => openEdit(item)}>
           <Ionicons name="pencil-outline" size={14} color={C.primary} />
-          <Text style={s.editBtnText}>Sửa</Text>
+          <Text style={s.editBtnText}>{t('common.edit')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete(item)}>
           <Ionicons name="trash-outline" size={14} color="#EF4444" />
-          <Text style={s.deleteBtnText}>Xoá</Text>
+          <Text style={s.deleteBtnText}>{t('common.delete')}</Text>
         </TouchableOpacity>
       </View>
     </View>

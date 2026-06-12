@@ -144,6 +144,8 @@ export default Sentry.wrap(function RootLayout() {
                     />
                     <Stack.Screen name="terms" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="help" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="loyalty" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="payment" options={{ animation: 'slide_from_bottom' }} />
                     <Stack.Screen name="+not-found" />
                   </Stack>
                 </ToastProvider>

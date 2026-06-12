@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import EmptyState from '@/components/EmptyState';
 import { reviewsService } from '@/services/reviews.service';
@@ -49,6 +50,7 @@ function Stars({
 }
 
 export default function ReviewsScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const { id: productId, name: productName } = useLocalSearchParams<{
     id: string;
@@ -156,7 +158,7 @@ export default function ReviewsScreen() {
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={s.headerTitle}>Đánh giá</Text>
+          <Text style={s.headerTitle}>{t('review.title')}</Text>
           {productName ? (
             <Text style={s.headerSub} numberOfLines={1}>
               {productName}
@@ -187,11 +189,15 @@ export default function ReviewsScreen() {
               <Text style={s.summaryScore}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</Text>
               <View style={s.summaryRight}>
                 <Stars rating={Math.round(avgRating)} size={18} />
-                <Text style={s.summaryCount}>{reviews.length} đánh giá</Text>
+                <Text style={s.summaryCount}>
+                  {reviews.length} {t('product.reviews')}
+                </Text>
               </View>
             </View>
           }
-          ListEmptyComponent={<EmptyState icon="chatbubble-outline" title="Chưa có đánh giá nào" />}
+          ListEmptyComponent={
+            <EmptyState icon="chatbubble-outline" title={t('review.no_reviews')} />
+          }
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color={C.primary} style={{ padding: 16 }} /> : null
           }
@@ -219,7 +225,7 @@ export default function ReviewsScreen() {
               onPress={() => setShowForm(false)}
               activeOpacity={0.8}
             >
-              <Text style={s.cancelFormText}>Huỷ</Text>
+              <Text style={s.cancelFormText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[s.submitBtn, submitting && { opacity: 0.65 }]}
@@ -230,7 +236,7 @@ export default function ReviewsScreen() {
               {submitting ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={s.submitBtnText}>Gửi đánh giá</Text>
+                <Text style={s.submitBtnText}>{t('review.submit')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -243,7 +249,7 @@ export default function ReviewsScreen() {
             activeOpacity={0.85}
           >
             <Ionicons name="create-outline" size={18} color="#fff" />
-            <Text style={s.writeBtnText}>Viết đánh giá</Text>
+            <Text style={s.writeBtnText}>{t('review.write_review')}</Text>
           </TouchableOpacity>
         </View>
       )}

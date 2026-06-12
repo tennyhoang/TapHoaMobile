@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
 
-type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet';
+type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet' | 'Vnpay' | 'Momo';
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc: string }[] = [
   {
@@ -20,6 +21,18 @@ const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string; desc
     desc: 'Chuyển khoản ngân hàng theo mã đơn',
   },
   { value: 'Wallet', label: 'Ví TapHoa', icon: 'wallet-outline', desc: 'Thanh toán từ ví điện tử' },
+  {
+    value: 'Vnpay',
+    label: 'VNPay',
+    icon: 'card-outline',
+    desc: 'Thẻ ATM & Visa/Mastercard',
+  },
+  {
+    value: 'Momo',
+    label: 'Ví MoMo',
+    icon: 'phone-portrait-outline',
+    desc: 'Thanh toán qua ví MoMo',
+  },
 ];
 
 interface Props {
@@ -29,9 +42,10 @@ interface Props {
 }
 
 export default function PaymentMethodSelector({ paymentMethod, onChange, walletBalance }: Props) {
+  const { t } = useTranslation();
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>Phương thức thanh toán</Text>
+      <Text style={s.sectionTitle}>{t('checkout.payment_method')}</Text>
       <View style={s.card}>
         {PAYMENT_OPTIONS.map((opt, i) => (
           <TouchableOpacity
@@ -49,7 +63,9 @@ export default function PaymentMethodSelector({ paymentMethod, onChange, walletB
             <View style={{ flex: 1 }}>
               <Text style={s.hubName}>{opt.label}</Text>
               <Text style={s.hubAddr}>
-                {opt.value === 'Wallet' ? `Số dư: ${formatCurrency(walletBalance)}` : opt.desc}
+                {opt.value === 'Wallet'
+                  ? `${t('checkout.wallet_balance')}: ${formatCurrency(walletBalance)}`
+                  : opt.desc}
               </Text>
             </View>
           </TouchableOpacity>

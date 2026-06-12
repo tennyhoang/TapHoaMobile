@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useMyOrders } from '@/lib/hooks';
 import { formatCurrency } from '@/lib/utils';
@@ -22,12 +23,14 @@ import StatusBadge from '@/components/StatusBadge';
 const FILTERS: { label: string; value: OrderStatus | undefined }[] = [
   { label: 'Tất cả', value: undefined },
   { label: 'Chờ TT', value: 'PendingPayment' },
+  { label: 'Chờ XN', value: 'AwaitingPayment' },
   { label: 'Đang giao', value: 'ShippingToHub' },
   { label: 'Lấy hàng', value: 'InHub_ReadyForPickup' },
   { label: 'Hoàn thành', value: 'Completed' },
 ];
 
 export default function OrdersScreen() {
+  const { t } = useTranslation();
   const [filterStatus, setFilterStatus] = useState<OrderStatus | undefined>(undefined);
 
   const { data, isLoading, isFetching, isError, refetch } = useMyOrders({
@@ -85,7 +88,7 @@ export default function OrdersScreen() {
 
   return (
     <View style={s.root}>
-      <ScreenHeader title="Đơn hàng của tôi" />
+      <ScreenHeader title={t('order.my_orders')} />
 
       {/* Filter chips */}
       <View style={s.filterBar}>
@@ -111,7 +114,7 @@ export default function OrdersScreen() {
       ) : orders.length === 0 ? (
         <EmptyState
           icon="receipt-outline"
-          title="Chưa có đơn hàng nào"
+          title={t('order.empty')}
           action={{
             label: 'Mua sắm ngay',
             onPress: () => router.replace('/(tabs)'),

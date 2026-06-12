@@ -10,6 +10,9 @@ import type {
   Warehouse,
   Category,
   Product,
+  AdminVoucher,
+  CreateVoucherPayload,
+  UpdateVoucherPayload,
 } from '@/types';
 
 export type AdminStats = {
@@ -175,6 +178,19 @@ export const adminService = {
       api.put(`/products/${id}`, payload),
 
     delete: (id: string): Promise<void> => api.delete(`/products/${id}`),
+  },
+
+  // ── Vouchers ────────────────────────────────────────────────────────────────
+  vouchers: {
+    getAll: (): Promise<AdminVoucher[]> => api.get('/admin/vouchers'),
+
+    create: (payload: CreateVoucherPayload): Promise<AdminVoucher> =>
+      api.post('/admin/vouchers', payload),
+
+    update: (id: string, payload: UpdateVoucherPayload): Promise<AdminVoucher> =>
+      api.put(`/admin/vouchers/${id}`, payload),
+
+    delete: (id: string): Promise<void> => api.delete(`/admin/vouchers/${id}`),
   },
 
   // ── Warehouses ─────────────────────────────────────────────────────────────

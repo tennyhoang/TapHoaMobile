@@ -19,6 +19,7 @@ import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
+import { useTranslation } from 'react-i18next';
 import { walletService } from '@/services/wallet.service';
 import { useToast } from '@/components/Toast';
 import { biometrics } from '@/lib/biometrics';
@@ -44,6 +45,7 @@ function buildQrUrl(amount: number, ref: string) {
 }
 
 export default function WalletScreen() {
+  const { t } = useTranslation();
   const { top, bottom } = useSafeAreaInsets();
   const { show } = useToast();
 
@@ -247,7 +249,7 @@ export default function WalletScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Ví của tôi</Text>
+        <Text style={s.headerTitle}>{t('wallet.title')}</Text>
       </View>
 
       {/* Balance card */}
@@ -271,7 +273,7 @@ export default function WalletScreen() {
           <View style={s.actionIcon}>
             <Ionicons name="add-circle-outline" size={22} color={C.primary} />
           </View>
-          <Text style={s.actionLabel}>Nạp tiền</Text>
+          <Text style={s.actionLabel}>{t('wallet.top_up')}</Text>
         </TouchableOpacity>
         <View style={s.actionDivider} />
         <TouchableOpacity
@@ -289,7 +291,7 @@ export default function WalletScreen() {
           <View style={s.actionIcon}>
             <Ionicons name="arrow-up-circle-outline" size={22} color="#F59E0B" />
           </View>
-          <Text style={s.actionLabel}>Rút tiền</Text>
+          <Text style={s.actionLabel}>{t('wallet.withdraw')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -310,9 +312,13 @@ export default function WalletScreen() {
           onEndReached={onEndReached}
           onEndReachedThreshold={0.3}
           ListHeaderComponent={
-            transactions.length > 0 ? <Text style={s.listHeader}>Lịch sử giao dịch</Text> : null
+            transactions.length > 0 ? (
+              <Text style={s.listHeader}>{t('wallet.transactions')}</Text>
+            ) : null
           }
-          ListEmptyComponent={<EmptyState icon="receipt-outline" title="Chưa có giao dịch nào" />}
+          ListEmptyComponent={
+            <EmptyState icon="receipt-outline" title={t('wallet.no_transactions')} />
+          }
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color={C.primary} style={{ padding: 16 }} /> : null
           }
