@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   type?: 'network' | 'empty' | 'error';
@@ -14,20 +15,20 @@ const PRESETS = {
   network: {
     icon: 'wifi-outline' as const,
     color: '#6B7280',
-    title: 'Không có kết nối',
-    message: 'Kiểm tra mạng và thử lại',
+    titleKey: 'common.error_network' as const,
+    messageKey: 'common.error_network_msg' as const,
   },
   empty: {
     icon: 'file-tray-outline' as const,
     color: '#9CA3AF',
-    title: 'Chưa có dữ liệu',
-    message: 'Nội dung sẽ xuất hiện ở đây',
+    titleKey: 'common.no_data' as const,
+    messageKey: null,
   },
   error: {
     icon: 'alert-circle-outline' as const,
     color: '#EF4444',
-    title: 'Có lỗi xảy ra',
-    message: 'Vui lòng thử lại sau',
+    titleKey: 'common.error_occurred' as const,
+    messageKey: 'common.try_again' as const,
   },
 };
 
@@ -36,17 +37,22 @@ export default function ErrorScreen({
   title,
   message,
   onRetry,
-  retryLabel = 'Thử lại',
+  retryLabel,
 }: Props) {
+  const { t } = useTranslation();
   const preset = PRESETS[type];
+  const resolvedTitle = title ?? t(preset.titleKey);
+  const resolvedMessage =
+    message ?? (preset.messageKey ? t(preset.messageKey) : 'Nội dung sẽ xuất hiện ở đây');
+  const resolvedRetryLabel = retryLabel ?? t('common.retry');
 
   return (
     <View style={s.wrap}>
       <View style={[s.iconWrap, { backgroundColor: preset.color + '15' }]}>
         <Ionicons name={preset.icon} size={44} color={preset.color} />
       </View>
-      <Text style={s.title}>{title ?? preset.title}</Text>
-      <Text style={s.message}>{message ?? preset.message}</Text>
+      <Text style={s.title}>{resolvedTitle}</Text>
+      <Text style={s.message}>{resolvedMessage}</Text>
       {onRetry && (
         <TouchableOpacity
           style={s.btn}
@@ -55,7 +61,7 @@ export default function ErrorScreen({
           accessibilityRole="button"
         >
           <Ionicons name="refresh-outline" size={16} color="#fff" />
-          <Text style={s.btnText}>{retryLabel}</Text>
+          <Text style={s.btnText}>{resolvedRetryLabel}</Text>
         </TouchableOpacity>
       )}
     </View>

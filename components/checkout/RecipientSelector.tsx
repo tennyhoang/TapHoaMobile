@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { C } from '@/constants/Colors';
 import type { Address } from '@/types';
 
@@ -11,10 +12,11 @@ interface Props {
 }
 
 export default function RecipientSelector({ selectedAddress, onPress, onAddNew }: Props) {
+  const { t } = useTranslation();
   if (selectedAddress) {
     return (
       <View style={s.section}>
-        <Text style={s.sectionTitle}>Người nhận</Text>
+        <Text style={s.sectionTitle}>{t('checkout.recipient_info')}</Text>
         <TouchableOpacity style={s.recipientCard} onPress={onPress} activeOpacity={0.8}>
           <View style={s.recipientIcon}>
             <Ionicons name="person-outline" size={18} color={C.primary} />
@@ -35,10 +37,10 @@ export default function RecipientSelector({ selectedAddress, onPress, onAddNew }
 
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>Người nhận</Text>
+      <Text style={s.sectionTitle}>{t('checkout.recipient_info')}</Text>
       <TouchableOpacity style={s.addAddrBtn} onPress={onAddNew} activeOpacity={0.8}>
         <Ionicons name="add-circle-outline" size={18} color={C.primary} />
-        <Text style={s.addAddrText}>Thêm địa chỉ người nhận</Text>
+        <Text style={s.addAddrText}>{t('checkout.add_address')}</Text>
       </TouchableOpacity>
     </View>
   );

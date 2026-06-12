@@ -36,6 +36,7 @@ import { formatCurrency, formatCountdown } from '@/lib/utils';
 import EmptyState from '@/components/EmptyState';
 import type { Product } from '@/types';
 import { C } from '@/constants/Colors';
+import { useTranslation } from 'react-i18next';
 
 // ── Category icon mapping ────────────────────────────────────────────────────
 const CAT_ICONS: { key: string; icon: string; color: string; bg: string }[] = [
@@ -94,6 +95,7 @@ const TRUST_BADGES = [
 ];
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const { cardGap, fontScale } = useLayout();
   useAuth();
@@ -312,7 +314,7 @@ export default function HomeScreen() {
                 <Text style={s.sectionTitle}>Mua sắm theo danh mục</Text>
               </View>
               <TouchableOpacity onPress={() => router.push('/(tabs)/products')}>
-                <Text style={s.seeAll}>Xem tất cả</Text>
+                <Text style={s.seeAll}>{t('common.view_all')}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView
@@ -467,7 +469,7 @@ export default function HomeScreen() {
               <Text style={s.sectionTitle}>Thu hoạch sáng — giao trong ngày</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/(tabs)/products')}>
-              <Text style={s.seeAll}>Xem tất cả</Text>
+              <Text style={s.seeAll}>{t('common.view_all')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -501,7 +503,7 @@ export default function HomeScreen() {
                 <Text style={s.sectionTitle}>Ưu đãi cập nhật liên tục</Text>
               </View>
               <TouchableOpacity onPress={() => router.push('/(tabs)/products')}>
-                <Text style={s.seeAll}>Xem tất cả</Text>
+                <Text style={s.seeAll}>{t('common.view_all')}</Text>
               </TouchableOpacity>
             </View>
             <View style={[s.productGrid, { gap: cardGap }]}>
@@ -522,7 +524,7 @@ export default function HomeScreen() {
               <Text style={s.sectionTitle}>Bếp & Ẩm thực</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/articles/index/index' as any)}>
-              <Text style={s.seeAll}>Xem tất cả</Text>
+              <Text style={s.seeAll}>{t('common.view_all')}</Text>
             </TouchableOpacity>
           </View>
 

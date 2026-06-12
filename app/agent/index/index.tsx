@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { agentService } from '@/services/agent.service';
 import { useRoleGuard } from '@/lib/useRoleGuard';
@@ -39,6 +40,7 @@ const C = {
 type Tab = 'incoming' | 'ready' | 'history';
 
 export default function AgentScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Agent');
   const { top } = useSafeAreaInsets();
   const { show } = useToast();
@@ -93,14 +95,14 @@ export default function AgentScreen() {
 
   const handleArrive = (order: Order) => {
     Alert.alert('Xác nhận hàng đến Hub', `Đơn #${order.id.slice(0, 8).toUpperCase()} đã đến Hub?`, [
-      { text: 'Huỷ', style: 'cancel' },
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xác nhận',
+        text: t('common.confirm'),
         onPress: async () => {
           setActioningId(order.id);
           try {
             await agentService.arrive(order.id);
-            show('Đã xác nhận hàng đến Hub!');
+            show(t('agent.confirm_receipt_success'));
             load();
           } catch {
             show('Xác nhận thất bại', 'error');
@@ -117,14 +119,14 @@ export default function AgentScreen() {
       'Khách đã lấy hàng',
       `Xác nhận khách đã lấy đơn #${order.id.slice(0, 8).toUpperCase()}?`,
       [
-        { text: 'Huỷ', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Hoàn tất',
+          text: t('agent.complete_pickup'),
           onPress: async () => {
             setActioningId(order.id);
             try {
               await agentService.completePickup(order.id);
-              show('Hoàn tất giao nhận!');
+              show(t('agent.complete_pickup'));
               load();
             } catch {
               show('Xác nhận thất bại', 'error');

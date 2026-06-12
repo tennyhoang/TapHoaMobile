@@ -13,6 +13,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { claimsService } from '@/services/claims.service';
 import type { ClaimType } from '@/types';
@@ -29,6 +30,7 @@ const CLAIM_TYPES: ClaimOption[] = [
 ];
 
 export default function CreateClaimScreen() {
+  const { t } = useTranslation();
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { top } = useSafeAreaInsets();
   const [selectedType, setSelectedType] = useState<ClaimType | null>(null);
@@ -43,7 +45,7 @@ export default function CreateClaimScreen() {
     try {
       await claimsService.create({ orderId, type: selectedType, description: description.trim() });
       Alert.alert(
-        'Thành công',
+        t('common.success'),
         'Khiếu nại của bạn đã được gửi. Chúng tôi sẽ xem xét và phản hồi sớm.',
         [
           {
@@ -67,7 +69,7 @@ export default function CreateClaimScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Gửi khiếu nại</Text>
+        <Text style={s.headerTitle}>{t('claim.create')}</Text>
         <View style={{ width: 38 }} />
       </View>
 
@@ -143,7 +145,7 @@ export default function CreateClaimScreen() {
           ) : (
             <>
               <Ionicons name="send-outline" size={18} color="#fff" />
-              <Text style={s.submitText}>Gửi khiếu nại</Text>
+              <Text style={s.submitText}>{t('claim.submit')}</Text>
             </>
           )}
         </TouchableOpacity>

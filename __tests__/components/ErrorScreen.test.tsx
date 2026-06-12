@@ -16,7 +16,7 @@ describe('ErrorScreen', () => {
 
   it('renders empty preset', () => {
     const { getByText } = render(<ErrorScreen type="empty" />);
-    expect(getByText('Chưa có dữ liệu')).toBeTruthy();
+    expect(getByText('Không có dữ liệu')).toBeTruthy();
   });
 
   it('renders custom title and message', () => {

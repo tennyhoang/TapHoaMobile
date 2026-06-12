@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
@@ -38,13 +39,16 @@ function CategoryForm({
   onClose: () => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<CategoryPayload>(initial);
   const set = (k: keyof CategoryPayload) => (v: string) => setForm(prev => ({ ...prev, [k]: v }));
 
   return (
     <KeyboardAwareScreen style={f.container}>
       <View style={f.header}>
-        <Text style={f.title}>{initial.name ? 'Sửa danh mục' : 'Thêm danh mục'}</Text>
+        <Text style={f.title}>
+          {initial.name ? t('admin.edit_category') : t('admin.add_category')}
+        </Text>
         <TouchableOpacity onPress={onClose} style={f.closeBtn}>
           <Ionicons name="close" size={22} color={C.muted} />
         </TouchableOpacity>
@@ -59,7 +63,7 @@ function CategoryForm({
           placeholderTextColor={C.muted}
         />
 
-        <Text style={f.label}>Mô tả</Text>
+        <Text style={f.label}>{t('admin.description')}</Text>
         <TextInput
           style={[f.input, { height: 80, textAlignVertical: 'top' }]}
           value={form.description ?? ''}
@@ -69,7 +73,7 @@ function CategoryForm({
           multiline
         />
 
-        <Text style={f.label}>URL hình ảnh</Text>
+        <Text style={f.label}>{t('admin.image_url')}</Text>
         <TextInput
           style={f.input}
           value={form.imageUrl ?? ''}
@@ -118,6 +122,7 @@ function CategoryForm({
 }
 
 export default function AdminCategoriesScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -183,10 +188,10 @@ export default function AdminCategoriesScreen() {
   };
 
   const handleDelete = (cat: Category) => {
-    Alert.alert('Xoá danh mục', `Xoá "${cat.name}"?`, [
-      { text: 'Huỷ', style: 'cancel' },
+    Alert.alert('Xoá danh mục', t('admin.delete_confirm', { name: cat.name }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -238,7 +243,7 @@ export default function AdminCategoriesScreen() {
   return (
     <View style={s.root}>
       <ScreenHeader
-        title="Danh mục"
+        title={t('admin.categories')}
         right={
           <TouchableOpacity onPress={openAdd} style={s.addBtn}>
             <Ionicons name="add" size={22} color="#fff" />

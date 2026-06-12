@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { adminService, type AdminStats } from '@/services/admin.service';
@@ -82,6 +83,7 @@ const NAV_ITEMS = [
 ];
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -102,7 +104,7 @@ export default function AdminDashboard() {
 
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
         {/* Stats */}
-        <Text style={s.sectionTitle}>Tổng quan</Text>
+        <Text style={s.sectionTitle}>{t('admin.overview')}</Text>
         {loadingStats ? (
           <View style={s.statsLoading}>
             <ActivityIndicator color={C.primary} />
@@ -111,7 +113,7 @@ export default function AdminDashboard() {
           <View style={s.statsGrid}>
             <View style={[s.statCard, { borderLeftColor: C.primary }]}>
               <Text style={s.statValue}>{stats.totalOrders.toLocaleString()}</Text>
-              <Text style={s.statLabel}>Tổng đơn hàng</Text>
+              <Text style={s.statLabel}>{t('admin.total_orders')}</Text>
             </View>
             <View style={[s.statCard, { borderLeftColor: '#22C55E' }]}>
               <Text style={s.statValue}>{formatCurrency(stats.totalRevenue)}</Text>
@@ -119,11 +121,11 @@ export default function AdminDashboard() {
             </View>
             <View style={[s.statCard, { borderLeftColor: '#F59E0B' }]}>
               <Text style={s.statValue}>{stats.pendingOrders}</Text>
-              <Text style={s.statLabel}>Chờ xử lý</Text>
+              <Text style={s.statLabel}>{t('order.filter_pending')}</Text>
             </View>
             <View style={[s.statCard, { borderLeftColor: '#8B5CF6' }]}>
               <Text style={s.statValue}>{stats.totalUsers.toLocaleString()}</Text>
-              <Text style={s.statLabel}>Người dùng</Text>
+              <Text style={s.statLabel}>{t('admin.total_users')}</Text>
             </View>
           </View>
         ) : (
@@ -133,7 +135,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Navigation */}
-        <Text style={[s.sectionTitle, { marginTop: 8 }]}>Quản lý</Text>
+        <Text style={[s.sectionTitle, { marginTop: 8 }]}>{t('admin.dashboard')}</Text>
         <View style={s.navCard}>
           {NAV_ITEMS.map((item, i) => (
             <TouchableOpacity

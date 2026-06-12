@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Text, StyleSheet, Animated } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 export default function OfflineBanner() {
+  const { t } = useTranslation();
   const [isOffline, setIsOffline] = useState(false);
   const [translateY] = useState(new Animated.Value(-60));
 
@@ -26,7 +28,7 @@ export default function OfflineBanner() {
   return (
     <Animated.View style={[s.banner, { transform: [{ translateY }] }]}>
       <Ionicons name="wifi-outline" size={16} color="#fff" />
-      <Text style={s.text}>Không có kết nối mạng</Text>
+      <Text style={s.text}>{t('common.error_network')}</Text>
     </Animated.View>
   );
 }

@@ -21,11 +21,13 @@ import { formatCurrency } from '@/lib/utils';
 import type { CartItem } from '@/types';
 import { C } from '@/constants/Colors';
 import { useToast } from '@/components/Toast';
+import { useTranslation } from 'react-i18next';
 
 const FREE_SHIPPING_THRESHOLD = 300_000;
 const SHIPPING_FEE = 25_000;
 
 export default function CartScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const { show } = useToast();
   const { refreshCount } = useCartCount();
@@ -60,7 +62,7 @@ export default function CartScreen() {
       }
       invalidateCart();
     } catch {
-      show('Có lỗi xảy ra', 'error');
+      show(t('common.error_occurred'), 'error');
     } finally {
       setUpdating(null);
     }
@@ -71,7 +73,7 @@ export default function CartScreen() {
       await clearCart.mutateAsync();
       invalidateCart();
     } catch {
-      show('Có lỗi xảy ra', 'error');
+      show(t('common.error_occurred'), 'error');
     }
   };
 
@@ -188,12 +190,12 @@ export default function CartScreen() {
       <Text style={s.summaryHeading}>Tóm tắt đơn hàng</Text>
 
       <View style={s.summaryRow}>
-        <Text style={s.summaryLabel}>Tạm tính</Text>
+        <Text style={s.summaryLabel}>{t('cart.subtotal')}</Text>
         <Text style={s.summaryAmount}>{formatCurrency(subtotal)}</Text>
       </View>
 
       <View style={s.summaryRow}>
-        <Text style={s.summaryLabel}>Phí vận chuyển</Text>
+        <Text style={s.summaryLabel}>{t('cart.shipping_fee')}</Text>
         {isFreeShipping ? (
           <Text style={[s.summaryAmount, { color: C.primary }]}>Miễn phí</Text>
         ) : (
@@ -204,7 +206,7 @@ export default function CartScreen() {
       <View style={s.divider} />
 
       <View style={s.summaryRow}>
-        <Text style={s.totalLabel}>Tổng cộng</Text>
+        <Text style={s.totalLabel}>{t('cart.total')}</Text>
         <Text style={s.totalAmount}>{formatCurrency(total)}</Text>
       </View>
 
@@ -229,7 +231,7 @@ export default function CartScreen() {
         <View style={s.blob} />
         <View style={s.headerRow}>
           <View>
-            <Text style={s.headerTitle}>Giỏ hàng</Text>
+            <Text style={s.headerTitle}>{t('cart.title')}</Text>
             {!isEmpty && <Text style={s.headerSub}>{cart!.totalItems} sản phẩm</Text>}
           </View>
           {!isEmpty && (
@@ -251,7 +253,7 @@ export default function CartScreen() {
           <View style={s.emptyIcon}>
             <Ionicons name="bag-outline" size={52} color={C.primary} />
           </View>
-          <Text style={s.emptyTitle}>Giỏ hàng trống</Text>
+          <Text style={s.emptyTitle}>{t('cart.empty')}</Text>
           <Text style={s.emptyText}>Hãy thêm sản phẩm vào giỏ để đặt hàng</Text>
           <TouchableOpacity
             style={s.shopBtn}

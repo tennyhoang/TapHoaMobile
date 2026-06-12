@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { authService } from '@/services/auth.service';
 import { C } from '@/constants/Colors';
+import { useTranslation } from 'react-i18next';
 
 const LC = {
   border: '#E5E7EB',
@@ -27,6 +28,7 @@ const LC = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,7 +41,7 @@ export default function ForgotPasswordScreen() {
       return;
     }
     if (!EMAIL_RE.test(email.trim())) {
-      setError('Email không hợp lệ');
+      setError(t('validation.email_invalid'));
       return;
     }
     setError('');
@@ -48,7 +50,7 @@ export default function ForgotPasswordScreen() {
       await authService.forgotPassword(email.trim());
       setSent(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra');
+      setError(err instanceof Error ? err.message : t('common.error_occurred'));
     } finally {
       setLoading(false);
     }
@@ -93,7 +95,7 @@ export default function ForgotPasswordScreen() {
           </View>
         ) : (
           <View style={s.card}>
-            <Text style={s.cardTitle}>Đặt lại mật khẩu</Text>
+            <Text style={s.cardTitle}>{t('auth.reset_password')}</Text>
             <Text style={s.cardSub}>Chúng tôi sẽ gửi link đặt lại qua email của bạn</Text>
 
             {!!error && (
@@ -104,7 +106,7 @@ export default function ForgotPasswordScreen() {
             )}
 
             <View style={s.field}>
-              <Text style={s.label}>Email</Text>
+              <Text style={s.label}>{t('auth.email')}</Text>
               <View style={s.inputRow}>
                 <Ionicons
                   name="mail-outline"
