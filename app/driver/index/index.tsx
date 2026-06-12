@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { driverService } from '@/services/driver.service';
 import { useRoleGuard } from '@/lib/useRoleGuard';
@@ -75,6 +76,7 @@ function buildSingleUrl(address: string): string {
 }
 
 export default function DriverScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Driver');
   const { top } = useSafeAreaInsets();
   const { show } = useToast();
@@ -470,8 +472,8 @@ export default function DriverScreen() {
                           'Xác nhận lấy hàng',
                           `Lấy đơn #${order.id.slice(0, 8).toUpperCase()}?`,
                           [
-                            { text: 'Huỷ', style: 'cancel' },
-                            { text: 'Xác nhận', onPress: () => handlePickup([order.id]) },
+                            { text: t('common.cancel'), style: 'cancel' },
+                            { text: t('common.confirm'), onPress: () => handlePickup([order.id]) },
                           ]
                         );
                       }}

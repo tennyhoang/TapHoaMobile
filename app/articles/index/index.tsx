@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -23,6 +24,7 @@ import { C } from '@/constants/Colors';
 import EmptyState from '@/components/EmptyState';
 
 export default function ArticlesScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,7 +139,7 @@ export default function ArticlesScreen() {
           <Text style={[s.emptyTitle, { color: '#EF4444' }]}>Lỗi kết nối</Text>
           <Text style={s.emptyText}>{error}</Text>
           <TouchableOpacity style={s.retryBtn} onPress={load} activeOpacity={0.85}>
-            <Text style={s.retryText}>Thử lại</Text>
+            <Text style={s.retryText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : articles.length === 0 ? (

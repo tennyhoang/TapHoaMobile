@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import EmptyState from '@/components/EmptyState';
 import StatusBadge from '@/components/StatusBadge';
@@ -41,6 +42,7 @@ const NEXT_STATUSES: Partial<Record<OrderStatus, { label: string; value: OrderSt
 };
 
 export default function AdminOrdersScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -107,9 +109,9 @@ export default function AdminOrdersScreen() {
       'Cập nhật trạng thái',
       `Chuyển đơn #${order.id.slice(-6).toUpperCase()} sang "${next.label}"?`,
       [
-        { text: 'Huỷ', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Xác nhận',
+          text: t('common.confirm'),
           onPress: async () => {
             setUpdatingId(order.id);
             try {

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
@@ -49,6 +50,7 @@ function ArticleForm({
   onClose: () => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<ArticlePayload>(initial);
   const set = (k: keyof ArticlePayload) => (v: string) => setForm(prev => ({ ...prev, [k]: v }));
   const setNum = (k: keyof ArticlePayload) => (v: string) =>
@@ -92,7 +94,7 @@ function ArticleForm({
           multiline
         />
 
-        <Text style={f.label}>Danh mục</Text>
+        <Text style={f.label}>{t('admin.category')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={f.chipScroll}>
           {CATEGORIES.map(cat => (
             <TouchableOpacity
@@ -107,7 +109,7 @@ function ArticleForm({
           ))}
         </ScrollView>
 
-        <Text style={f.label}>URL hình ảnh</Text>
+        <Text style={f.label}>{t('admin.image_url')}</Text>
         <TextInput
           style={f.input}
           value={form.imageUrl ?? ''}
@@ -149,6 +151,7 @@ function ArticleForm({
 }
 
 export default function AdminArticlesScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -215,10 +218,10 @@ export default function AdminArticlesScreen() {
   };
 
   const handleDelete = (article: Article) => {
-    Alert.alert('Xoá bài viết', `Xoá "${article.title}"?`, [
-      { text: 'Huỷ', style: 'cancel' },
+    Alert.alert('Xoá bài viết', t('admin.delete_confirm', { name: article.title }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {

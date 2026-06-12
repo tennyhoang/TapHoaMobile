@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useLayout } from '@/lib/layout';
 import { Ionicons } from '@expo/vector-icons';
 import ProductImage from '@/components/ProductImage';
@@ -24,6 +25,7 @@ import { C } from '@/constants/Colors';
 const FLASH_BG = '#FFF8F0';
 
 export default function FlashSaleScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const { productColumns, cardGap } = useLayout();
   const { show } = useToast();
@@ -96,7 +98,9 @@ export default function FlashSaleScreen() {
             <View style={s.stockBar}>
               <View style={[s.stockFill, { width: `${soldPct}%` }]} />
             </View>
-            <Text style={s.stockText}>Đã bán {item.soldCount}</Text>
+            <Text style={s.stockText}>
+              {t('flash_sale.sold')} {item.soldCount}
+            </Text>
           </View>
         </View>
 
@@ -136,7 +140,7 @@ export default function FlashSaleScreen() {
         </View>
         {session && (
           <View style={s.countdownBox}>
-            <Text style={s.countdownLabel}>Kết thúc sau</Text>
+            <Text style={s.countdownLabel}>{t('flash_sale.ends_in')}</Text>
             <Text style={s.countdown}>{countdown}</Text>
           </View>
         )}
@@ -150,7 +154,7 @@ export default function FlashSaleScreen() {
         <EmptyState
           icon="flash-outline"
           iconColor={C.sale}
-          title="Không có Flash Sale"
+          title={t('flash_sale.no_sales')}
           subtitle="Hiện chưa có phiên Flash Sale nào đang diễn ra"
           action={{
             label: 'Xem sản phẩm thường',

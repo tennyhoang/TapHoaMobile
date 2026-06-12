@@ -131,7 +131,7 @@ describe('FlashSaleScreen', () => {
     mockUseCurrentFlashSale.mockReturnValue({ data: null, isLoading: false, refetch: jest.fn() });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
-      expect(getByText('Không có Flash Sale')).toBeTruthy();
+      expect(getByText('Không có Flash Sale nào đang diễn ra')).toBeTruthy();
     });
   });
 
@@ -212,7 +212,7 @@ describe('FlashSaleScreen', () => {
     });
     const { getByText } = render(<FlashSaleScreen />, { wrapper });
     await waitFor(() => {
-      expect(getByText('Kết thúc sau')).toBeTruthy();
+      expect(getByText('Kết thúc trong')).toBeTruthy();
     });
   });
 

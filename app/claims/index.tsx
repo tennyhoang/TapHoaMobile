@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { claimsService } from '@/services/claims.service';
 import ErrorScreen from '@/components/ErrorScreen';
 import EmptyState from '@/components/EmptyState';
@@ -25,6 +26,7 @@ const TYPE_LABEL: Record<ClaimType, string> = {
 };
 
 export default function ClaimsScreen() {
+  const { t } = useTranslation();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -95,7 +97,7 @@ export default function ClaimsScreen() {
 
   return (
     <View style={s.root}>
-      <ScreenHeader title="Khiếu nại của tôi" />
+      <ScreenHeader title={t('claim.my_claims')} />
 
       {loading ? (
         <View style={s.center}>
@@ -112,7 +114,7 @@ export default function ClaimsScreen() {
       ) : claims.length === 0 ? (
         <EmptyState
           icon="chatbubble-ellipses-outline"
-          title="Chưa có khiếu nại nào"
+          title={t('claim.no_claims')}
           subtitle="Nếu có vấn đề với đơn hàng, hãy gửi khiếu nại từ chi tiết đơn hàng"
         />
       ) : (

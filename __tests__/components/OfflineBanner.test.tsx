@@ -27,7 +27,7 @@ describe('OfflineBanner', () => {
       if (cb) cb({ isConnected: false });
     });
 
-    expect(getByText('Không có kết nối mạng')).toBeTruthy();
+    expect(getByText('Không có kết nối')).toBeTruthy();
   });
 
   it('hides banner when connection restored', () => {

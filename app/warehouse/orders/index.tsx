@@ -16,6 +16,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { useToast } from '@/components/Toast';
 import { warehouseManagerService } from '@/services/warehouse-manager.service';
@@ -133,6 +134,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 export default function WarehouseOrdersScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const { status: initialStatus } = useLocalSearchParams<{ status?: string }>();
   const unauthorized = useRoleGuard('WarehouseManager');
@@ -218,9 +220,9 @@ export default function WarehouseOrdersScreen() {
   const handleBatchPack = async () => {
     if (selectedIds.size === 0) return;
     Alert.alert('Xác nhận đóng gói', `Xác nhận đã đóng gói ${selectedIds.size} đơn hàng?`, [
-      { text: 'Hủy', style: 'cancel' },
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xác nhận',
+        text: t('common.confirm'),
         onPress: async () => {
           setBatchPacking(true);
           try {
@@ -313,7 +315,7 @@ export default function WarehouseOrdersScreen() {
               setSelectedIds(new Set());
             }}
           >
-            <Text style={s.selectBtnText}>{selectMode ? 'Hủy' : 'Chọn'}</Text>
+            <Text style={s.selectBtnText}>{selectMode ? t('common.cancel') : 'Chọn'}</Text>
           </TouchableOpacity>
         )}
       </View>

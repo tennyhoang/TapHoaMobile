@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
@@ -52,6 +53,7 @@ function EditUserModal({
   onClose: () => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const [selectedRole, setSelectedRole] = useState(user.role);
   const [isActive, setIsActive] = useState(user.isActive);
 
@@ -74,7 +76,7 @@ function EditUserModal({
           </View>
         </View>
 
-        <Text style={m.label}>Vai trò</Text>
+        <Text style={m.label}>{t('admin.user_role')}</Text>
         <View style={m.roleGrid}>
           {ROLES.map(role => (
             <TouchableOpacity
@@ -89,7 +91,7 @@ function EditUserModal({
           ))}
         </View>
 
-        <Text style={m.label}>Trạng thái</Text>
+        <Text style={m.label}>{t('admin.user_status')}</Text>
         <View style={m.statusRow}>
           <TouchableOpacity
             style={[m.statusBtn, isActive && m.statusBtnActive]}
@@ -100,7 +102,9 @@ function EditUserModal({
               size={16}
               color={isActive ? '#fff' : C.muted}
             />
-            <Text style={[m.statusBtnText, isActive && { color: '#fff' }]}>Hoạt động</Text>
+            <Text style={[m.statusBtnText, isActive && { color: '#fff' }]}>
+              {t('admin.user_active')}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[m.statusBtn, !isActive && m.statusBtnInactive]}
@@ -119,7 +123,7 @@ function EditUserModal({
           {loading ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Text style={m.saveBtnText}>Lưu thay đổi</Text>
+            <Text style={m.saveBtnText}>{t('common.save')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -128,6 +132,7 @@ function EditUserModal({
 }
 
 export default function AdminUsersScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -203,10 +208,10 @@ export default function AdminUsersScreen() {
   };
 
   const handleDelete = (user: AdminUser) => {
-    Alert.alert('Xoá người dùng', `Xoá tài khoản "${user.fullName}"?`, [
-      { text: 'Huỷ', style: 'cancel' },
+    Alert.alert('Xoá người dùng', t('admin.delete_confirm', { name: user.fullName }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -269,7 +274,7 @@ export default function AdminUsersScreen() {
 
   return (
     <KeyboardAwareScreen style={s.root} noDismiss>
-      <ScreenHeader title="Người dùng" />
+      <ScreenHeader title={t('admin.users')} />
 
       <View style={s.searchBar}>
         <Ionicons name="search-outline" size={18} color={C.muted} />

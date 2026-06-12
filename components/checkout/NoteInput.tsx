@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { C } from '@/constants/Colors';
 
 interface Props {
@@ -8,13 +9,14 @@ interface Props {
 }
 
 export default function NoteInput({ note, onChange }: Props) {
+  const { t } = useTranslation();
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>Ghi chú</Text>
+      <Text style={s.sectionTitle}>{t('checkout.delivery_note')}</Text>
       <View style={s.noteWrap}>
         <TextInput
           style={s.noteInput}
-          placeholder="Ghi chú cho đơn hàng (tuỳ chọn)..."
+          placeholder={t('checkout.note_hint')}
           placeholderTextColor="#9CA3AF"
           value={note}
           onChangeText={onChange}

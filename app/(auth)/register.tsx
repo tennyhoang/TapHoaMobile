@@ -19,6 +19,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/lib/auth-context';
 import { authService } from '@/services/auth.service';
+import { useTranslation } from 'react-i18next';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -39,6 +40,7 @@ const PHONE_RE = /^(0|\+84)[3-9]\d{8}$/;
 const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -115,7 +117,7 @@ export default function RegisterScreen() {
       return;
     }
     if (!EMAIL_RE.test(email.trim())) {
-      setError('Email không hợp lệ');
+      setError(t('validation.email_invalid'));
       return;
     }
     if (phone.trim() && !PHONE_RE.test(phone.trim())) {
@@ -127,7 +129,7 @@ export default function RegisterScreen() {
       return;
     }
     if (password !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+      setError(t('validation.password_mismatch'));
       return;
     }
     if (!agreedToTerms) {
@@ -182,7 +184,7 @@ export default function RegisterScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={s.formTitle}>Đăng ký</Text>
+            <Text style={s.formTitle}>{t('auth.register')}</Text>
             <Text style={s.formSub}>Tạo tài khoản mới chỉ mất 1 phút</Text>
 
             {!!error && (
@@ -193,14 +195,14 @@ export default function RegisterScreen() {
             )}
 
             <Field
-              label="Họ và tên"
+              label={t('auth.full_name')}
               icon="person-outline"
               value={fullName}
               onChangeText={setFullName}
               placeholder="Nguyễn Văn A"
             />
             <Field
-              label="Email"
+              label={t('auth.email')}
               icon="mail-outline"
               value={email}
               onChangeText={setEmail}
@@ -219,7 +221,7 @@ export default function RegisterScreen() {
 
             {/* Password */}
             <View style={s.field}>
-              <Text style={s.label}>Mật khẩu</Text>
+              <Text style={s.label}>{t('auth.password')}</Text>
               <View style={s.inputRow}>
                 <Ionicons name="lock-closed-outline" size={18} color={C.muted} style={s.icon} />
                 <TextInput
@@ -242,7 +244,7 @@ export default function RegisterScreen() {
 
             {/* Confirm Password */}
             <View style={s.field}>
-              <Text style={s.label}>Xác nhận mật khẩu</Text>
+              <Text style={s.label}>{t('auth.confirm_password')}</Text>
               <View style={s.inputRow}>
                 <Ionicons
                   name="shield-checkmark-outline"
@@ -330,9 +332,9 @@ export default function RegisterScreen() {
             </TouchableOpacity>
 
             <View style={s.footer}>
-              <Text style={s.footerText}>Đã có tài khoản? </Text>
+              <Text style={s.footerText}>{t('auth.has_account')} </Text>
               <TouchableOpacity onPress={() => router.back()}>
-                <Text style={s.footerLink}>Đăng nhập</Text>
+                <Text style={s.footerLink}>{t('auth.login')}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

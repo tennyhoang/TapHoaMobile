@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { C } from '@/constants/Colors';
 
 interface Props {
@@ -29,13 +30,14 @@ export default function VoucherInput({
   voucherOk,
   voucherNote,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>Mã giảm giá</Text>
+      <Text style={s.sectionTitle}>{t('checkout.voucher')}</Text>
       <View style={s.voucherRow}>
         <TextInput
           style={s.voucherInput}
-          placeholder="Nhập mã voucher..."
+          placeholder={t('checkout.enter_voucher')}
           placeholderTextColor="#9CA3AF"
           value={voucherCode}
           onChangeText={v => {
@@ -54,7 +56,7 @@ export default function VoucherInput({
           {applying ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Text style={s.voucherBtnText}>Áp dụng</Text>
+            <Text style={s.voucherBtnText}>{t('checkout.apply')}</Text>
           )}
         </TouchableOpacity>
       </View>

@@ -25,6 +25,7 @@ import { useLayout } from '@/lib/layout';
 import type { Product } from '@/types';
 import { C } from '@/constants/Colors';
 import EmptyState from '@/components/EmptyState';
+import { useTranslation } from 'react-i18next';
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Mới nhất' },
@@ -43,6 +44,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function ProductsScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const { productColumns, cardGap } = useLayout();
   const { show } = useToast();
@@ -108,7 +110,7 @@ export default function ProductsScreen() {
 
       {/* ── HEADER ── */}
       <View style={[s.header, { paddingTop: top + 12 }]}>
-        <Text style={s.headerTitle}>Sản phẩm</Text>
+        <Text style={s.headerTitle}>{t('tab.products')}</Text>
 
         {/* Search + sort row */}
         <View style={s.filterCard}>
@@ -116,7 +118,7 @@ export default function ProductsScreen() {
             <Ionicons name="search-outline" size={18} color={C.muted} />
             <TextInput
               style={s.searchInput}
-              placeholder="Tìm kiếm sản phẩm..."
+              placeholder={t('product.search_hint')}
               placeholderTextColor="#9CA3AF"
               value={search}
               onChangeText={setSearch}
@@ -167,7 +169,7 @@ export default function ProductsScreen() {
             accessibilityLabel="Tất cả danh mục"
             accessibilityState={{ selected: !selectedCat }}
           >
-            <Text style={[s.chipText, !selectedCat && s.chipTextActive]}>Tất cả</Text>
+            <Text style={[s.chipText, !selectedCat && s.chipTextActive]}>{t('common.all')}</Text>
           </TouchableOpacity>
 
           {/* Category chips */}
@@ -238,7 +240,7 @@ export default function ProductsScreen() {
       ) : products.length === 0 ? (
         <EmptyState
           icon="search-outline"
-          title="Không tìm thấy sản phẩm"
+          title={t('product.no_products')}
           subtitle="Thử thay đổi bộ lọc hoặc từ khóa"
         />
       ) : (

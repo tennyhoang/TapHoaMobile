@@ -19,6 +19,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/lib/auth-context';
 import { authService } from '@/services/auth.service';
+import { useTranslation } from 'react-i18next';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -39,6 +40,7 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 60_000; // 1 minute
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -126,7 +128,7 @@ export default function LoginScreen() {
       setEmailError('Vui lòng nhập email');
       hasError = true;
     } else if (!EMAIL_RE.test(email.trim())) {
-      setEmailError('Email không hợp lệ');
+      setEmailError(t('validation.email_invalid'));
       hasError = true;
     }
     if (!password) {
@@ -187,7 +189,7 @@ export default function LoginScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={s.formTitle}>Đăng nhập</Text>
+            <Text style={s.formTitle}>{t('auth.login')}</Text>
             <Text style={s.formSub}>Chào mừng bạn trở lại</Text>
 
             {!!error && (
@@ -199,7 +201,7 @@ export default function LoginScreen() {
 
             {/* Email */}
             <View style={s.field}>
-              <Text style={s.label}>Email</Text>
+              <Text style={s.label}>{t('auth.email')}</Text>
               <View style={[s.inputRow, !!emailError && s.inputRowError]}>
                 <Ionicons name="mail-outline" size={18} color={C.muted} style={s.icon} />
                 <TextInput
@@ -223,7 +225,7 @@ export default function LoginScreen() {
 
             {/* Password */}
             <View style={s.field}>
-              <Text style={s.label}>Mật khẩu</Text>
+              <Text style={s.label}>{t('auth.password')}</Text>
               <View style={[s.inputRow, !!passwordError && s.inputRowError]}>
                 <Ionicons name="lock-closed-outline" size={18} color={C.muted} style={s.icon} />
                 <TextInput
@@ -237,7 +239,7 @@ export default function LoginScreen() {
                   }}
                   secureTextEntry={!showPassword}
                   testID="login-password-input"
-                  accessibilityLabel="Mật khẩu"
+                  accessibilityLabel={t('auth.password')}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(v => !v)}
@@ -260,7 +262,7 @@ export default function LoginScreen() {
               onPress={() => router.push('/forgot-password')}
               activeOpacity={0.7}
             >
-              <Text style={s.forgotText}>Quên mật khẩu?</Text>
+              <Text style={s.forgotText}>{t('auth.forgot_password')}</Text>
             </TouchableOpacity>
 
             {/* Submit */}
@@ -274,7 +276,7 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color={C.white} size="small" />
               ) : (
-                <Text style={s.btnText}>Đăng nhập</Text>
+                <Text style={s.btnText}>{t('auth.login')}</Text>
               )}
             </TouchableOpacity>
 
@@ -320,7 +322,7 @@ export default function LoginScreen() {
 
             {/* Register link */}
             <View style={s.footer}>
-              <Text style={s.footerText}>Chưa có tài khoản? </Text>
+              <Text style={s.footerText}>{t('auth.no_account')} </Text>
               <TouchableOpacity onPress={() => router.push('/register')}>
                 <Text style={s.footerLink}>Đăng ký ngay</Text>
               </TouchableOpacity>

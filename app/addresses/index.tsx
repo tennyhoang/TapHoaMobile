@@ -16,6 +16,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import EmptyState from '@/components/EmptyState';
 import { addressesService } from '@/services/addresses.service';
@@ -45,6 +46,7 @@ const EMPTY_FORM: FormState = {
 };
 
 export default function AddressesScreen() {
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,10 +82,10 @@ export default function AddressesScreen() {
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert('Xoá địa chỉ', 'Bạn có chắc muốn xoá địa chỉ này?', [
+    Alert.alert(t('address.delete'), t('address.delete_confirm'), [
       { text: 'Không', style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -166,9 +168,9 @@ export default function AddressesScreen() {
       ) : addresses.length === 0 ? (
         <EmptyState
           icon="location-outline"
-          title="Chưa có địa chỉ nào"
+          title={t('address.no_addresses')}
           action={{
-            label: 'Thêm địa chỉ',
+            label: t('address.add'),
             onPress: () => {
               setForm(EMPTY_FORM);
               setShowModal(true);
@@ -189,7 +191,7 @@ export default function AddressesScreen() {
                     <Text style={s.receiverName}>{item.receiverName}</Text>
                     {item.isDefault && (
                       <View style={s.defaultBadge}>
-                        <Text style={s.defaultText}>Mặc định</Text>
+                        <Text style={s.defaultText}>{t('address.default')}</Text>
                       </View>
                     )}
                   </View>
@@ -216,7 +218,7 @@ export default function AddressesScreen() {
                   activeOpacity={0.7}
                 >
                   <Ionicons name="trash-outline" size={14} color={C.error} />
-                  <Text style={[s.actionText, { color: C.error }]}>Xoá</Text>
+                  <Text style={[s.actionText, { color: C.error }]}>{t('common.delete')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -229,7 +231,7 @@ export default function AddressesScreen() {
         <KeyboardAwareScreen style={s.modalOverlay}>
           <View style={s.modalSheet}>
             <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>Thêm địa chỉ mới</Text>
+              <Text style={s.modalTitle}>{t('address.add_address_title')}</Text>
               <TouchableOpacity onPress={() => setShowModal(false)}>
                 <Ionicons name="close" size={24} color={C.text} />
               </TouchableOpacity>
@@ -248,7 +250,7 @@ export default function AddressesScreen() {
                   { key: 'receiverName', label: 'Họ tên người nhận', placeholder: 'Nguyễn Văn A' },
                   {
                     key: 'phoneNumber',
-                    label: 'Số điện thoại',
+                    label: t('address.phone_number'),
                     placeholder: '0912 345 678',
                     keyboardType: 'phone-pad',
                   },
@@ -280,7 +282,7 @@ export default function AddressesScreen() {
                 <View style={[s.checkbox, form.isDefault && s.checkboxActive]}>
                   {form.isDefault && <Ionicons name="checkmark" size={14} color="#fff" />}
                 </View>
-                <Text style={s.defaultToggleText}>Đặt làm địa chỉ mặc định</Text>
+                <Text style={s.defaultToggleText}>{t('address.set_default')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -292,7 +294,7 @@ export default function AddressesScreen() {
                 {saving ? (
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
-                  <Text style={s.saveBtnText}>Lưu địa chỉ</Text>
+                  <Text style={s.saveBtnText}>{t('address.save')}</Text>
                 )}
               </TouchableOpacity>
             </ScrollView>

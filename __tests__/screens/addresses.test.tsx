@@ -151,11 +151,7 @@ describe('AddressesScreen', () => {
     const { getByText } = render(<AddressesScreen />, { wrapper });
     await waitFor(() => getByText('Xoá'));
     fireEvent.press(getByText('Xoá'));
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Xoá địa chỉ',
-      'Bạn có chắc muốn xoá địa chỉ này?',
-      expect.any(Array)
-    );
+    expect(alertSpy).toHaveBeenCalledWith('Xoá địa chỉ', 'Xoá địa chỉ này?', expect.any(Array));
     alertSpy.mockRestore();
   });
 });

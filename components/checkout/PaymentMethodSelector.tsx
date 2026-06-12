@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { C } from '@/constants/Colors';
 import { formatCurrency } from '@/lib/utils';
 
@@ -41,9 +42,10 @@ interface Props {
 }
 
 export default function PaymentMethodSelector({ paymentMethod, onChange, walletBalance }: Props) {
+  const { t } = useTranslation();
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>Phương thức thanh toán</Text>
+      <Text style={s.sectionTitle}>{t('checkout.payment_method')}</Text>
       <View style={s.card}>
         {PAYMENT_OPTIONS.map((opt, i) => (
           <TouchableOpacity
@@ -61,7 +63,9 @@ export default function PaymentMethodSelector({ paymentMethod, onChange, walletB
             <View style={{ flex: 1 }}>
               <Text style={s.hubName}>{opt.label}</Text>
               <Text style={s.hubAddr}>
-                {opt.value === 'Wallet' ? `Số dư: ${formatCurrency(walletBalance)}` : opt.desc}
+                {opt.value === 'Wallet'
+                  ? `${t('checkout.wallet_balance')}: ${formatCurrency(walletBalance)}`
+                  : opt.desc}
               </Text>
             </View>
           </TouchableOpacity>

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import ScreenHeader from '@/components/ScreenHeader';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
 import { C } from '@/constants/Colors';
@@ -112,6 +113,7 @@ function ProcessModal({
 }
 
 export default function AdminWalletScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -205,14 +207,14 @@ export default function AdminWalletScreen() {
             onPress={() => setSelected({ req: item, action: 'complete' })}
           >
             <Ionicons name="checkmark-circle-outline" size={15} color="#16A34A" />
-            <Text style={s.completeBtnText}>Xác nhận</Text>
+            <Text style={s.completeBtnText}>{t('common.confirm')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={s.rejectBtn}
             onPress={() => setSelected({ req: item, action: 'reject' })}
           >
             <Ionicons name="close-circle-outline" size={15} color="#EF4444" />
-            <Text style={s.rejectBtnText}>Từ chối</Text>
+            <Text style={s.rejectBtnText}>{t('admin.withdraw_reject')}</Text>
           </TouchableOpacity>
         </View>
       )}
