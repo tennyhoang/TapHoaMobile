@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import ScreenHeader from '@/components/ScreenHeader';
@@ -8,6 +9,7 @@ import { useLoyaltyBalance, useLoyaltyTransactions } from '@/lib/hooks/useLoyalt
 import EmptyState from '@/components/EmptyState';
 
 export default function LoyaltyScreen() {
+  const { t } = useTranslation();
   const [page, setPage] = React.useState(1);
   const { data: balance, isLoading: balLoading } = useLoyaltyBalance();
   const { data: txns, isLoading: txLoading, refetch, isRefetching } = useLoyaltyTransactions(page);
@@ -17,7 +19,7 @@ export default function LoyaltyScreen() {
 
   return (
     <View style={s.root}>
-      <ScreenHeader title="Điểm tích luỹ" />
+      <ScreenHeader title={t('loyalty.title')} />
 
       <FlatList
         data={allTxns}
@@ -43,26 +45,26 @@ export default function LoyaltyScreen() {
                 <View style={s.balIcon}>
                   <Ionicons name="star" size={24} color="#fff" />
                 </View>
-                <Text style={s.balLabel}>Điểm tích luỹ</Text>
+                <Text style={s.balLabel}>{t('loyalty.balance_label')}</Text>
                 <Text style={s.balValue}>{balance.points.toLocaleString()}</Text>
                 <Text style={s.balSub}>
-                  Tổng tích luỹ: {balance.lifetimePoints.toLocaleString()} điểm
+                  {t('loyalty.lifetime', { points: balance.lifetimePoints.toLocaleString() })}
                 </Text>
               </LinearGradient>
             ) : (
               <View style={s.balError}>
-                <Text style={s.balErrorText}>Không tải được điểm tích luỹ</Text>
+                <Text style={s.balErrorText}>{t('loyalty.load_error')}</Text>
               </View>
             )}
 
-            <Text style={s.sectionTitle}>Lịch sử tích điểm</Text>
+            <Text style={s.sectionTitle}>{t('loyalty.history')}</Text>
           </>
         }
         ListEmptyComponent={
           txLoading ? (
             <ActivityIndicator color={C.primary} style={{ padding: 20 }} />
           ) : (
-            <EmptyState icon="star-outline" title="Chưa có giao dịch" />
+            <EmptyState icon="star-outline" title={t('loyalty.empty')} />
           )
         }
         renderItem={({ item }) => {

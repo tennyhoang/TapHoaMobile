@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -39,6 +40,7 @@ import type { Hub, Cart, Address } from '@/types';
 type PaymentMethod = 'COD' | 'BankTransfer' | 'Wallet' | 'Vnpay' | 'Momo';
 
 export default function CheckoutScreen() {
+  const { t } = useTranslation();
   const { bottom } = useSafeAreaInsets();
   const [cart, setCart] = useState<Cart | null>(null);
   const [hubs, setHubs] = useState<Hub[]>([]);
@@ -279,15 +281,17 @@ export default function CheckoutScreen() {
 
         {/* Loyalty points */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Điểm tích luỹ</Text>
+          <Text style={s.sectionTitle}>{t('loyalty.title')}</Text>
           <View style={s.card}>
             <View style={s.hubRow}>
               <View style={s.payIcon}>
                 <Ionicons name="star-outline" size={18} color="#D97706" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.hubName}>Đổi điểm</Text>
-                <Text style={s.hubAddr}>Bạn có {loyaltyPoints.toLocaleString()} điểm</Text>
+                <Text style={s.hubName}>{t('loyalty.redeem')}</Text>
+                <Text style={s.hubAddr}>
+                  {t('loyalty.available', { points: loyaltyPoints.toLocaleString() })}
+                </Text>
               </View>
               <TouchableOpacity
                 style={[s.redeemBtn, pointsToRedeem > 0 && s.redeemBtnActive]}
@@ -302,8 +306,11 @@ export default function CheckoutScreen() {
               >
                 <Text style={[s.redeemBtnText, pointsToRedeem > 0 && s.redeemBtnTextActive]}>
                   {pointsToRedeem > 0
-                    ? `Đã đổi ${pointsToRedeem.toLocaleString()} điểm (${formatCurrency(pointsToRedeem * 200)})`
-                    : 'Đổi điểm'}
+                    ? t('loyalty.redeem_applied', {
+                        points: pointsToRedeem.toLocaleString(),
+                        amount: formatCurrency(pointsToRedeem * 200),
+                      })
+                    : t('loyalty.redeem')}
                 </Text>
               </TouchableOpacity>
             </View>

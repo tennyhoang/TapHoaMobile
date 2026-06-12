@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -45,6 +46,7 @@ function VoucherFormModal({
   onClose: () => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const isEdit = !!initial;
   const defaults = getDefaultDates();
   const [code, setCode] = useState(initial?.code ?? '');
@@ -75,57 +77,67 @@ function VoucherFormModal({
   return (
     <KeyboardAwareScreen style={fm.container}>
       <View style={fm.header}>
-        <Text style={fm.title}>{isEdit ? 'Sửa voucher' : 'Tạo voucher'}</Text>
+        <Text style={fm.title}>{isEdit ? t('voucher.edit') : t('voucher.create')}</Text>
         <TouchableOpacity onPress={onClose} style={fm.closeBtn}>
           <Ionicons name="close" size={22} color={C.muted} />
         </TouchableOpacity>
       </View>
       <ScrollView style={fm.body} keyboardShouldPersistTaps="handled">
-        <Text style={fm.label}>Mã voucher *</Text>
+        <Text style={fm.label}>{t('voucher.code')} *</Text>
         <TextInput
           style={fm.input}
           value={code}
           onChangeText={setCode}
-          placeholder="VD: SALE20"
+          placeholder={t('voucher.code_placeholder')}
           placeholderTextColor={C.muted}
           autoCapitalize="characters"
         />
 
-        <Text style={fm.label}>Loại giảm giá *</Text>
+        <Text style={fm.label}>{t('voucher.discount_type')} *</Text>
         <View style={fm.typeRow}>
           <TouchableOpacity
             style={[fm.typeBtn, type === 'percent' && fm.typeBtnActive]}
             onPress={() => setType('percent')}
           >
             <Text style={[fm.typeBtnText, type === 'percent' && fm.typeBtnTextActive]}>
-              % Phần trăm
+              {t('voucher.type_percent')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[fm.typeBtn, type === 'flat' && fm.typeBtnActive]}
             onPress={() => setType('flat')}
           >
-            <Text style={[fm.typeBtnText, type === 'flat' && fm.typeBtnTextActive]}>₫ Số tiền</Text>
+            <Text style={[fm.typeBtnText, type === 'flat' && fm.typeBtnTextActive]}>
+              {t('voucher.type_flat')}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={fm.label}>Giá trị *</Text>
+        <Text style={fm.label}>{t('voucher.value')} *</Text>
         <TextInput
           style={fm.input}
           value={value}
           onChangeText={setValue}
-          placeholder={type === 'percent' ? 'VD: 20' : 'VD: 50000'}
+          placeholder={
+            type === 'percent'
+              ? t('voucher.value_placeholder_percent')
+              : t('voucher.value_placeholder_flat')
+          }
           placeholderTextColor={C.muted}
           keyboardType="numeric"
         />
         {type === 'percent' && value && (
           <Text style={fm.hint}>
-            Giảm {value}% tối đa{' '}
-            {maxDiscount ? formatCurrency(Number(maxDiscount)) : 'không giới hạn'}
+            {t('voucher.hint_percent', {
+              value,
+              max: maxDiscount
+                ? formatCurrency(Number(maxDiscount))
+                : t('voucher.max_discount_placeholder'),
+            })}
           </Text>
         )}
 
-        <Text style={fm.label}>Đơn tối thiểu *</Text>
+        <Text style={fm.label}>{t('voucher.min_order')} *</Text>
         <TextInput
           style={fm.input}
           value={minOrder}
@@ -135,27 +147,27 @@ function VoucherFormModal({
           keyboardType="numeric"
         />
 
-        <Text style={fm.label}>Giảm tối đa</Text>
+        <Text style={fm.label}>{t('voucher.max_discount')}</Text>
         <TextInput
           style={fm.input}
           value={maxDiscount}
           onChangeText={setMaxDiscount}
-          placeholder="Không giới hạn"
+          placeholder={t('voucher.max_discount_placeholder')}
           placeholderTextColor={C.muted}
           keyboardType="numeric"
         />
 
-        <Text style={fm.label}>Số lượt sử dụng *</Text>
+        <Text style={fm.label}>{t('voucher.usage_limit')} *</Text>
         <TextInput
           style={fm.input}
           value={usageLimit}
           onChangeText={setUsageLimit}
-          placeholder="VD: 100"
+          placeholder={t('voucher.usage_placeholder')}
           placeholderTextColor={C.muted}
           keyboardType="numeric"
         />
 
-        <Text style={fm.label}>Thời gian bắt đầu *</Text>
+        <Text style={fm.label}>{t('voucher.start_date')} *</Text>
         <TextInput
           style={fm.input}
           value={startDate}
@@ -165,7 +177,7 @@ function VoucherFormModal({
           autoCapitalize="none"
         />
 
-        <Text style={fm.label}>Thời gian kết thúc *</Text>
+        <Text style={fm.label}>{t('voucher.end_date')} *</Text>
         <TextInput
           style={fm.input}
           value={endDate}
@@ -175,18 +187,18 @@ function VoucherFormModal({
           autoCapitalize="none"
         />
 
-        <Text style={fm.label}>Mô tả</Text>
+        <Text style={fm.label}>{t('voucher.description')}</Text>
         <TextInput
           style={[fm.input, fm.textArea]}
           value={description}
           onChangeText={setDescription}
-          placeholder="Mô tả ngắn về voucher..."
+          placeholder={t('voucher.description_placeholder')}
           placeholderTextColor={C.muted}
           multiline
         />
 
         <View style={fm.switchRow}>
-          <Text style={fm.label}>Kích hoạt</Text>
+          <Text style={fm.label}>{t('voucher.active')}</Text>
           <Switch
             value={isActive}
             onValueChange={setIsActive}
@@ -196,7 +208,7 @@ function VoucherFormModal({
         </View>
 
         {startDate && endDate && new Date(endDate) <= new Date(startDate) ? (
-          <Text style={fm.warning}>Thời gian kết thúc phải sau thời gian bắt đầu</Text>
+          <Text style={fm.warning}>{t('voucher.end_after_start')}</Text>
         ) : null}
 
         <TouchableOpacity
@@ -220,7 +232,7 @@ function VoucherFormModal({
           {loading ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Text style={fm.saveBtnText}>{isEdit ? 'Cập nhật' : 'Tạo voucher'}</Text>
+            <Text style={fm.saveBtnText}>{isEdit ? t('voucher.edit') : t('voucher.create')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -229,6 +241,7 @@ function VoucherFormModal({
 }
 
 export default function AdminVouchersScreen() {
+  const { t } = useTranslation();
   const unauthorized = useRoleGuard('Admin');
   const { show } = useToast();
 
@@ -246,7 +259,7 @@ export default function AdminVouchersScreen() {
       const data = await adminService.vouchers.getAll();
       setVouchers(data);
     } catch {
-      show('Không thể tải danh sách voucher', 'error');
+      show(t('voucher.load_error'), 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -274,34 +287,34 @@ export default function AdminVouchersScreen() {
     try {
       if (editing) {
         await adminService.vouchers.update(editing.id, payload);
-        show('Đã cập nhật voucher');
+        show(t('voucher.update_success'));
       } else {
         await adminService.vouchers.create(payload);
-        show('Đã tạo voucher');
+        show(t('voucher.save_success'));
       }
       setFormVisible(false);
       load(true);
     } catch {
-      show('Thao tác thất bại', 'error');
+      show(t('voucher.save_error'), 'error');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = (v: AdminVoucher) => {
-    Alert.alert('Xoá voucher', `Xoá mã "${v.code}"?`, [
+    Alert.alert(t('voucher.delete_title'), t('voucher.delete_confirm', { code: v.code }), [
       { text: 'Huỷ', style: 'cancel' },
       {
-        text: 'Xoá',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           setDeletingId(v.id);
           try {
             await adminService.vouchers.delete(v.id);
             setVouchers(prev => prev.filter(x => x.id !== v.id));
-            show('Đã xoá voucher');
+            show(t('voucher.delete_success'));
           } catch {
-            show('Không thể xoá', 'error');
+            show(t('voucher.delete_error'), 'error');
           } finally {
             setDeletingId(null);
           }
@@ -327,16 +340,16 @@ export default function AdminVouchersScreen() {
     const upcoming = start > now;
     const active = item.isActive && !expired;
 
-    let statusLabel = 'Hết hạn';
+    let statusLabel = t('voucher.status_expired');
     let statusColor = '#9CA3AF';
     if (active) {
-      statusLabel = 'Đang hoạt động';
+      statusLabel = t('voucher.status_active');
       statusColor = '#16A34A';
     } else if (upcoming) {
-      statusLabel = 'Sắp diễn ra';
+      statusLabel = t('voucher.status_upcoming');
       statusColor = '#F59E0B';
     } else if (!item.isActive) {
-      statusLabel = 'Đã tắt';
+      statusLabel = t('voucher.status_disabled');
       statusColor = '#EF4444';
     }
 
@@ -358,7 +371,7 @@ export default function AdminVouchersScreen() {
             </Text>
             <Text style={s.detailText}>Đơn tối thiểu: {formatCurrency(item.minOrder)}</Text>
             <Text style={s.detailText}>
-              Đã dùng: {item.usedCount}/{item.usageLimit}
+              {t('voucher.used_count', { used: item.usedCount, limit: item.usageLimit })}
             </Text>
             <Text style={s.dateText}>
               {fmtDate(item.startDate)} → {fmtDate(item.endDate)}
@@ -376,7 +389,7 @@ export default function AdminVouchersScreen() {
         <View style={s.cardBtns}>
           <TouchableOpacity style={s.editBtn} onPress={() => openEdit(item)}>
             <Ionicons name="pencil-outline" size={14} color={C.primary} />
-            <Text style={s.editBtnText}>Sửa</Text>
+            <Text style={s.editBtnText}>{t('common.edit')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={s.deleteBtn}
@@ -388,7 +401,7 @@ export default function AdminVouchersScreen() {
             ) : (
               <>
                 <Ionicons name="trash-outline" size={14} color="#EF4444" />
-                <Text style={s.deleteBtnText}>Xoá</Text>
+                <Text style={s.deleteBtnText}>{t('common.delete')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -402,7 +415,7 @@ export default function AdminVouchersScreen() {
   return (
     <View style={s.root}>
       <ScreenHeader
-        title="Quản lý Voucher"
+        title={t('voucher.title')}
         right={
           <TouchableOpacity onPress={openCreate} style={s.addBtn}>
             <Ionicons name="add" size={22} color="#fff" />
@@ -431,7 +444,7 @@ export default function AdminVouchersScreen() {
               tintColor={C.primary}
             />
           }
-          ListEmptyComponent={<EmptyState icon="pricetag-outline" title="Chưa có voucher nào" />}
+          ListEmptyComponent={<EmptyState icon="pricetag-outline" title={t('voucher.empty')} />}
         />
       )}
 

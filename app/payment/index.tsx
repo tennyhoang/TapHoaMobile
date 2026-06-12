@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { WebView } from 'react-native-webview';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +9,7 @@ import { C } from '@/constants/Colors';
 type PaymentGateway = 'vnpay' | 'momo';
 
 export default function PaymentWebViewScreen() {
+  const { t } = useTranslation();
   const { url, orderId } = useLocalSearchParams<{
     url: string;
     orderId: string;
@@ -40,7 +42,7 @@ export default function PaymentWebViewScreen() {
   if (!url) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>Không có URL thanh toán</Text>
+        <Text style={styles.error}>{t('payment.no_url')}</Text>
       </View>
     );
   }
@@ -49,8 +51,8 @@ export default function PaymentWebViewScreen() {
     return (
       <View style={styles.center}>
         <Ionicons name="checkmark-circle" size={64} color="#22C55E" />
-        <Text style={styles.successText}>Thanh toán thành công!</Text>
-        <Text style={styles.redirectText}>Đang chuyển về đơn hàng...</Text>
+        <Text style={styles.successText}>{t('payment.success')}</Text>
+        <Text style={styles.redirectText}>{t('payment.redirecting')}</Text>
       </View>
     );
   }
@@ -60,7 +62,7 @@ export default function PaymentWebViewScreen() {
       {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={C.primary} />
-          <Text style={styles.loadingText}>Đang kết nối cổng thanh toán...</Text>
+          <Text style={styles.loadingText}>{t('payment.connecting')}</Text>
         </View>
       )}
       <WebView
