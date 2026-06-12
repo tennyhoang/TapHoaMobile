@@ -1,6 +1,6 @@
 # TapHoa — Đồng bộ 3 Project
 
-> **Cập nhật:** 2026-06-12 — Phase 4 & 5 hoàn thành, thêm vouchers/loyalty/payment gateway
+> **Cập nhật:** 2026-06-12 — Phase 4 & 5 hoàn thành + full i18n migration
 
 ## ✅ Hiện trạng hiện tại
 
@@ -34,12 +34,9 @@
 - ✅ 20 services, 24 React Query hooks, 25+ components
 - ✅ SignalR order tracking, biometric auth, Cloudinary upload
 - ✅ Sentry monitoring, Storybook, 72 test files — **524 tests, 100% passing**
-- ✅ i18n: 594 keys (en + vi) — loyalty, voucher, payment, order_review sections added
-- ⚠️ i18n wired up in: TabBar, \_layout, loyalty, payment, admin/vouchers, checkout (loyalty), order detail (new strings only)
-- ⚠️ ~84 remaining screens still have hardcoded Vietnamese strings (not using useTranslation)
+- ✅ i18n: 594 keys (en + vi), useTranslation wired up in all screens and components
 
 ## 📋 Những gì còn lại
 
-- [ ] **Mobile**: Migrate ~84 remaining screens to use `useTranslation` — all 594 keys already defined, just need hook wired up per screen
 - [ ] **BE**: Gradually migrate legacy `Result<T>` → FluentResults (80 files)
 - [ ] **BE**: Implement OneOf as alternative return type pattern
