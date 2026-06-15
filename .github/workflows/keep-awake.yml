@@ -1,0 +1,20 @@
+name: Keep APIs Awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping Render APIs & Neon DB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping staging API
+        run: curl -s -o /dev/null -w "%{http_code}" https://taphoa-api-dev.onrender.com/api/v1 || true
+
+      - name: Ping production API
+        run: curl -s -o /dev/null -w "%{http_code}" https://taphoa-be.onrender.com/api/v1 || true
+
+      - name: Ping store frontend
+        run: curl -s -o /dev/null -w "%{http_code}" https://taphoas.vercel.app || true
