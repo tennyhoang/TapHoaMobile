@@ -44,3 +44,15 @@ yarn-error.*
 
 # Coverage
 coverage/
+
+# Claude AI worktrees & config
+.claude/
+
+# Build artifacts
+*.apk
+*.log
+*.md5
+*.sha256
+
+# Temp / unrelated docs
+taphoa-*
