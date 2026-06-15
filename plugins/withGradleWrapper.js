@@ -2,9 +2,9 @@ const { withDangerousMod } = require('@expo/config-plugins');
 const path = require('path');
 const fs = require('fs');
 
-// Gradle 9.x removed JvmVendorSpec.IBM_SEMERU — incompatible with RN 0.85.
-// Pin to 8.10.2 until all plugins are updated for Gradle 9.
-const GRADLE_VERSION = '8.10.2';
+// RN 0.85 on AGP 8.13 requires Gradle >= 8.13.
+// Keep on 8.x until Gradle 9 compatibility is confirmed.
+const GRADLE_VERSION = '8.13';
 
 module.exports = function withGradleWrapper(config) {
   return withDangerousMod(config, [
