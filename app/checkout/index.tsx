@@ -128,6 +128,16 @@ export default function CheckoutScreen() {
     }
   };
 
+  useEffect(() => {
+    if (voucherOk) {
+      setVoucherCode('');
+      setVoucherDiscount(0);
+      setVoucherMsg('');
+      setVoucherNote('');
+      setVoucherOk(false);
+    }
+  }, [selectedHub?.id]);
+
   const subtotal = cart?.totalAmount ?? 0;
   const shippingFee = selectedHub
     ? subtotal >= selectedHub.freeShippingThreshold

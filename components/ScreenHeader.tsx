@@ -16,14 +16,14 @@ export default function ScreenHeader({ title, subtitle, right, onBack }: Props) 
   const { top } = useSafeAreaInsets();
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.background} />
       <View style={[s.header, { paddingTop: top + 16 }]}>
         <TouchableOpacity
           style={s.backBtn}
           onPress={onBack ?? (() => router.back())}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-back" size={20} color="#fff" />
+          <Ionicons name="arrow-back" size={20} color={C.text} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={s.title}>{title}</Text>
@@ -44,18 +44,20 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: C.primaryDark,
+    backgroundColor: C.background,
     paddingHorizontal: 16,
     paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: C.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { fontSize: 18, fontWeight: '700', color: '#fff' },
-  subtitle: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 1 },
+  title: { fontSize: 18, fontWeight: '700', color: C.text },
+  subtitle: { fontSize: 12, color: C.muted, marginTop: 1 },
 });

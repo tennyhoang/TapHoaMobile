@@ -12,10 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { haptics } from '@/lib/haptics';
-
-const PRIMARY = '#0EA5AE';
-const INACTIVE = '#9CA3AF';
-const BG = '#FFFFFF';
+import { C } from '@/constants/Colors';
 
 const ICONS: Record<string, { active: string; inactive: string }> = {
   index: { active: 'home', inactive: 'home-outline' },
@@ -92,7 +89,7 @@ function TabItem({
           <Ionicons
             name={(isFocused ? icons.active : icons.inactive) as any}
             size={22}
-            color={isFocused ? PRIMARY : INACTIVE}
+            color={isFocused ? C.primary : C.tabIconDefault}
           />
         </Animated.View>
 
@@ -102,7 +99,9 @@ function TabItem({
           </View>
         )}
 
-        <Animated.Text style={[s.label, { color: isFocused ? PRIMARY : INACTIVE }, labelStyle]}>
+        <Animated.Text
+          style={[s.label, { color: isFocused ? C.primary : C.tabIconDefault }, labelStyle]}
+        >
           {label}
         </Animated.Text>
       </Animated.View>
@@ -125,8 +124,7 @@ export default function TabBar({ state, navigation, descriptors }: TabBarProps) 
       <View style={s.row}>
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
-          const badge =
-            route.name === 'cart' ? descriptors[route.key]?.options?.tabBarBadge : undefined;
+          const badge = descriptors[route.key]?.options?.tabBarBadge;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -155,7 +153,7 @@ export default function TabBar({ state, navigation, descriptors }: TabBarProps) 
 }
 
 const s = StyleSheet.create({
-  container: { backgroundColor: BG, paddingTop: 8 },
+  container: { backgroundColor: C.card, paddingTop: 8 },
   topBorder: {
     position: 'absolute',
     top: 0,
@@ -197,7 +195,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 3,
     borderWidth: 1.5,
-    borderColor: BG,
+    borderColor: C.card,
   },
   badgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
 });

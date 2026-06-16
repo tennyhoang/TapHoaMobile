@@ -12,6 +12,7 @@ import {
   Dimensions,
   Share,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,7 +27,7 @@ import { useToast } from '@/components/Toast';
 import { C } from '@/constants/Colors';
 
 const { width: W } = Dimensions.get('window');
-const IMG_H = W * 0.85;
+const IMG_H = Math.min(W * 0.85, 420);
 
 export default function ProductDetailScreen() {
   const { t } = useTranslation();
@@ -134,7 +135,10 @@ export default function ProductDetailScreen() {
           />
 
           {/* Gradient overlay */}
-          <View style={s.imgOverlay} />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.15)', 'transparent']}
+            style={s.imgOverlay}
+          />
 
           {/* Back button */}
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
@@ -354,8 +358,7 @@ const s = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 100,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    height: 140,
   },
   backBtn: {
     position: 'absolute',

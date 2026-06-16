@@ -1,3 +1,5 @@
+import { useColorScheme } from 'react-native';
+
 export const palette = {
   primary: '#0EA5AE',
   primaryDark: '#067478',
@@ -46,3 +48,8 @@ const Colors = {
 export default Colors;
 
 export const C = Colors.light;
+
+export function useThemeColors() {
+  const scheme = useColorScheme();
+  return scheme === 'dark' ? Colors.dark : Colors.light;
+}
