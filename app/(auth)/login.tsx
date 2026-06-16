@@ -168,7 +168,7 @@ export default function LoginScreen() {
             <Ionicons name="leaf" size={30} color={'#FFFFFF'} />
           </View>
           <Text style={s.appName}>Tạp Hóa</Text>
-          <Text style={s.tagline}>Tươi ngon — giao tận nhà</Text>
+          <Text style={s.tagline}>Tươi ngon, nhận tại Hub gần nhà</Text>
         </Animated.View>
       </View>
 

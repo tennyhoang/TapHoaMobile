@@ -204,7 +204,13 @@ export default function WarehouseDashboardScreen() {
               <Text style={s.sectionTitle}>Tổng quan hôm nay</Text>
               <View style={s.statsGrid}>
                 {stats.map(stat => (
-                  <View key={stat.label} style={[s.statCard, { borderLeftColor: stat.color }]}>
+                  <View
+                    key={stat.label}
+                    style={[
+                      s.statCard,
+                      { borderColor: stat.color, backgroundColor: stat.color + '08' },
+                    ]}
+                  >
                     <View style={s.statRow}>
                       <Text style={[s.statValue, { color: stat.color }]}>{stat.value}</Text>
                       <Ionicons name={stat.icon as any} size={20} color={stat.color + '88'} />
@@ -322,7 +328,6 @@ const s = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: C.border,
-    borderLeftWidth: 4,
     padding: 14,
   },
   statRow: {

@@ -366,7 +366,6 @@ const s = StyleSheet.create({
   },
   backBtn: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 56 : 36,
     left: 16,
     width: 38,
     height: 38,
@@ -377,7 +376,6 @@ const s = StyleSheet.create({
   },
   headerActions: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 56 : 36,
     right: 16,
     flexDirection: 'row',
     gap: 8,

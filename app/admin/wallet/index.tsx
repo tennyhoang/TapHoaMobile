@@ -64,7 +64,7 @@ function ProcessModal({
           </Text>
           <Text style={p.infoLabel}>Ngân hàng</Text>
           <Text style={p.infoValue}>
-            {request.bankName} — {request.accountNumber} — {request.holderName}
+            {request.bankName} - {request.accountNumber} - {request.holderName}
           </Text>
           <Text style={p.infoLabel}>Số tiền</Text>
           <Text style={[p.infoValue, { color: C.primary, fontWeight: '800', fontSize: 18 }]}>

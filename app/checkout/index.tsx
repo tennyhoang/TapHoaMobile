@@ -34,6 +34,7 @@ import { biometrics } from '@/lib/biometrics';
 import { api } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import * as Location from 'expo-location';
+import { useToast } from '@/components/Toast';
 import { C } from '@/constants/Colors';
 import type { Hub, Cart, Address } from '@/types';
 
@@ -49,6 +50,7 @@ export default function CheckoutScreen() {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
+  const { show } = useToast();
   const [error, setError] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
   const [voucherCode, setVoucherCode] = useState('');
@@ -172,7 +174,10 @@ export default function CheckoutScreen() {
       return;
     }
     const confirmed = await biometrics.authenticate('Xác nhận đặt hàng');
-    if (!confirmed) return;
+    if (!confirmed) {
+      show('Vui lòng xác minh danh tính để đặt hàng', 'error');
+      return;
+    }
     setError('');
     setPlacing(true);
     try {
