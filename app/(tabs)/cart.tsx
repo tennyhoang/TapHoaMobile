@@ -91,6 +91,7 @@ export default function CartScreen() {
             style={s.deleteBtn}
             onPress={() => handleUpdate(item.productId, 0)}
             disabled={isUpdating}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityRole="button"
             accessibilityLabel="Xoá sản phẩm"
           >

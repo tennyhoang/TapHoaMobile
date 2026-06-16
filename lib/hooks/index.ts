@@ -1,5 +1,6 @@
 export {
   useProducts,
+  useInfiniteProducts,
   useProduct,
   useAddToCart,
   useUpdateCartItem,

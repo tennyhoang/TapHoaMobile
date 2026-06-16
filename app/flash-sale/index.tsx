@@ -183,7 +183,7 @@ export default function FlashSaleScreen() {
             <View style={s.banner}>
               <Ionicons name="flash" size={16} color={C.saleDark} />
               <Text style={s.bannerText}>
-                {(session.products ?? []).length} sản phẩm giảm giá sốc — số lượng có hạn!
+                {(session.products ?? []).length} sản phẩm giảm giá sốc, số lượng có hạn!
               </Text>
             </View>
           }

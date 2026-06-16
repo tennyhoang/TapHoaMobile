@@ -16,7 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import KeyboardAwareScreen from '@/components/KeyboardAwareScreen';
-import { useProducts, useAddToCart } from '@/lib/hooks';
+import { useInfiniteProducts, useAddToCart } from '@/lib/hooks';
 import { useCategories } from '@/lib/hooks';
 import ProductCard from '@/components/ProductCard';
 import { ProductCardSkeleton } from '@/components/Skeleton';
@@ -53,7 +53,6 @@ export default function ProductsScreen() {
   const [sortBy, setSortBy] = useState('newest');
   const [isNew, setIsNew] = useState(false);
   const [isDiscount, setIsDiscount] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
 
   const debouncedSearch = useDebounce(search, 400);
@@ -62,10 +61,12 @@ export default function ProductsScreen() {
   const {
     data: productsData,
     isLoading,
-    isFetching,
     refetch,
     isRefetching,
-  } = useProducts({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteProducts({
     search: debouncedSearch || undefined,
     categoryId: selectedCat ?? undefined,
     sortBy,
@@ -74,14 +75,13 @@ export default function ProductsScreen() {
     isDiscount: isDiscount || undefined,
   });
 
-  const products = productsData?.items ?? [];
+  const products = productsData?.pages.flatMap(p => p.items) ?? [];
 
   const { mutateAsync: addToCart } = useAddToCart();
 
   const handleLoadMore = () => {
-    if (loadingMore || isFetching) return;
-    setLoadingMore(true);
-    refetch().finally(() => setLoadingMore(false));
+    if (isFetchingNextPage || !hasNextPage) return;
+    fetchNextPage();
   };
 
   const handleAddToCart = useCallback(
@@ -259,7 +259,7 @@ export default function ProductsScreen() {
           onEndReachedThreshold={0.3}
           renderItem={renderItem}
           ListFooterComponent={
-            loadingMore ? (
+            isFetchingNextPage ? (
               <View style={s.loadMoreWrap}>
                 <ActivityIndicator color={C.primary} size="small" />
               </View>

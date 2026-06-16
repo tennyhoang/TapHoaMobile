@@ -51,10 +51,17 @@ const CAT_ICONS: { key: string; icon: string; color: string; bg: string }[] = [
   { key: 'gia', icon: 'flame-outline', color: '#EF4444', bg: '#FEE2E2' },
 ];
 
+function stripDiacritics(str: string) {
+  return str
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[đĐ]/g, d => (d === 'đ' ? 'd' : 'D'));
+}
+
 function getCatIcon(name: string) {
-  const l = name.toLowerCase();
+  const l = stripDiacritics(name.toLowerCase());
   for (const c of CAT_ICONS) {
-    if (l.includes(c.key)) return c;
+    if (l.includes(stripDiacritics(c.key))) return c;
   }
   return { icon: 'basket-outline', color: C.primary, bg: '#E5F9FA' };
 }
@@ -72,7 +79,7 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
   Paid_WaitingForBatch: 'Đang chuẩn bị hàng',
   PackedAtWarehouse: 'Đang đóng gói tại kho',
   ShippingToHub: 'Đang vận chuyển về Hub',
-  InHub_ReadyForPickup: 'Tại Hub — sẵn sàng lấy hàng 🎉',
+  InHub_ReadyForPickup: 'Tại Hub — sẵn sàng lấy hàng',
 };
 
 // ── Trust badge data ─────────────────────────────────────────────────────────
@@ -265,7 +272,30 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             <View style={s.heroIllustration}>
-              <Ionicons name="basket" size={72} color={C.primary} style={{ opacity: 0.12 }} />
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, width: 88 }}>
+                {(
+                  [
+                    'leaf-outline',
+                    'nutrition-outline',
+                    'fish-outline',
+                    'restaurant-outline',
+                  ] as const
+                ).map((icon, i) => (
+                  <View
+                    key={i}
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      backgroundColor: 'rgba(14,165,174,0.12)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name={icon} size={19} color={C.primary} />
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
 
@@ -523,7 +553,7 @@ export default function HomeScreen() {
               <Text style={s.sectionLabel}>CẨM NANG</Text>
               <Text style={s.sectionTitle}>Bếp & Ẩm thực</Text>
             </View>
-            <TouchableOpacity onPress={() => router.push('/articles/index/index' as any)}>
+            <TouchableOpacity onPress={() => router.push('/articles/index' as any)}>
               <Text style={s.seeAll}>{t('common.view_all')}</Text>
             </TouchableOpacity>
           </View>
@@ -599,7 +629,7 @@ export default function HomeScreen() {
           ) : (
             <TouchableOpacity
               style={s.articleBanner}
-              onPress={() => router.push('/articles/index/index' as any)}
+              onPress={() => router.push('/articles/index' as any)}
               activeOpacity={0.85}
             >
               <Ionicons name="book-outline" size={28} color={C.primary} />

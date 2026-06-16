@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useInfiniteQuery } from '@tanstack/react-query';
 import { productsService } from '@/services/products.service';
 import { cartService } from '@/services/cart.service';
 import { queryKeys } from './queryKeys';
@@ -24,6 +24,17 @@ export function useProducts(
     queryFn: () => productsService.getAll(params),
     staleTime: 30_000,
     ...options,
+  });
+}
+
+export function useInfiniteProducts(params: Omit<ProductsParams, 'page'> = {}) {
+  return useInfiniteQuery({
+    queryKey: [...queryKeys.products.list(params as Record<string, unknown>), 'infinite'],
+    queryFn: ({ pageParam = 1 }) => productsService.getAll({ ...params, page: pageParam }),
+    getNextPageParam: lastPage =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+    initialPageParam: 1,
+    staleTime: 30_000,
   });
 }
 

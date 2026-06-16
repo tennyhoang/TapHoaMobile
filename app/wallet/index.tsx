@@ -164,7 +164,7 @@ export default function WalletScreen() {
         holderName: withdrawHolder.trim(),
       });
       setWithdrawVisible(false);
-      show('Yêu cầu rút tiền đã được ghi nhận — xử lý trong 1–2 ngày làm việc');
+      show('Yêu cầu rút tiền đã được ghi nhận, xử lý trong 1-2 ngày làm việc');
       await load();
     } catch {
       show('Không thể gửi yêu cầu rút tiền, thử lại sau', 'error');
@@ -200,9 +200,9 @@ export default function WalletScreen() {
     try {
       await load();
       setTopUpVisible(false);
-      show('Đã ghi nhận — số dư sẽ cập nhật sau khi chuyển khoản xác nhận');
+      show('Đã ghi nhận, số dư sẽ cập nhật sau khi chuyển khoản xác nhận');
     } catch {
-      show('Chưa xác nhận được — vui lòng thử lại sau', 'error');
+      show('Chưa xác nhận được, vui lòng thử lại sau', 'error');
     } finally {
       setConfirming(false);
     }

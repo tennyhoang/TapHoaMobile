@@ -20,20 +20,11 @@ import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/lib/auth-context';
 import { authService } from '@/services/auth.service';
 import { useTranslation } from 'react-i18next';
+import { C } from '@/constants/Colors';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const C = {
-  primary: '#0EA5AE',
-  primaryDark: '#067478',
-  text: '#111827',
-  muted: '#6B7280',
-  border: '#E5E7EB',
-  inputBg: '#F9FAFB',
-  white: '#FFFFFF',
-  error: '#EF4444',
-  errorBg: '#FEF2F2',
-};
+const ERROR_BG = '#FEF2F2';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_ATTEMPTS = 5;
@@ -174,10 +165,10 @@ export default function LoginScreen() {
           style={[s.logoWrap, { opacity: headerOpacity, transform: [{ translateY: headerY }] }]}
         >
           <View style={s.logoBox}>
-            <Ionicons name="leaf" size={30} color={C.white} />
+            <Ionicons name="leaf" size={30} color={'#FFFFFF'} />
           </View>
           <Text style={s.appName}>Tạp Hóa</Text>
-          <Text style={s.tagline}>Tươi ngon — giao tận nhà</Text>
+          <Text style={s.tagline}>Tươi ngon, nhận tại Hub gần nhà</Text>
         </Animated.View>
       </View>
 
@@ -274,7 +265,7 @@ export default function LoginScreen() {
               testID="login-submit-btn"
             >
               {loading ? (
-                <ActivityIndicator color={C.white} size="small" />
+                <ActivityIndicator color={'#FFFFFF'} size="small" />
               ) : (
                 <Text style={s.btnText}>{t('auth.login')}</Text>
               )}
@@ -386,8 +377,8 @@ const s = StyleSheet.create({
   },
   appName: {
     fontSize: 38,
-    fontFamily: Platform.select({ ios: 'Georgia', default: 'serif' }),
-    color: C.white,
+    fontWeight: '800',
+    color: '#FFFFFF',
     letterSpacing: 1.5,
     marginBottom: 6,
   },
@@ -396,7 +387,7 @@ const s = StyleSheet.create({
   // Card
   card: {
     flex: 1,
-    backgroundColor: C.white,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     shadowColor: '#000',
@@ -413,7 +404,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: C.errorBg,
+    backgroundColor: ERROR_BG,
     borderRadius: 10,
     padding: 12,
     marginBottom: 16,
@@ -450,7 +441,7 @@ const s = StyleSheet.create({
     elevation: 6,
   },
   btnDim: { opacity: 0.7 },
-  btnText: { color: C.white, fontSize: 16, fontWeight: '700', letterSpacing: 0.4 },
+  btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: 0.4 },
 
   forgotBtn: { alignSelf: 'flex-end', marginBottom: 16, marginTop: -8 },
   forgotText: { fontSize: 13, color: C.primary, fontWeight: '600' },

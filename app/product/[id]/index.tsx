@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
-  Platform,
   StatusBar,
   Dimensions,
   Share,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,11 +26,11 @@ import { useToast } from '@/components/Toast';
 import { C } from '@/constants/Colors';
 
 const { width: W } = Dimensions.get('window');
-const IMG_H = W * 0.85;
+const IMG_H = Math.min(W * 0.85, 420);
 
 export default function ProductDetailScreen() {
   const { t } = useTranslation();
-  const { bottom } = useSafeAreaInsets();
+  const { bottom, top } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data: product, isLoading, isError } = useProduct(id);
@@ -74,6 +74,7 @@ export default function ProductDetailScreen() {
   useEffect(() => {
     if (isError && !navigatedBack.current) {
       navigatedBack.current = true;
+      show('Không thể tải sản phẩm. Vui lòng thử lại.', 'error');
       router.back();
     }
   }, [isError]);
@@ -134,15 +135,22 @@ export default function ProductDetailScreen() {
           />
 
           {/* Gradient overlay */}
-          <View style={s.imgOverlay} />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.15)', 'transparent']}
+            style={s.imgOverlay}
+          />
 
           {/* Back button */}
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={[s.backBtn, { top: top + 8 }]}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
             <Ionicons name="arrow-back" size={20} color="#fff" />
           </TouchableOpacity>
 
           {/* Header action buttons */}
-          <View style={s.headerActions}>
+          <View style={[s.headerActions, { top: top + 8 }]}>
             <TouchableOpacity
               style={s.headerBtn}
               onPress={handleShare}
@@ -354,12 +362,10 @@ const s = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 100,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    height: 140,
   },
   backBtn: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 56 : 36,
     left: 16,
     width: 38,
     height: 38,
@@ -370,7 +376,6 @@ const s = StyleSheet.create({
   },
   headerActions: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 56 : 36,
     right: 16,
     flexDirection: 'row',
     gap: 8,

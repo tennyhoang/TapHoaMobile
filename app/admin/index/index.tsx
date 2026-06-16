@@ -111,19 +111,27 @@ export default function AdminDashboard() {
           </View>
         ) : stats ? (
           <View style={s.statsGrid}>
-            <View style={[s.statCard, { borderLeftColor: C.primary }]}>
+            <View
+              style={[s.statCard, { borderColor: C.primary, backgroundColor: C.primary + '08' }]}
+            >
               <Text style={s.statValue}>{stats.totalOrders.toLocaleString()}</Text>
               <Text style={s.statLabel}>{t('admin.total_orders')}</Text>
             </View>
-            <View style={[s.statCard, { borderLeftColor: '#22C55E' }]}>
+            <View
+              style={[s.statCard, { borderColor: '#22C55E', backgroundColor: '#22C55E' + '08' }]}
+            >
               <Text style={s.statValue}>{formatCurrency(stats.totalRevenue)}</Text>
               <Text style={s.statLabel}>Doanh thu</Text>
             </View>
-            <View style={[s.statCard, { borderLeftColor: '#F59E0B' }]}>
+            <View
+              style={[s.statCard, { borderColor: '#F59E0B', backgroundColor: '#F59E0B' + '08' }]}
+            >
               <Text style={s.statValue}>{stats.pendingOrders}</Text>
               <Text style={s.statLabel}>{t('order.filter_pending')}</Text>
             </View>
-            <View style={[s.statCard, { borderLeftColor: '#8B5CF6' }]}>
+            <View
+              style={[s.statCard, { borderColor: '#8B5CF6', backgroundColor: '#8B5CF6' + '08' }]}
+            >
               <Text style={s.statValue}>{stats.totalUsers.toLocaleString()}</Text>
               <Text style={s.statLabel}>{t('admin.total_users')}</Text>
             </View>
@@ -174,7 +182,6 @@ const s = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: C.border,
-    borderLeftWidth: 4,
     padding: 16,
   },
   statValue: { fontSize: 20, fontWeight: '800', color: C.text, marginBottom: 4 },

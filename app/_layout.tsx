@@ -1,4 +1,5 @@
 import { Stack, router } from 'expo-router';
+import { StatusBar } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -64,6 +65,7 @@ export default Sentry.wrap(function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <SafeAreaProvider>
+          <StatusBar barStyle="dark-content" backgroundColor="#F0FAFA" />
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>

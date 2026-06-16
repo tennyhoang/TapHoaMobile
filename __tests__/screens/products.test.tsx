@@ -3,10 +3,10 @@ import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import ProductsScreen from '@/app/(tabs)/products';
-import { useProducts, useCategories, useAddToCart } from '@/lib/hooks';
+import { useInfiniteProducts, useCategories, useAddToCart } from '@/lib/hooks';
 
 jest.mock('@/lib/hooks', () => ({
-  useProducts: jest.fn(),
+  useInfiniteProducts: jest.fn(),
   useCategories: jest.fn(),
   useAddToCart: jest.fn(),
 }));
@@ -110,11 +110,14 @@ const mockPagedResult = {
 };
 
 const defaultProductsResponse = {
-  data: mockPagedResult,
+  data: { pages: [mockPagedResult] },
   isLoading: false,
   isFetching: false,
   refetch: jest.fn(),
   isRefetching: false,
+  fetchNextPage: jest.fn(),
+  hasNextPage: false,
+  isFetchingNextPage: false,
 };
 
 const defaultCategoriesResponse = {
@@ -127,23 +130,26 @@ const defaultAddToCartResponse = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  (useProducts as jest.Mock).mockReturnValue(defaultProductsResponse);
+  (useInfiniteProducts as jest.Mock).mockReturnValue(defaultProductsResponse);
   (useCategories as jest.Mock).mockReturnValue(defaultCategoriesResponse);
   (useAddToCart as jest.Mock).mockReturnValue(defaultAddToCartResponse);
 });
 
 describe('ProductsScreen', () => {
   it('renders loading state initially', () => {
-    (useProducts as jest.Mock).mockReturnValue({
+    (useInfiniteProducts as jest.Mock).mockReturnValue({
       data: undefined,
       isLoading: true,
       isFetching: false,
       refetch: jest.fn(),
       isRefetching: false,
+      fetchNextPage: jest.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
     });
     const { toJSON } = renderWithQuery(<ProductsScreen />);
     expect(toJSON()).not.toBeNull();
-    expect(useProducts).toHaveBeenCalled();
+    expect(useInfiniteProducts).toHaveBeenCalled();
   });
 
   it('renders product grid after data loads', async () => {
@@ -163,11 +169,11 @@ describe('ProductsScreen', () => {
     });
   });
 
-  it('searching calls useProducts with search term', async () => {
+  it('searching calls useInfiniteProducts with search term', async () => {
     const { getByPlaceholderText } = renderWithQuery(<ProductsScreen />);
 
-    await waitFor(() => expect(useProducts).toHaveBeenCalled());
-    (useProducts as jest.Mock).mockClear();
+    await waitFor(() => expect(useInfiniteProducts).toHaveBeenCalled());
+    (useInfiniteProducts as jest.Mock).mockClear();
     (useCategories as jest.Mock).mockClear();
     (useAddToCart as jest.Mock).mockClear();
 
@@ -176,19 +182,24 @@ describe('ProductsScreen', () => {
     // Debounce is 400ms — waitFor retries for 2s with real timers
     await waitFor(
       () => {
-        expect(useProducts).toHaveBeenCalledWith(expect.objectContaining({ search: 'gạo' }));
+        expect(useInfiniteProducts).toHaveBeenCalledWith(
+          expect.objectContaining({ search: 'gạo' })
+        );
       },
       { timeout: 2000 }
     );
   });
 
   it('shows empty state when no products found', async () => {
-    (useProducts as jest.Mock).mockReturnValue({
-      data: { items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 },
+    (useInfiniteProducts as jest.Mock).mockReturnValue({
+      data: { pages: [{ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }] },
       isLoading: false,
       isFetching: false,
       refetch: jest.fn(),
       isRefetching: false,
+      fetchNextPage: jest.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
     });
     const { getByText } = renderWithQuery(<ProductsScreen />);
     await waitFor(() => {
@@ -203,7 +214,7 @@ describe('ProductsScreen', () => {
       expect(getByText('Mới')).toBeTruthy();
     });
 
-    (useProducts as jest.Mock).mockClear();
+    (useInfiniteProducts as jest.Mock).mockClear();
     (useCategories as jest.Mock).mockClear();
     (useAddToCart as jest.Mock).mockClear();
 
@@ -212,7 +223,7 @@ describe('ProductsScreen', () => {
     });
 
     await waitFor(() => {
-      expect(useProducts).toHaveBeenCalledWith(expect.objectContaining({ isNew: true }));
+      expect(useInfiniteProducts).toHaveBeenCalledWith(expect.objectContaining({ isNew: true }));
     });
   });
 
@@ -223,7 +234,7 @@ describe('ProductsScreen', () => {
       expect(getByText('Giảm giá')).toBeTruthy();
     });
 
-    (useProducts as jest.Mock).mockClear();
+    (useInfiniteProducts as jest.Mock).mockClear();
     (useCategories as jest.Mock).mockClear();
     (useAddToCart as jest.Mock).mockClear();
 
@@ -232,7 +243,9 @@ describe('ProductsScreen', () => {
     });
 
     await waitFor(() => {
-      expect(useProducts).toHaveBeenCalledWith(expect.objectContaining({ isDiscount: true }));
+      expect(useInfiniteProducts).toHaveBeenCalledWith(
+        expect.objectContaining({ isDiscount: true })
+      );
     });
   });
 });
