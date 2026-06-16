@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
-  Platform,
   StatusBar,
   Dimensions,
   Share,
@@ -31,7 +30,7 @@ const IMG_H = Math.min(W * 0.85, 420);
 
 export default function ProductDetailScreen() {
   const { t } = useTranslation();
-  const { bottom } = useSafeAreaInsets();
+  const { bottom, top } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data: product, isLoading, isError } = useProduct(id);
@@ -75,6 +74,7 @@ export default function ProductDetailScreen() {
   useEffect(() => {
     if (isError && !navigatedBack.current) {
       navigatedBack.current = true;
+      show('Không thể tải sản phẩm. Vui lòng thử lại.', 'error');
       router.back();
     }
   }, [isError]);
@@ -141,12 +141,16 @@ export default function ProductDetailScreen() {
           />
 
           {/* Back button */}
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={[s.backBtn, { top: top + 8 }]}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
             <Ionicons name="arrow-back" size={20} color="#fff" />
           </TouchableOpacity>
 
           {/* Header action buttons */}
-          <View style={s.headerActions}>
+          <View style={[s.headerActions, { top: top + 8 }]}>
             <TouchableOpacity
               style={s.headerBtn}
               onPress={handleShare}
