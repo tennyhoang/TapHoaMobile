@@ -59,7 +59,7 @@
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
-    "danger": "^13.0.7",
+    "danger": "^13.0.8",
     "eslint": "^8.57.1",
     "eslint-config-expo": "^56.0.4",
     "eslint-config-prettier": "^10.1.8",
