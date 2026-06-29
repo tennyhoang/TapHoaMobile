@@ -55,7 +55,7 @@
     "@react-native/jest-preset": "^0.85.3",
     "@storybook/addon-ondevice-actions": "^10.4.4",
     "@storybook/addon-ondevice-controls": "^10.4.4",
-    "@storybook/react-native": "^10.4.4",
+    "@storybook/react-native": "^10.4.7",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
